@@ -88,13 +88,13 @@ class _MainScreenState extends State<MainScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: const Text('Balance updated successfully!'),
-                    backgroundColor: AppTheme.primaryColor,
+                    backgroundColor: Theme.of(context).primaryColor,
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? Colors.white : Colors.black,
-                foregroundColor: isDark ? Colors.black : Colors.white,
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text('Confirm & Add', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -137,7 +137,7 @@ class _MainScreenState extends State<MainScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final navBgColor = isDark ? const Color(0xFF161618) : Colors.white;
     final iconColor = isDark ? Colors.white54 : Colors.black54;
-    final activeIconColor = isDark ? Colors.white : Colors.black;
+    final activeIconColor = Theme.of(context).primaryColor;
     final activeBgColor = isDark ? Colors.white12 : Colors.black12;
 
     return Scaffold(
@@ -185,7 +185,7 @@ class _MainScreenState extends State<MainScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _currentIndex == index;
     final iconColor = isDark ? Colors.white54 : Colors.black54;
-    final activeIconColor = isDark ? Colors.white : Colors.black;
+    final activeIconColor = Theme.of(context).primaryColor;
     final activeBgColor = isDark ? Colors.white12 : Colors.black12;
 
     return GestureDetector(
@@ -208,8 +208,8 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _buildAddButton() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final btnColor = isDark ? Colors.white : Colors.black;
-    final iconColor = isDark ? Colors.black : Colors.white;
+    final btnColor = Theme.of(context).primaryColor;
+    final iconColor = Theme.of(context).colorScheme.onPrimary;
 
     return GestureDetector(
       onTap: () => _onItemTapped(2),

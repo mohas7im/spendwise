@@ -47,8 +47,8 @@ class IncomeSalaryScreen extends StatelessWidget {
                   child: Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
-                        child: Icon(_getIconForType(inc.type), color: isDark ? Colors.white : Colors.black),
+                        backgroundColor: (Theme.of(context).primaryColor).withOpacity(0.1),
+                        child: Icon(_getIconForType(inc.type), color: Theme.of(context).primaryColor),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -65,7 +65,7 @@ class IncomeSalaryScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
+                            color: (Theme.of(context).primaryColor).withOpacity(0.05),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
@@ -82,8 +82,8 @@ class IncomeSalaryScreen extends StatelessWidget {
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddIncomeModal(context, provider, isDark),
-        backgroundColor: isDark ? Colors.white : Colors.black,
-        foregroundColor: isDark ? Colors.black : Colors.white,
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         icon: const Icon(Icons.add),
         label: const Text('Add Income', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
@@ -108,8 +108,8 @@ class IncomeSalaryScreen extends StatelessWidget {
     final amountController = TextEditingController();
     final dateController = TextEditingController();
     IncomeType selectedType = IncomeType.freelance;
-    final primaryColor = isDark ? Colors.white : Colors.black;
-    final textColor = isDark ? Colors.black : Colors.white;
+    final primaryColor = Theme.of(context).primaryColor;
+    final textColor = Theme.of(context).colorScheme.onPrimary;
 
     showModalBottomSheet(
       context: context,

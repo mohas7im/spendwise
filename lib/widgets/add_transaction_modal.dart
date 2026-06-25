@@ -151,8 +151,8 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                         onTap: () => setState(() => selectedCategory = category['name']),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : Theme.of(context).cardColor,
-                            border: Border.all(color: isSelected ? AppTheme.primaryColor : Colors.transparent, width: 2),
+                            color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.1) : Theme.of(context).cardColor,
+                            border: Border.all(color: isSelected ? Theme.of(context).primaryColor : Colors.transparent, width: 2),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
@@ -160,7 +160,7 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                             children: [
                               Text(category['emoji'], style: const TextStyle(fontSize: 24)),
                               const SizedBox(height: 4),
-                              Text(category['name'], style: TextStyle(fontSize: 10, color: isSelected ? AppTheme.primaryColor : Colors.grey, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Text(category['name'], style: TextStyle(fontSize: 10, color: isSelected ? Theme.of(context).primaryColor : Colors.grey, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal), maxLines: 1, overflow: TextOverflow.ellipsis),
                             ],
                           ),
                         ),

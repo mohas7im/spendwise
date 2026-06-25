@@ -32,7 +32,7 @@ class ProfileScreen extends StatelessWidget {
                   image: NetworkImage('https://i.pravatar.cc/300?img=11'),
                   fit: BoxFit.cover,
                 ),
-                border: Border.all(color: AppTheme.primaryColor, width: 3),
+                border: Border.all(color: Theme.of(context).primaryColor, width: 3),
               ),
             ),
             const SizedBox(height: 16),
@@ -49,7 +49,7 @@ class ProfileScreen extends StatelessWidget {
               trailing: Switch(
                 value: isDark,
                 onChanged: (value) => themeProvider.toggleTheme(value),
-                activeColor: AppTheme.primaryColor,
+                activeColor: Theme.of(context).primaryColor,
               ),
             ),
             _buildSettingTile(context, icon: Icons.notifications_outlined, title: 'Notifications', trailing: const Icon(Icons.chevron_right, color: Colors.grey)),
@@ -106,10 +106,10 @@ class ProfileScreen extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withOpacity(0.1),
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: AppTheme.primaryColor),
+          child: Icon(icon, color: Theme.of(context).primaryColor),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
         subtitle: subtitle != null ? Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)) : null,

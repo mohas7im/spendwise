@@ -41,10 +41,10 @@ class BalanceSection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.15),
+                  color: Theme.of(context).primaryColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text('+ 1.2%', style: TextStyle(color: AppTheme.primaryColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                child: const Text('+ 1.2%', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 12, fontWeight: FontWeight.bold)),
               )
             ],
           ),
@@ -86,7 +86,7 @@ class BalanceSection extends StatelessWidget {
           children: [
             Text(amount, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(width: 6),
-            Text(percent, style: const TextStyle(color: AppTheme.primaryColor, fontSize: 12)),
+            Text(percent, style: const TextStyle(color: Theme.of(context).primaryColor, fontSize: 12)),
           ],
         ),
       ],

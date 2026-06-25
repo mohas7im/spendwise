@@ -113,7 +113,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
               return BarTooltipItem(
                 '₹${rod.toY.round()}',
                 TextStyle(
-                  color: isActive ? (isDark ? Colors.white : Colors.black) : Colors.grey,
+                  color: isActive ? (Theme.of(context).primaryColor) : Colors.grey,
                   fontWeight: FontWeight.bold,
                   fontSize: 11,
                 ),
@@ -129,7 +129,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
               getTitlesWidget: (value, meta) {
                 final isActive = value.toInt() == 3; // Hardcoding index 3 (Wed) or max value index as active
                 final style = TextStyle(
-                  color: isActive ? (isDark ? Colors.white : Colors.black) : Colors.grey,
+                  color: isActive ? (Theme.of(context).primaryColor) : Colors.grey,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 );

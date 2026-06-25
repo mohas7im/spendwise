@@ -54,12 +54,12 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                     onTap: _showManageIncomeModal,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(color: AppTheme.primaryColor.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
+                      decoration: BoxDecoration(color: Theme.of(context).primaryColor.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
                       child: const Row(
                         children: [
-                          Icon(Icons.edit_outlined, color: AppTheme.primaryColor, size: 16),
+                          Icon(Icons.edit_outlined, color: Theme.of(context).primaryColor, size: 16),
                           SizedBox(width: 6),
-                          Text('Manage Income', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                          Text('Manage Income', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 13)),
                         ],
                       ),
                     ),
@@ -101,7 +101,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Spending Limits', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-                          TextButton(onPressed: () {}, child: const Text('+ Add', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold))),
+                          TextButton(onPressed: () {}, child: const Text('+ Add', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold))),
                         ],
                       ),
                     ),
@@ -170,8 +170,8 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(color: AppTheme.primaryColor.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
-              child: const Text('Recommended', style: TextStyle(color: AppTheme.primaryColor, fontSize: 10, fontWeight: FontWeight.bold)),
+              decoration: BoxDecoration(color: Theme.of(context).primaryColor.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
+              child: const Text('Recommended', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 10, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -184,7 +184,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
             const SizedBox(width: 10),
             _buildRuleCard('30%', 'Wants', '₹${budget.wantsBudget.toStringAsFixed(0)}', 'Fun & Shopping', const Color(0xFFF59E0B)),
             const SizedBox(width: 10),
-            _buildRuleCard('20%', 'Savings', '₹${budget.savingsBudget.toStringAsFixed(0)}', 'Invest & Save', AppTheme.primaryColor),
+            _buildRuleCard('20%', 'Savings', '₹${budget.savingsBudget.toStringAsFixed(0)}', 'Invest & Save', Theme.of(context).primaryColor),
           ],
         ),
       ],
@@ -375,7 +375,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(income.source, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              Text('₹${income.amount.toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                              Text('₹${income.amount.toStringAsFixed(0)}', style: const TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
                             ],
                           ),
                           IconButton(
@@ -438,8 +438,8 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                       amountController.clear();
                     }
                   },
-                  icon: const Icon(Icons.add_circle, color: AppTheme.primaryColor),
-                  label: const Text('Add Income Source', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                  icon: const Icon(Icons.add_circle, color: Theme.of(context).primaryColor),
+                  label: const Text('Add Income Source', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
                 ),
               ),
 
@@ -459,7 +459,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                     Navigator.pop(ctx);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
+                    backgroundColor: Theme.of(context).primaryColor,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),

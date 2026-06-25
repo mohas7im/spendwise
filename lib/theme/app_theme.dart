@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Brand Colors
-  static const Color primaryColor = Colors.white; // Monochrome style
   static const Color secondaryColor = Color(0xFF3B82F6); // Blue accent
 
   // Light Theme Colors
@@ -21,10 +20,11 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       brightness: Brightness.light,
-      primaryColor: primaryColor,
+      primaryColor: Colors.black,
       scaffoldBackgroundColor: lightBackground,
       colorScheme: const ColorScheme.light(
-        primary: primaryColor,
+        primary: Colors.black,
+        onPrimary: Colors.white,
         secondary: secondaryColor,
         surface: lightSurface,
       ),
@@ -50,10 +50,11 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,
-      primaryColor: primaryColor,
+      primaryColor: Colors.white,
       scaffoldBackgroundColor: darkBackground,
       colorScheme: const ColorScheme.dark(
-        primary: primaryColor,
+        primary: Colors.white,
+        onPrimary: Colors.black,
         secondary: secondaryColor,
         surface: darkSurface,
       ),

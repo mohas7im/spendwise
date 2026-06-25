@@ -16,8 +16,8 @@ class CustomTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final indicatorColor = isDark ? Colors.white : Colors.black;
-    final activeLabelColor = isDark ? Colors.black : Colors.white;
+    final indicatorColor = Theme.of(context).primaryColor;
+    final activeLabelColor = Theme.of(context).colorScheme.onPrimary;
 
     return Padding(
       padding: padding,
