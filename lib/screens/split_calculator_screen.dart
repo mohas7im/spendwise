@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/split_provider.dart';
+import '../providers/friends_provider.dart';
 import '../models/split_bill.dart';
 
 class SplitCalculatorScreen extends StatefulWidget {
@@ -20,7 +21,7 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.person_add_alt_1),
-            onPressed: () => _showAddPersonDialog(context, Provider.of<SplitProvider>(context, listen: false)),
+            onPressed: () => _showAddPersonSheet(context, Provider.of<SplitProvider>(context, listen: false)),
           )
         ],
       ),
@@ -217,34 +218,101 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> {
     );
   }
 
-  void _showAddPersonDialog(BuildContext context, SplitProvider provider) {
-    final nameController = TextEditingController();
-    showDialog(
+  void _showAddPersonSheet(BuildContext context, SplitProvider splitProvider) {
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Theme.of(context).cardColor,
-        title: const Text('Add Person'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
-          ElevatedButton(
-            onPressed: () {
-              if (nameController.text.trim().isNotEmpty) {
-                provider.addPerson(nameController.text.trim());
-                Navigator.pop(ctx);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-            ),
-            child: const Text('Add'),
-          )
-        ],
-      ),
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        return Consumer<FriendsProvider>(
+          builder: (ctx, friendsProvider, _) {
+            // Filter out friends that are already in the split bill
+            final availableFriends = friendsProvider.friends.where((f) {
+              return !splitProvider.people.any((p) => p.name.toLowerCase() == f.name.toLowerCase());
+            }).toList();
+
+            return Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, top: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text('Add Person', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Quick add existing friends
+                  if (availableFriends.isNotEmpty) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24),
+                      child: Text('From your Friends List', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 100,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: availableFriends.length,
+                        itemBuilder: (context, index) {
+                          final f = availableFriends[index];
+                          return GestureDetector(
+                            onTap: () {
+                              splitProvider.addPerson(f.name);
+                              Navigator.pop(ctx);
+                            },
+                            child: Container(
+                              width: 72,
+                              margin: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Column(
+                                children: [
+                                  CircleAvatar(radius: 28, backgroundImage: NetworkImage(f.avatarUrl)),
+                                  const SizedBox(height: 8),
+                                  Text(f.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const Divider(height: 32),
+                  ],
+
+                  // Add new person
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Text('Or add a new person', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            onSubmitted: (val) {
+                              if (val.trim().isNotEmpty) {
+                                splitProvider.addPerson(val.trim());
+                                // Automatically save to global friends list!
+                                friendsProvider.addFriend(val.trim());
+                                Navigator.pop(ctx);
+                              }
+                            },
+                            decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
