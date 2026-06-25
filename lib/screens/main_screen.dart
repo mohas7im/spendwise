@@ -129,13 +129,6 @@ class _MainScreenState extends State<MainScreen> {
         decoration: BoxDecoration(
           color: btnColor,
           shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: btnColor.withOpacity(0.4),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            )
-          ],
         ),
         child: Icon(Icons.add, color: iconColor, size: 28),
       ),
