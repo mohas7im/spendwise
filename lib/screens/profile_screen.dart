@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../main.dart';
+import 'income_salary_screen.dart';
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -55,7 +57,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _buildSectionHeader('Financial Setup'),
             _buildSettingTile(context, icon: Icons.account_balance_wallet_outlined, title: 'Income & Salary', subtitle: 'Manage company salary and freelance income', trailing: const Icon(Icons.chevron_right, color: Colors.grey), onTap: () {
-              // TODO: Navigate to Income setup
+              Navigator.push(context, MaterialPageRoute(builder: (ctx) => const IncomeSalaryScreen()));
             }),
             _buildSettingTile(context, icon: Icons.pie_chart_outline, title: 'Budget Rules', subtitle: 'Configure 50/30/20 preferences', trailing: const Icon(Icons.chevron_right, color: Colors.grey)),
             _buildSettingTile(context, icon: Icons.category_outlined, title: 'Custom Categories', trailing: const Icon(Icons.chevron_right, color: Colors.grey)),

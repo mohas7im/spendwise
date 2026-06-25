@@ -4,6 +4,10 @@ import 'budget_screen.dart';
 import 'debt_screen.dart';
 import 'stats_screen.dart';
 import '../widgets/add_transaction_modal.dart';
+import 'package:provider/provider.dart';
+import '../providers/finance_provider.dart';
+import '../models/income_source.dart';
+import '../theme/app_theme.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,6 +18,92 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  bool _hasCheckedSalaries = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_hasCheckedSalaries) {
+        _hasCheckedSalaries = true;
+        _checkPendingSalaries();
+      }
+    });
+  }
+
+  void _checkPendingSalaries() {
+    final provider = Provider.of<FinanceProvider>(context, listen: false);
+    final pending = provider.getPendingIncomes();
+    
+    if (pending.isNotEmpty) {
+      // Just process the first one for the demo
+      _showSalaryArrivalDialog(pending.first, provider);
+    }
+  }
+
+  void _showSalaryArrivalDialog(IncomeSource inc, FinanceProvider provider) {
+    final amountController = TextEditingController(text: inc.amount.toStringAsFixed(0));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).cardColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(
+            children: [
+              const Text('🎉', style: TextStyle(fontSize: 24)),
+              const SizedBox(width: 8),
+              Text('Payday?', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Your expected income from ${inc.name} is due around this time.', style: const TextStyle(color: Colors.grey)),
+              const SizedBox(height: 24),
+              TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Received Amount (₹)',
+                  helperText: 'Edit if amount changed due to overtime/LOP',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Not Yet', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final amt = double.tryParse(amountController.text) ?? inc.amount;
+                provider.creditIncome(inc.id, amt);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Balance updated successfully!'),
+                    backgroundColor: AppTheme.primaryColor,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDark ? Colors.white : Colors.black,
+                foregroundColor: isDark ? Colors.black : Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Confirm & Add', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   final List<Widget> _screens = [
     const DashboardScreen(),
