@@ -20,23 +20,40 @@ class FinanceProvider extends ChangeNotifier {
   List<DebtModel> get debts => _debts;
   List<IncomeSource> get incomeSources => _incomeSources;
 
-  void recordDebtPayment(String debtId, double paymentAmount) {
+  void recordDebtPayment(String debtId, double paymentAmount, {PaymentStatus status = PaymentStatus.paid, String? note}) {
     final debtIndex = _debts.indexWhere((d) => d.id == debtId);
     if (debtIndex == -1) return;
 
     final debt = _debts[debtIndex];
     
-    // Ensure we don't overpay
+    // Ensure we don't overpay for paid status (unless partial)
     final amountToPay = paymentAmount > debt.remainingAmount ? debt.remainingAmount : paymentAmount;
     
-    debt.repaidAmount += amountToPay;
+    final payment = DebtPayment(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      date: DateTime.now(),
+      amount: amountToPay,
+      status: status,
+      note: note,
+    );
+    
+    debt.paymentHistory.add(payment);
 
-    // If I owe money, repaying it decreases my main balance.
-    // If they owe money, repaying it increases my main balance.
-    if (debt.type == DebtType.iOwe) {
-      _totalBalance -= amountToPay;
-    } else {
-      _totalBalance += amountToPay;
+    // Advance next due date if it's a structured loan/EMI and the payment was successful
+    if (debt.nextDueDate != null && status == PaymentStatus.paid) {
+      debt.nextDueDate = DateTime(
+        debt.nextDueDate!.year, 
+        debt.nextDueDate!.month + 1, 
+        debt.nextDueDate!.day
+      );
+    }
+
+    if (status == PaymentStatus.paid || status == PaymentStatus.partial) {
+      if (debt.type == DebtType.iOwe || debt.type == DebtType.loanTaken || debt.type == DebtType.emiLoan) {
+        _totalBalance -= amountToPay;
+      } else {
+        _totalBalance += amountToPay;
+      }
     }
 
     notifyListeners();
