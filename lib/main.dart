@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/main_screen.dart';
 import 'providers/finance_provider.dart';
+import 'providers/split_provider.dart';
 
 void main() {
   runApp(
@@ -10,6 +11,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => FinanceProvider()),
+        ChangeNotifierProvider(create: (_) => SplitProvider()),
       ],
       child: const ExpenseTrackerApp(),
     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/split_calculator_screen.dart';
 
 class ActionButtons extends StatelessWidget {
   const ActionButtons({super.key});
@@ -26,19 +27,22 @@ class ActionButtons extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Container(
-            height: 56,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1C1C1E),
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.call_received, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                const Text('Request', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-              ],
+          child: GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitCalculatorScreen())),
+            child: Container(
+              height: 56,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1C1C1E),
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.people_outline, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  const Text('Split', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                ],
+              ),
             ),
           ),
         ),
