@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/budget.dart';
+import '../providers/budget_provider.dart';
 import '../models/income_source.dart';
 import '../services/dummy_data_service.dart';
 import '../theme/app_theme.dart';
@@ -15,13 +17,11 @@ class BudgetScreen extends StatefulWidget {
 }
 
 class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderStateMixin {
-  late BudgetModel budget;
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    budget = DummyDataService.getDummyBudget();
     _tabController = TabController(length: 3, vsync: this);
   }
 
@@ -39,98 +39,106 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
 
     return Scaffold(
       backgroundColor: bgColor,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-              child: Row(
-                children: [
-                  Text('Budget Planner', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: _showManageIncomeModal,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(color: Theme.of(context).primaryColor.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit_outlined, color: Theme.of(context).primaryColor, size: 16),
-                          const SizedBox(width: 6),
-                          Text('Manage Income', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 13)),
-                        ],
+      body: Consumer<BudgetProvider>(
+        builder: (context, provider, child) {
+          final budget = provider.budget;
+          return SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                  child: Row(
+                    children: [
+                      Text('Budget Planner', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: _showManageIncomeModal,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(color: Theme.of(context).primaryColor.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_outlined, color: Theme.of(context).primaryColor, size: 16),
+                              const SizedBox(width: 6),
+                              Text('Manage Income', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                            ],
+                          ),
+                        ),
                       ),
+                    ],
+                  ),
+                ),
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 120),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Salary Summary Card
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                          child: _buildSalarySummaryCard(budget),
+                        ),
+
+                        // 50/30/20 Rule
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: _buildRuleSection(isDark, budget),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Savings Progress
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: _buildSavingsProgress(cardColor, budget),
+                        ),
+                        const SizedBox(height: 28),
+
+                        // Category Limits Header
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Spending Limits', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
+                              TextButton(
+                                onPressed: () => _showAddLimitSheet(context, provider), 
+                                child: Text('+ Add', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold))
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Period Tab Bar
+                        CustomTabBar(
+                          controller: _tabController,
+                          tabs: const [Tab(text: 'Monthly'), Tab(text: 'Weekly'), Tab(text: 'Daily')],
+                        ),
+                        const SizedBox(height: 16),
+
+                        SizedBox(
+                          height: budget.categoryLimits.length * 104.0,
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildCategoryLimitsList(LimitPeriod.monthly, budget),
+                              _buildCategoryLimitsList(LimitPeriod.weekly, budget),
+                              _buildCategoryLimitsList(LimitPeriod.daily, budget),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 120),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Salary Summary Card
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                      child: _buildSalarySummaryCard(),
-                    ),
-
-                    // 50/30/20 Rule
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: _buildRuleSection(isDark),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Savings Progress
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: _buildSavingsProgress(cardColor),
-                    ),
-                    const SizedBox(height: 28),
-
-                    // Category Limits Header
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Spending Limits', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-                          TextButton(onPressed: () {}, child: Text('+ Add', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold))),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Period Tab Bar
-                    CustomTabBar(
-                      controller: _tabController,
-                      tabs: const [Tab(text: 'Monthly'), Tab(text: 'Weekly'), Tab(text: 'Daily')],
-                    ),
-                    const SizedBox(height: 16),
-
-                    SizedBox(
-                      height: budget.categoryLimits.length * 104.0,
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildCategoryLimitsList(LimitPeriod.monthly),
-                          _buildCategoryLimitsList(LimitPeriod.weekly),
-                          _buildCategoryLimitsList(LimitPeriod.daily),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -160,7 +168,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildRuleSection(bool isDark) {
+  Widget _buildRuleSection(bool isDark, BudgetModel budget) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -212,7 +220,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildSavingsProgress(Color cardColor) {
+  Widget _buildSavingsProgress(Color cardColor, BudgetModel budget) {
     final savingsGoal = budget.savingsBudget;
     final currentSavings = savingsGoal * 0.6;
     return Container(
@@ -241,7 +249,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildCategoryLimitsList(LimitPeriod period) {
+  Widget _buildCategoryLimitsList(LimitPeriod period, BudgetModel budget) {
     final divisor = period == LimitPeriod.weekly ? 4.0 : period == LimitPeriod.daily ? 30.0 : 1.0;
     final items = budget.categoryLimits.map((l) => CategoryLimit(
       category: l.category, emoji: l.emoji,
@@ -470,6 +478,82 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
           ),
         ),
       ),
+    );
+  }
+
+  void _showAddLimitSheet(BuildContext context, BudgetProvider provider) {
+    final categoryController = TextEditingController();
+    final amountController = TextEditingController();
+    final emojiController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Add Spending Limit', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: TextField(
+                        controller: emojiController,
+                        decoration: const InputDecoration(labelText: 'Emoji (e.g. 🎮)', border: OutlineInputBorder()),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 3,
+                      child: TextField(
+                        controller: categoryController,
+                        decoration: const InputDecoration(labelText: 'Category Name', border: OutlineInputBorder()),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: amountController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Limit Amount (₹)', border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Theme.of(context).colorScheme.onPrimary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    onPressed: () {
+                      final amount = double.tryParse(amountController.text) ?? 0.0;
+                      if (categoryController.text.isNotEmpty && amount > 0) {
+                        provider.addCategoryLimit(CategoryLimit(
+                          category: categoryController.text,
+                          limitAmount: amount,
+                          spentAmount: 0,
+                          emoji: emojiController.text.isNotEmpty ? emojiController.text : '🔹',
+                          color: Colors.blueAccent, // Default color for new limits
+                        ));
+                        Navigator.pop(ctx);
+                      }
+                    },
+                    child: const Text('Add Limit', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
