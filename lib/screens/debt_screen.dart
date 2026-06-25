@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/debt.dart';
 import '../providers/finance_provider.dart';
+import '../widgets/common/premium_gradient_card.dart';
+import '../widgets/common/custom_tab_bar.dart';
 
 class DebtScreen extends StatefulWidget {
   const DebtScreen({super.key});
@@ -63,30 +65,12 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
             ),
 
             // Tab Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.blue,
-                  ),
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.grey,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-                  dividerColor: Colors.transparent,
-                  tabs: [
-                    Tab(text: 'They Owe Me (${theyOweList.length})'),
-                    Tab(text: 'I Owe (${iOweList.length})'),
-                  ],
-                ),
-              ),
+            CustomTabBar(
+              controller: _tabController,
+              tabs: [
+                Tab(text: 'They Owe Me (${theyOweList.length})'),
+                Tab(text: 'I Owe (${iOweList.length})'),
+              ],
             ),
             const SizedBox(height: 16),
 
@@ -107,13 +91,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
 
   Widget _buildNetSummaryCard(double totalTheyOwe, double totalIOwe, double netBalance) {
     final isPositive = netBalance >= 0;
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF2A2D34), Color(0xFF13151A)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
+    return PremiumGradientCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

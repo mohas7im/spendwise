@@ -3,7 +3,10 @@ import '../models/budget.dart';
 import '../models/income_source.dart';
 import '../services/dummy_data_service.dart';
 import '../theme/app_theme.dart';
-
+import '../widgets/common/premium_gradient_card.dart';
+import '../widgets/common/custom_tab_bar.dart';
+import '../widgets/common/custom_progress_bar.dart';
+import '../widgets/common/metric_card.dart';
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
 
@@ -105,21 +108,9 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                     const SizedBox(height: 8),
 
                     // Period Tab Bar
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(16)),
-                        child: TabBar(
-                          controller: _tabController,
-                          indicator: BoxDecoration(color: AppTheme.primaryColor, borderRadius: BorderRadius.circular(12)),
-                          labelColor: Colors.black,
-                          unselectedLabelColor: Colors.grey,
-                          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                          dividerColor: Colors.transparent,
-                          tabs: const [Tab(text: 'Monthly'), Tab(text: 'Weekly'), Tab(text: 'Daily')],
-                        ),
-                      ),
+                    CustomTabBar(
+                      controller: _tabController,
+                      tabs: const [Tab(text: 'Monthly'), Tab(text: 'Weekly'), Tab(text: 'Daily')],
                     ),
                     const SizedBox(height: 16),
 
@@ -145,13 +136,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
   }
 
   Widget _buildSalarySummaryCard() {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF2A2D34), Color(0xFF13151A)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
+    return PremiumGradientCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -208,13 +193,10 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
 
   Widget _buildRuleCard(String percent, String label, String amount, String subtitle, Color color) {
     return Expanded(
-      child: Container(
+      child: MetricCard(
+        baseColor: color,
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.25), width: 1.5),
-        ),
+        borderWidth: 1.5,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -251,10 +233,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
             ],
           ),
           const SizedBox(height: 14),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(value: 0.6, minHeight: 10, backgroundColor: Colors.grey.withOpacity(0.15), valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue)),
-          ),
+          const CustomProgressBar(percent: 0.6, minHeight: 10),
           const SizedBox(height: 8),
           const Text('60% of your savings goal reached this month 🎯', style: TextStyle(color: Colors.grey, fontSize: 11)),
         ],
@@ -319,14 +298,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
             ],
           ),
           const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: limit.percentUsed, minHeight: 8,
-              backgroundColor: Colors.grey.withOpacity(0.12),
-              valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-            ),
-          ),
+          CustomProgressBar(percent: limit.percentUsed, minHeight: 8),
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../theme/app_theme.dart';
+import '../widgets/common/custom_tab_bar.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -40,31 +41,14 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
             ),
 
             // Tab Bar
-            Padding(
+            CustomTabBar(
+              controller: _tabController,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    color: AppTheme.primaryColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.grey,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  dividerColor: Colors.transparent,
-                  tabs: const [
-                    Tab(text: 'Weekly'),
-                    Tab(text: 'Monthly'),
-                    Tab(text: 'Yearly'),
-                  ],
-                ),
-              ),
+              tabs: const [
+                Tab(text: 'Weekly'),
+                Tab(text: 'Monthly'),
+                Tab(text: 'Yearly'),
+              ],
             ),
 
             Expanded(
