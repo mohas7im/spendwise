@@ -107,66 +107,47 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
 
   Widget _buildNetSummaryCard(double totalTheyOwe, double totalIOwe, double netBalance) {
     final isPositive = netBalance >= 0;
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.blue.withOpacity(0.3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('They Owe Me', style: TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Text('+₹${totalTheyOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.blue, fontSize: 18, fontWeight: FontWeight.bold)),
-              ],
-            ),
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFF2A2D34), Color(0xFF13151A)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Net Balance (Debt)', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          const SizedBox(height: 6),
+          Text(
+            '${isPositive ? '+' : ''}₹${netBalance.abs().toStringAsFixed(0)}',
+            style: const TextStyle(color: Colors.white, fontSize: 38, fontWeight: FontWeight.bold, letterSpacing: -1),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.redAccent.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('I Owe', style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text('-₹${totalIOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isPositive ? Colors.blue.withOpacity(0.1) : Colors.redAccent.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: isPositive ? Colors.blue.withOpacity(0.3) : Colors.redAccent.withOpacity(0.3)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 16),
+          Row(
             children: [
-              const Text('Net', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Text(
-                '${isPositive ? '+' : ''}₹${netBalance.abs().toStringAsFixed(0)}',
-                style: TextStyle(color: isPositive ? Colors.blue : Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('They Owe Me', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                    Text('₹${totalTheyOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('I Owe', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                    Text('₹${totalIOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                  ],
+                ),
               ),
             ],
-          ),
-        ),
-      ],
+          )
+        ],
+      ),
     );
   }
 
