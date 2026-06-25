@@ -117,23 +117,27 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildAddButton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final btnColor = isDark ? Colors.white : Colors.black;
+    final iconColor = isDark ? Colors.black : Colors.white;
+
     return GestureDetector(
       onTap: () => _onItemTapped(2),
       child: Container(
         width: 52,
         height: 52,
         decoration: BoxDecoration(
-          color: Colors.black,
+          color: btnColor,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.4),
+              color: btnColor.withOpacity(0.4),
               blurRadius: 12,
               offset: const Offset(0, 4),
             )
           ],
         ),
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
+        child: Icon(Icons.add, color: iconColor, size: 28),
       ),
     );
   }
