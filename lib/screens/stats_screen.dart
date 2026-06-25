@@ -153,25 +153,25 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
         ),
         borderData: FlBorderData(show: false),
         barGroups: [
-          _buildBarGroup(0, 12000),
-          _buildBarGroup(1, 8000),
-          _buildBarGroup(2, 15000),
-          _buildBarGroup(3, 18000),
-          _buildBarGroup(4, 9000),
-          _buildBarGroup(5, 11000),
-          _buildBarGroup(6, 16000),
+          _buildBarGroup(0, 12000, isDark),
+          _buildBarGroup(1, 8000, isDark),
+          _buildBarGroup(2, 15000, isDark),
+          _buildBarGroup(3, 18000, isDark),
+          _buildBarGroup(4, 9000, isDark),
+          _buildBarGroup(5, 11000, isDark),
+          _buildBarGroup(6, 16000, isDark),
         ],
       ),
     );
   }
 
-  BarChartGroupData _buildBarGroup(int x, double y) {
+  BarChartGroupData _buildBarGroup(int x, double y, bool isDark) {
     return BarChartGroupData(
       x: x,
       barRods: [
         BarChartRodData(
           toY: y,
-          color: AppTheme.primaryColor,
+          color: isDark ? Colors.white : Colors.black,
           width: 16,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(8),
@@ -220,7 +220,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                     value: percent,
                     minHeight: 6,
                     backgroundColor: Theme.of(context).cardColor,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                    valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
                   ),
                 ),
               ],
