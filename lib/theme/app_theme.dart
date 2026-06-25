@@ -28,7 +28,7 @@ class AppTheme {
         secondary: secondaryColor,
         surface: lightSurface,
       ),
-      textTheme: GoogleFonts.outfitTextTheme().copyWith(
+      textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme).copyWith(
         displayLarge: GoogleFonts.outfit(color: lightText, fontWeight: FontWeight.bold),
         titleLarge: GoogleFonts.outfit(color: lightText, fontWeight: FontWeight.w600),
         bodyLarge: GoogleFonts.outfit(color: lightText),
@@ -58,7 +58,7 @@ class AppTheme {
         secondary: secondaryColor,
         surface: darkSurface,
       ),
-      textTheme: GoogleFonts.outfitTextTheme().copyWith(
+      textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme).copyWith(
         displayLarge: GoogleFonts.outfit(color: darkText, fontWeight: FontWeight.bold),
         titleLarge: GoogleFonts.outfit(color: darkText, fontWeight: FontWeight.w600),
         bodyLarge: GoogleFonts.outfit(color: darkText),
