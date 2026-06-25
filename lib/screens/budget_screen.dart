@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/budget.dart';
+import '../models/income_source.dart';
 import '../services/dummy_data_service.dart';
 import '../theme/app_theme.dart';
 
