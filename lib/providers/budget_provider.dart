@@ -16,5 +16,8 @@ class BudgetProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Future budget updates could be added here
+  void updateBudget(BudgetModel newBudget) {
+    _budget = newBudget;
+    notifyListeners();
+  }
 }

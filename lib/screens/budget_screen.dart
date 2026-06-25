@@ -54,7 +54,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                       Text('Budget Planner', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                       const Spacer(),
                       GestureDetector(
-                        onTap: _showManageIncomeModal,
+                        onTap: () => _showManageIncomeModal(provider),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(color: Theme.of(context).primaryColor.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
@@ -312,7 +312,8 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
     );
   }
 
-  void _showManageIncomeModal() {
+  void _showManageIncomeModal(BudgetProvider provider) {
+    final budget = provider.budget;
     final salaryController = TextEditingController(text: budget.monthlySalary.toStringAsFixed(0));
     final sourceController = TextEditingController();
     final amountController = TextEditingController();
@@ -457,208 +458,11 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                 child: ElevatedButton(
                   onPressed: () {
                     final newSalary = double.tryParse(salaryController.text) ?? budget.monthlySalary;
-                    setState(() {
-                      budget = BudgetModel(
-                        monthlySalary: newSalary,
-                        incomes: budget.incomes,
-                        categoryLimits: budget.categoryLimits,
-                      );
-                    });
-                    Navigator.pop(ctx);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isOver ? Colors.redAccent.withOpacity(0.3) : Colors.grey.withOpacity(0.1), width: isOver ? 1.5 : 1),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Text(limit.emoji, style: const TextStyle(fontSize: 28)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(limit.category, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-                    Text(
-                      isOver ? '⚠️ Over by ₹${(limit.spentAmount - limit.limitAmount).toStringAsFixed(0)}' : '₹${limit.remainingAmount.toStringAsFixed(0)} left this $periodLabel',
-                      style: TextStyle(color: isOver ? Colors.redAccent : Colors.grey, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('₹${limit.spentAmount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isOver ? Colors.redAccent : null)),
-                  Text('/ ₹${limit.limitAmount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          CustomProgressBar(percent: limit.percentUsed, minHeight: 8),
-        ],
-      ),
-    );
-  }
-
-  void _showManageIncomeModal() {
-    final salaryController = TextEditingController(text: budget.monthlySalary.toStringAsFixed(0));
-    final sourceController = TextEditingController();
-    final amountController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx2, setModalState) => Container(
-          height: MediaQuery.of(ctx).size.height * 0.85,
-          padding: EdgeInsets.only(
-            left: 24, right: 24, top: 24,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(child: Text('Manage Income', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold))),
-              const SizedBox(height: 24),
-
-              // Base Salary Edit
-              Text('Base Monthly Salary', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              TextField(
-                controller: salaryController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  prefixText: '₹ ',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 12),
-
-              // Additional Income Streams
-              Text('Additional Income Streams', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              
-              if (budget.incomes.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8.0),
-                  child: Text('No additional income streams.', style: TextStyle(color: Colors.grey)),
-                ),
-
-              Expanded(
-                child: ListView.builder(
-                  itemCount: budget.incomes.length,
-                  itemBuilder: (context, index) {
-                    final income = budget.incomes[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.withOpacity(0.1)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(income.source, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              Text('₹${income.amount.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                            onPressed: () {
-                              setModalState(() {
-                                budget.incomes.removeAt(index);
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 12),
-              // Add New Income
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: TextField(
-                      controller: sourceController,
-                      decoration: InputDecoration(
-                        labelText: 'Source (e.g. Freelance)',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: amountController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Amount',
-                        prefixText: '₹ ',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton.icon(
-                  onPressed: () {
-                    if (sourceController.text.isNotEmpty && amountController.text.isNotEmpty) {
-                      setModalState(() {
-                        budget.incomes.add(IncomeEntry(
-                          source: sourceController.text,
-                          amount: double.tryParse(amountController.text) ?? 0,
-                          frequency: IncomeFrequency.monthly,
-                        ));
-                      });
-                      sourceController.clear();
-                      amountController.clear();
-                    }
-                  },
-                  icon: Icon(Icons.add_circle, color: Theme.of(context).primaryColor),
-                  label: Text('Add Income Source', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final newSalary = double.tryParse(salaryController.text) ?? budget.monthlySalary;
-                    setState(() {
-                      budget = BudgetModel(
-                        monthlySalary: newSalary,
-                        incomes: budget.incomes,
-                        categoryLimits: budget.categoryLimits,
-                      );
-                    });
+                    provider.updateBudget(BudgetModel(
+                      monthlySalary: newSalary,
+                      incomes: budget.incomes,
+                      categoryLimits: budget.categoryLimits,
+                    ));
                     Navigator.pop(ctx);
                   },
                   style: ElevatedButton.styleFrom(
@@ -702,7 +506,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                       flex: 1,
                       child: TextField(
                         controller: emojiController,
-                        decoration: const InputDecoration(labelText: 'Emoji', border: OutlineInputBorder()),
+                        decoration: const InputDecoration(labelText: 'Emoji (e.g. 🎮)', border: OutlineInputBorder()),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -719,7 +523,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                 TextField(
                   controller: amountController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Limit Amount', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(labelText: 'Limit Amount (₹)', border: OutlineInputBorder()),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
