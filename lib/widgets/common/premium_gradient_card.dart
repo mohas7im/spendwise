@@ -18,7 +18,7 @@ class PremiumGradientCard extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF161618) : Colors.white,
+        color: const Color(0xFF161618),
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
