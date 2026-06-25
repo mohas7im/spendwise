@@ -6,6 +6,7 @@ import '../main.dart'; // for ThemeProvider
 import '../widgets/balance_section.dart';
 import '../widgets/action_buttons.dart';
 import '../widgets/transaction_card.dart';
+import 'profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -34,9 +35,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Row(
                   children: [
-                    const CircleAvatar(
-                      radius: 20,
-                      backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+                      },
+                      child: const CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Column(

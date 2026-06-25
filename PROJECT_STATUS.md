@@ -38,21 +38,6 @@ The `lib/` directory is organized as follows:
   - A text field for notes.
 - *Note: The UI is complete, but it is not yet hooked up to write data to a database or local state.*
 
-## 🚧 What Needs To Be Done Next (Phase 5 & 6)
-
-If you are picking up this project, here is what you should focus on next:
-
-1. **State Management Hookup**: 
-   - Replace the `DummyDataService` with a real state manager (like `provider` or `bloc`) so that adding a transaction in the `AddTransactionModal` actually updates the `DashboardScreen`.
-   
-2. **Build the Profile & Income Setup Screen (`profile_screen.dart`)**:
-   - Currently a placeholder. Needs a UI for the user to input their Monthly/Yearly Salary, Freelance income, and monthly savings goals.
-
-3. **Build the Stats/Analytics Screen (`stats_screen.dart`)**:
-   - Currently a placeholder. Needs interactive charts (e.g., using `fl_chart`) to visualize the "Spending by Category" data over time.
-
-4. **Build the Cards Screen (`cards_screen.dart`)**:
-   - Currently a placeholder. Needs a UI to manage linked bank accounts or credit cards.
 
 5. **Backend Integration**:
    - Define the JSON structures and write an `API_Requirements.md` document to guide backend development.

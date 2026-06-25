@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
+import 'budget_screen.dart';
+import 'debt_screen.dart';
+import 'stats_screen.dart';
 import '../widgets/add_transaction_modal.dart';
-
-// Placeholder screens
-class StatsScreen extends StatelessWidget { const StatsScreen({super.key}); @override Widget build(BuildContext context) => Scaffold(body: Center(child: Text('Stats View', style: Theme.of(context).textTheme.titleLarge))); }
-class CardsScreen extends StatelessWidget { const CardsScreen({super.key}); @override Widget build(BuildContext context) => Scaffold(body: Center(child: Text('Cards View', style: Theme.of(context).textTheme.titleLarge))); }
-class ProfileScreen extends StatelessWidget { const ProfileScreen({super.key}); @override Widget build(BuildContext context) => Scaffold(body: Center(child: Text('Profile View', style: Theme.of(context).textTheme.titleLarge))); }
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -19,15 +17,14 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const DashboardScreen(),
+    const BudgetScreen(),
+    Container(), // '+' add action
+    const DebtScreen(),
     const StatsScreen(),
-    Container(), // Placeholder for '+' add action
-    const CardsScreen(),
-    const ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
     if (index == 2) {
-      // Show Add Action Modal
       _showAddModal();
     } else {
       setState(() {
@@ -58,8 +55,8 @@ class _MainScreenState extends State<MainScreen> {
       body: Stack(
         children: [
           _screens[_currentIndex],
-          
-          // Custom Floating Bottom Navigation Bar
+
+          // Floating Bottom Navigation Bar
           Positioned(
             left: 24,
             right: 24,
@@ -71,38 +68,43 @@ class _MainScreenState extends State<MainScreen> {
                 borderRadius: BorderRadius.circular(36),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
+                    color: Colors.black.withOpacity(isDark ? 0.4 : 0.12),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   )
-                ]
+                ],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildNavItem(0, Icons.home_outlined, Icons.home, activeBgColor, activeIconColor, iconColor),
-                  _buildNavItem(1, Icons.bar_chart_outlined, Icons.bar_chart, activeBgColor, activeIconColor, iconColor),
-                  _buildNavItem(2, Icons.add_circle_outline, Icons.add_circle, activeBgColor, activeIconColor, iconColor),
-                  _buildNavItem(3, Icons.credit_card_outlined, Icons.credit_card, activeBgColor, activeIconColor, iconColor),
-                  _buildNavItem(4, Icons.person_outline, Icons.person, activeBgColor, activeIconColor, iconColor),
+                  _buildNavItem(0, Icons.home_outlined, Icons.home, ''),
+                  _buildNavItem(1, Icons.pie_chart_outline, Icons.pie_chart, ''),
+                  _buildAddButton(),
+                  _buildNavItem(3, Icons.receipt_long_outlined, Icons.receipt_long, ''),
+                  _buildNavItem(4, Icons.bar_chart_outlined, Icons.bar_chart, ''),
                 ],
               ),
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData iconOutlined, IconData iconFilled, Color activeBgColor, Color activeIconColor, Color iconColor) {
+  Widget _buildNavItem(int index, IconData iconOutlined, IconData iconFilled, String label) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _currentIndex == index;
+    final iconColor = isDark ? Colors.white54 : Colors.black54;
+    final activeIconColor = isDark ? Colors.white : Colors.black;
+    final activeBgColor = isDark ? Colors.white12 : Colors.black12;
+
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected && index != 2 ? activeBgColor : Colors.transparent,
+          color: isSelected ? activeBgColor : Colors.transparent,
           shape: BoxShape.circle,
         ),
         child: Icon(
@@ -110,6 +112,32 @@ class _MainScreenState extends State<MainScreen> {
           color: isSelected ? activeIconColor : iconColor,
           size: 28,
         ),
+      ),
+    );
+  }
+
+  Widget _buildAddButton() {
+    return GestureDetector(
+      onTap: () => _onItemTapped(2),
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF10B981), Color(0xFF047857)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF10B981).withOpacity(0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
     );
   }
