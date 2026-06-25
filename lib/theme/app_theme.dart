@@ -19,9 +19,17 @@ class AppTheme {
 
   static ThemeData get lightTheme {
     return ThemeData(
+      useMaterial3: true,
       brightness: Brightness.light,
       primaryColor: Colors.black,
       scaffoldBackgroundColor: lightBackground,
+      splashFactory: InkRipple.splashFactory,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       colorScheme: const ColorScheme.light(
         primary: Colors.black,
         onPrimary: Colors.white,
@@ -49,9 +57,17 @@ class AppTheme {
 
   static ThemeData get darkTheme {
     return ThemeData(
+      useMaterial3: true,
       brightness: Brightness.dark,
       primaryColor: Colors.white,
       scaffoldBackgroundColor: darkBackground,
+      splashFactory: InkRipple.splashFactory,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       colorScheme: const ColorScheme.dark(
         primary: Colors.white,
         onPrimary: Colors.black,

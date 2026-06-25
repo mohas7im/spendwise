@@ -45,6 +45,9 @@ class ExpenseTrackerApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeProvider.themeMode,
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      ),
       home: const MainScreen(),
     );
   }
