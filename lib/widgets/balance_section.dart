@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
-
+import '../theme/app_theme.dart';
 class BalanceSection extends StatelessWidget {
   const BalanceSection({super.key});
 
