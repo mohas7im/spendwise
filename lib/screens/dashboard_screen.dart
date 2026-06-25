@@ -7,6 +7,7 @@ import '../widgets/balance_section.dart';
 import '../widgets/action_buttons.dart';
 import '../widgets/transaction_card.dart';
 import 'profile_screen.dart';
+import 'split_calculator_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -80,6 +81,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
             
             // Balance Section (Dark Mode style maintained)
             const BalanceSection(),
+            const SizedBox(height: 16),
+            
+            // Split Bill Button
+            GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitCalculatorScreen())),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.receipt_long, color: Theme.of(context).primaryColor),
+                        const SizedBox(width: 12),
+                        Text('Split Bill Calculator', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).primaryColor)),
+                      ],
+                    ),
+                    Icon(Icons.arrow_forward_ios, size: 16, color: Theme.of(context).primaryColor),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 24),
 
             // AI Insights Banner
