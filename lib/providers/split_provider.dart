@@ -59,22 +59,11 @@ class SplitProvider extends ChangeNotifier {
       }
 
       // Subtract from the sharers' balances (they owe this amount)
-      if (item.isEquallySplit) {
-        if (item.sharedByPersonIds.isNotEmpty) {
-          double splitAmount = item.amount / item.sharedByPersonIds.length;
-          for (var personId in item.sharedByPersonIds) {
-            if (netBalances.containsKey(personId)) {
-              netBalances[personId] = netBalances[personId]! - splitAmount;
-            }
-          }
+      item.exactAmountsOwed.forEach((personId, owedAmount) {
+        if (netBalances.containsKey(personId)) {
+          netBalances[personId] = netBalances[personId]! - owedAmount;
         }
-      } else {
-        item.exactAmountsOwed.forEach((personId, owedAmount) {
-          if (netBalances.containsKey(personId)) {
-            netBalances[personId] = netBalances[personId]! - owedAmount;
-          }
-        });
-      }
+      });
     }
 
     // 2. Simplify Debts

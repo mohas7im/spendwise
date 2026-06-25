@@ -1,3 +1,5 @@
+enum SplitMethod { equal, exact, percentage, shares, itemized }
+
 class SplitPerson {
   final String id;
   String name;
@@ -10,27 +12,50 @@ class SplitPerson {
   });
 }
 
+class FoodItem {
+  final String id;
+  String name;
+  double price;
+  int quantity;
+  List<String> sharedByPersonIds;
+
+  FoodItem({
+    required this.id,
+    required this.name,
+    required this.price,
+    this.quantity = 1,
+    this.sharedByPersonIds = const [],
+  });
+  
+  double get total => price * quantity;
+}
+
 class SplitItem {
   final String id;
   String name;
   double amount;
   String paidByPersonId;
+  DateTime date;
+  String category;
   
-  bool isEquallySplit;
-  // If equal split, just track who was involved
-  List<String> sharedByPersonIds;
-  
-  // If unequal split, track exact amount each person owes for this item
-  Map<String, double> exactAmountsOwed;
+  SplitMethod splitMethod;
+  List<String> sharedByPersonIds; // For equal split
+  Map<String, double> splitValues; // Raw inputs for exact, percentage, or shares
+  Map<String, double> exactAmountsOwed; // Calculated final amounts owed
+  List<FoodItem> foodItems; // For itemized split
 
   SplitItem({
     required this.id,
     required this.name,
     required this.amount,
     required this.paidByPersonId,
-    this.isEquallySplit = true,
+    required this.date,
+    required this.category,
+    this.splitMethod = SplitMethod.equal,
     this.sharedByPersonIds = const [],
+    this.splitValues = const {},
     this.exactAmountsOwed = const {},
+    this.foodItems = const [],
   });
 }
 
