@@ -15,6 +15,10 @@ class CustomTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final indicatorColor = isDark ? Colors.white : Colors.black;
+    final activeLabelColor = isDark ? Colors.black : Colors.white;
+
     return Padding(
       padding: padding,
       child: Container(
@@ -25,11 +29,12 @@ class CustomTabBar extends StatelessWidget {
         ),
         child: TabBar(
           controller: controller,
+          indicatorSize: TabBarIndicatorSize.tab,
           indicator: BoxDecoration(
-            color: AppTheme.primaryColor,
+            color: indicatorColor,
             borderRadius: BorderRadius.circular(12),
           ),
-          labelColor: Colors.black, // Since primaryColor is White
+          labelColor: activeLabelColor,
           unselectedLabelColor: Colors.grey,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           dividerColor: Colors.transparent,
