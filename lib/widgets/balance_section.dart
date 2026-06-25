@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/finance_provider.dart';
 
 class BalanceSection extends StatelessWidget {
   const BalanceSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final financeProvider = Provider.of<FinanceProvider>(context);
+    
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -32,7 +36,7 @@ class BalanceSection extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text('₹ 74, 348', style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
+              Text('₹ ${financeProvider.totalBalance.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
               const SizedBox(width: 12),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

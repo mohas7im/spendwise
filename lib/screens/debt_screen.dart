@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/debt.dart';
-import '../services/dummy_data_service.dart';
+import '../providers/finance_provider.dart';
 
 class DebtScreen extends StatefulWidget {
   const DebtScreen({super.key});
@@ -10,13 +11,11 @@ class DebtScreen extends StatefulWidget {
 }
 
 class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateMixin {
-  late List<DebtModel> debts;
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    debts = DummyDataService.getDummyDebts();
     _tabController = TabController(length: 2, vsync: this);
   }
 
@@ -26,15 +25,18 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
     super.dispose();
   }
 
-  List<DebtModel> get iOweList => debts.where((d) => d.type == DebtType.iOwe && !d.isPaid).toList();
-  List<DebtModel> get theyOweList => debts.where((d) => d.type == DebtType.theyOwe && !d.isPaid).toList();
-
-  double get totalIOwe => iOweList.fold(0, (sum, d) => sum + d.amount);
-  double get totalTheyOwe => theyOweList.fold(0, (sum, d) => sum + d.amount);
-  double get netBalance => totalTheyOwe - totalIOwe;
-
   @override
   Widget build(BuildContext context) {
+    final financeProvider = Provider.of<FinanceProvider>(context);
+    final debts = financeProvider.debts;
+
+    final iOweList = debts.where((d) => d.type == DebtType.iOwe && !d.isPaid).toList();
+    final theyOweList = debts.where((d) => d.type == DebtType.theyOwe && !d.isPaid).toList();
+
+    final totalIOwe = iOweList.fold(0.0, (sum, d) => sum + d.remainingAmount);
+    final totalTheyOwe = theyOweList.fold(0.0, (sum, d) => sum + d.remainingAmount);
+    final netBalance = totalTheyOwe - totalIOwe;
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -47,7 +49,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
                   Text('Debt Tracker', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                   const Spacer(),
                   IconButton(
-                    onPressed: _showAddDebtModal,
+                    onPressed: () => _showAddDebtModal(financeProvider),
                     icon: const Icon(Icons.add_circle, color: Color(0xFF10B981), size: 28),
                   ),
                 ],
@@ -57,7 +59,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
             // Net Summary
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: _buildNetSummaryCard(),
+              child: _buildNetSummaryCard(totalTheyOwe, totalIOwe, netBalance),
             ),
 
             // Tab Bar
@@ -92,8 +94,8 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildDebtList(theyOweList, DebtType.theyOwe),
-                  _buildDebtList(iOweList, DebtType.iOwe),
+                  _buildDebtList(theyOweList, DebtType.theyOwe, financeProvider),
+                  _buildDebtList(iOweList, DebtType.iOwe, financeProvider),
                 ],
               ),
             ),
@@ -103,7 +105,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildNetSummaryCard() {
+  Widget _buildNetSummaryCard(double totalTheyOwe, double totalIOwe, double netBalance) {
     final isPositive = netBalance >= 0;
     return Row(
       children: [
@@ -120,7 +122,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
               children: [
                 const Text('They Owe Me', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text('+₹${totalTheyOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.green, fontSize: 20, fontWeight: FontWeight.bold)),
+                Text('+₹${totalTheyOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.green, fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -139,7 +141,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
               children: [
                 const Text('I Owe', style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text('-₹${totalIOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontSize: 20, fontWeight: FontWeight.bold)),
+                Text('-₹${totalIOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -158,8 +160,8 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
               const Text('Net', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               Text(
-                '${isPositive ? '+' : ''}₹${netBalance.toStringAsFixed(0)}',
-                style: TextStyle(color: isPositive ? Colors.green : Colors.redAccent, fontSize: 20, fontWeight: FontWeight.bold),
+                '${isPositive ? '+' : ''}₹${netBalance.abs().toStringAsFixed(0)}',
+                style: TextStyle(color: isPositive ? Colors.green : Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -168,7 +170,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildDebtList(List<DebtModel> list, DebtType type) {
+  Widget _buildDebtList(List<DebtModel> list, DebtType type, FinanceProvider provider) {
     if (list.isEmpty) {
       return Center(
         child: Column(
@@ -187,14 +189,16 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
       itemCount: list.length,
-      itemBuilder: (context, index) => _buildDebtCard(list[index]),
+      itemBuilder: (context, index) => _buildDebtCard(list[index], provider),
     );
   }
 
-  Widget _buildDebtCard(DebtModel debt) {
+  Widget _buildDebtCard(DebtModel debt, FinanceProvider provider) {
     final isTheyOwe = debt.type == DebtType.theyOwe;
     final color = isTheyOwe ? Colors.green : Colors.redAccent;
     final daysSince = DateTime.now().difference(debt.date).inDays;
+
+    final percentPaid = debt.amount > 0 ? (debt.repaidAmount / debt.amount).clamp(0.0, 1.0) : 0.0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -204,54 +208,113 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.withOpacity(0.1)),
       ),
-      child: Row(
+      child: Column(
         children: [
-          CircleAvatar(
-            backgroundColor: color.withOpacity(0.15),
-            child: Text(
-              debt.personName[0].toUpperCase(),
-              style: TextStyle(color: color, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(debt.personName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                if (debt.note != null)
-                  Text(debt.note!, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                Text('$daysSince days ago', style: const TextStyle(color: Colors.grey, fontSize: 11)),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Row(
             children: [
-              Text(
-                '${isTheyOwe ? '+' : '-'}₹${debt.amount.toStringAsFixed(0)}',
-                style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              const SizedBox(height: 4),
-              GestureDetector(
-                onTap: () => setState(() => debt.isPaid = true),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text('Mark Paid', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+              CircleAvatar(
+                backgroundColor: color.withOpacity(0.15),
+                child: Text(
+                  debt.personName[0].toUpperCase(),
+                  style: TextStyle(color: color, fontWeight: FontWeight.bold),
                 ),
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(debt.personName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    if (debt.note != null)
+                      Text(debt.note!, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text('$daysSince days ago', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${isTheyOwe ? '+' : '-'}₹${debt.remainingAmount.toStringAsFixed(0)}',
+                    style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: () => _showRepayDialog(debt, provider),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text('Record Payment', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
             ],
+          ),
+          if (debt.repaidAmount > 0) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Repaid', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                Text('₹${debt.repaidAmount.toStringAsFixed(0)} / ₹${debt.amount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey, fontSize: 10)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: percentPaid,
+                minHeight: 4,
+                backgroundColor: color.withOpacity(0.1),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+              ),
+            ),
+          ]
+        ],
+      ),
+    );
+  }
+
+  void _showRepayDialog(DebtModel debt, FinanceProvider provider) {
+    final controller = TextEditingController(text: debt.remainingAmount.toStringAsFixed(0));
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Record Payment', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            prefixText: '₹ ',
+            border: OutlineInputBorder(),
+            labelText: 'Payment Amount',
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              final amount = double.tryParse(controller.text) ?? 0.0;
+              if (amount > 0) {
+                provider.recordDebtPayment(debt.id, amount);
+                Navigator.pop(ctx);
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
   }
 
-  void _showAddDebtModal() {
+  void _showAddDebtModal(FinanceProvider provider) {
     final nameController = TextEditingController();
     final amountController = TextEditingController();
     final noteController = TextEditingController();
@@ -323,16 +386,14 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
                 child: ElevatedButton(
                   onPressed: () {
                     if (nameController.text.isNotEmpty && amountController.text.isNotEmpty) {
-                      setState(() {
-                        debts.add(DebtModel(
-                          id: DateTime.now().toString(),
-                          personName: nameController.text,
-                          amount: double.tryParse(amountController.text) ?? 0,
-                          type: isIOwe ? DebtType.iOwe : DebtType.theyOwe,
-                          date: DateTime.now(),
-                          note: noteController.text.isEmpty ? null : noteController.text,
-                        ));
-                      });
+                      provider.addDebt(DebtModel(
+                        id: DateTime.now().toString(),
+                        personName: nameController.text,
+                        amount: double.tryParse(amountController.text) ?? 0,
+                        type: isIOwe ? DebtType.iOwe : DebtType.theyOwe,
+                        date: DateTime.now(),
+                        note: noteController.text.isEmpty ? null : noteController.text,
+                      ));
                       Navigator.pop(ctx);
                     }
                   },

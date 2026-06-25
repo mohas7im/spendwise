@@ -47,7 +47,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                   Text('Budget Planner', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                   const Spacer(),
                   GestureDetector(
-                    onTap: _showEditSalaryDialog,
+                    onTap: _showManageIncomeModal,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(color: AppTheme.primaryColor.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
@@ -55,7 +55,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                         children: [
                           Icon(Icons.edit_outlined, color: AppTheme.primaryColor, size: 16),
                           SizedBox(width: 6),
-                          Text('Edit Salary', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                          Text('Manage Income', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold, fontSize: 13)),
                         ],
                       ),
                     ),
@@ -331,32 +331,171 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
     );
   }
 
-  void _showEditSalaryDialog() {
-    final controller = TextEditingController(text: budget.monthlySalary.toStringAsFixed(0));
-    showDialog(
+  void _showManageIncomeModal() {
+    final salaryController = TextEditingController(text: budget.monthlySalary.toStringAsFixed(0));
+    final sourceController = TextEditingController();
+    final amountController = TextEditingController();
+
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Theme.of(context).cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Edit Monthly Salary', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          style: Theme.of(context).textTheme.bodyLarge,
-          decoration: InputDecoration(prefixText: '₹ ', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), labelText: 'Monthly Salary'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              final newSalary = double.tryParse(controller.text) ?? budget.monthlySalary;
-              setState(() => budget = BudgetModel(monthlySalary: newSalary, incomes: budget.incomes, categoryLimits: budget.categoryLimits));
-              Navigator.pop(ctx);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-            child: const Text('Save'),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx2, setModalState) => Container(
+          height: MediaQuery.of(ctx).size.height * 0.85,
+          padding: EdgeInsets.only(
+            left: 24, right: 24, top: 24,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
           ),
-        ],
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(child: Text('Manage Income', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold))),
+              const SizedBox(height: 24),
+
+              // Base Salary Edit
+              Text('Base Monthly Salary', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: salaryController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  prefixText: '₹ ',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 12),
+
+              // Additional Income Streams
+              Text('Additional Income Streams', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              
+              if (budget.incomes.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text('No additional income streams.', style: TextStyle(color: Colors.grey)),
+                ),
+
+              Expanded(
+                child: ListView.builder(
+                  itemCount: budget.incomes.length,
+                  itemBuilder: (context, index) {
+                    final income = budget.incomes[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(income.source, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              Text('₹${income.amount.toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                            onPressed: () {
+                              setModalState(() {
+                                budget.incomes.removeAt(index);
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 12),
+              // Add New Income
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextField(
+                      controller: sourceController,
+                      decoration: InputDecoration(
+                        labelText: 'Source (e.g. Freelance)',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Amount',
+                        prefixText: '₹ ',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: () {
+                    if (sourceController.text.isNotEmpty && amountController.text.isNotEmpty) {
+                      setModalState(() {
+                        budget.incomes.add(IncomeEntry(
+                          source: sourceController.text,
+                          amount: double.tryParse(amountController.text) ?? 0,
+                          frequency: IncomeFrequency.monthly,
+                        ));
+                      });
+                      sourceController.clear();
+                      amountController.clear();
+                    }
+                  },
+                  icon: const Icon(Icons.add_circle, color: AppTheme.primaryColor),
+                  label: const Text('Add Income Source', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    final newSalary = double.tryParse(salaryController.text) ?? budget.monthlySalary;
+                    setState(() {
+                      budget = BudgetModel(
+                        monthlySalary: newSalary,
+                        incomes: budget.incomes,
+                        categoryLimits: budget.categoryLimits,
+                      );
+                    });
+                    Navigator.pop(ctx);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
