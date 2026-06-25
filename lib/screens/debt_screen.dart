@@ -50,7 +50,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
                   const Spacer(),
                   IconButton(
                     onPressed: () => _showAddDebtModal(financeProvider),
-                    icon: const Icon(Icons.add_circle, color: Color(0xFF10B981), size: 28),
+                    icon: const Icon(Icons.add_circle, color: Colors.white, size: 28),
                   ),
                 ],
               ),
@@ -75,7 +75,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
                   controller: _tabController,
                   indicator: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    color: const Color(0xFF10B981),
+                    color: Colors.blue,
                   ),
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.grey,
@@ -113,16 +113,16 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
+              color: Colors.blue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.green.withOpacity(0.3)),
+              border: Border.all(color: Colors.blue.withOpacity(0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('They Owe Me', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text('+₹${totalTheyOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.green, fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('They Owe Me', style: TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text('+₹${totalTheyOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.blue, fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -150,9 +150,9 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isPositive ? Colors.green.withOpacity(0.1) : Colors.redAccent.withOpacity(0.1),
+            color: isPositive ? Colors.blue.withOpacity(0.1) : Colors.redAccent.withOpacity(0.1),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: isPositive ? Colors.green.withOpacity(0.3) : Colors.redAccent.withOpacity(0.3)),
+            border: Border.all(color: isPositive ? Colors.blue.withOpacity(0.3) : Colors.redAccent.withOpacity(0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,7 +161,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
               const SizedBox(height: 4),
               Text(
                 '${isPositive ? '+' : ''}₹${netBalance.abs().toStringAsFixed(0)}',
-                style: TextStyle(color: isPositive ? Colors.green : Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(color: isPositive ? Colors.blue : Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -195,7 +195,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
 
   Widget _buildDebtCard(DebtModel debt, FinanceProvider provider) {
     final isTheyOwe = debt.type == DebtType.theyOwe;
-    final color = isTheyOwe ? Colors.green : Colors.redAccent;
+    final color = isTheyOwe ? Colors.blue : Colors.redAccent;
     final daysSince = DateTime.now().difference(debt.date).inDays;
 
     final percentPaid = debt.amount > 0 ? (debt.repaidAmount / debt.amount).clamp(0.0, 1.0) : 0.0;
@@ -349,11 +349,11 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: !isIOwe ? Colors.green.withOpacity(0.15) : Theme.of(context).cardColor,
+                          color: !isIOwe ? Colors.blue.withOpacity(0.15) : Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: !isIOwe ? Colors.green : Colors.transparent),
+                          border: Border.all(color: !isIOwe ? Colors.blue : Colors.transparent),
                         ),
-                        child: Center(child: Text('They Owe Me', style: TextStyle(color: !isIOwe ? Colors.green : Colors.grey, fontWeight: FontWeight.bold))),
+                        child: Center(child: Text('They Owe Me', style: TextStyle(color: !isIOwe ? Colors.blue : Colors.grey, fontWeight: FontWeight.bold))),
                       ),
                     ),
                   ),
@@ -398,11 +398,11 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
+                    backgroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: const Text('Add Debt', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  child: const Text('Add Debt', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
               ),
             ],

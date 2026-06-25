@@ -123,15 +123,11 @@ class _MainScreenState extends State<MainScreen> {
         width: 52,
         height: 52,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF10B981), Color(0xFF047857)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: Colors.black,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF10B981).withOpacity(0.4),
+              color: Colors.black.withOpacity(0.4),
               blurRadius: 12,
               offset: const Offset(0, 4),
             )

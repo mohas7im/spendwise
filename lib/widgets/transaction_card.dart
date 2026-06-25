@@ -20,15 +20,15 @@ class TransactionCard extends StatelessWidget {
     }
 
     final isIncome = transaction.type == TransactionType.income;
-    final amountColor = isIncome ? Colors.green : Colors.redAccent;
+    final amountColor = isIncome ? Colors.blue : Colors.redAccent;
     final sign = isIncome ? '+' : '-';
     
     // Category tag color
     Color tagBgColor = Colors.orange.withOpacity(0.1);
     Color tagTextColor = Colors.orange;
     if (isIncome) {
-      tagBgColor = Colors.green.withOpacity(0.1);
-      tagTextColor = Colors.green;
+      tagBgColor = Colors.blue.withOpacity(0.1);
+      tagTextColor = Colors.blue;
     } else if (transaction.title.toLowerCase().contains('whole foods')) {
       tagBgColor = Colors.blue.withOpacity(0.1);
       tagTextColor = Colors.blue;

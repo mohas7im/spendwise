@@ -89,7 +89,7 @@ class ActionPillRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: _buildMetricCard(context, 'Income', income, Icons.arrow_downward, Colors.green)),
+        Expanded(child: _buildMetricCard(context, 'Income', income, Icons.arrow_downward, Colors.blue)),
         const SizedBox(width: 16),
         Expanded(child: _buildMetricCard(context, 'Expense', expense, Icons.arrow_upward, Colors.redAccent)),
       ],

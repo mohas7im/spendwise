@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Brand Colors
-  static const Color primaryColor = Color(0xFFD3F53F); // Neon Green matching the user's home screen mockup
+  static const Color primaryColor = Colors.white; // Monochrome style
   static const Color secondaryColor = Color(0xFF3B82F6); // Blue accent
 
   // Light Theme Colors
