@@ -143,7 +143,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildSalarySummaryCard() {
+  Widget _buildSalarySummaryCard(BudgetModel budget) {
     return PremiumGradientCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
