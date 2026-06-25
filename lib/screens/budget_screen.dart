@@ -113,7 +113,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                         child: TabBar(
                           controller: _tabController,
                           indicator: BoxDecoration(color: AppTheme.primaryColor, borderRadius: BorderRadius.circular(12)),
-                          labelColor: Colors.white,
+                          labelColor: Colors.black,
                           unselectedLabelColor: Colors.grey,
                           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                           dividerColor: Colors.transparent,
@@ -253,7 +253,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
           const SizedBox(height: 14),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(value: 0.6, minHeight: 10, backgroundColor: Colors.grey.withOpacity(0.15), valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor)),
+            child: LinearProgressIndicator(value: 0.6, minHeight: 10, backgroundColor: Colors.grey.withOpacity(0.15), valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue)),
           ),
           const SizedBox(height: 8),
           const Text('60% of your savings goal reached this month 🎯', style: TextStyle(color: Colors.grey, fontSize: 11)),
@@ -281,7 +281,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
   Widget _buildCategoryLimitCard(CategoryLimit limit, LimitPeriod period) {
     final periodLabel = period == LimitPeriod.daily ? 'day' : period == LimitPeriod.weekly ? 'week' : 'month';
     final isOver = limit.isOverBudget;
-    final progressColor = isOver ? Colors.redAccent : limit.percentUsed > 0.7 ? const Color(0xFFF59E0B) : AppTheme.primaryColor;
+    final progressColor = isOver ? Colors.redAccent : limit.percentUsed > 0.7 ? const Color(0xFFF59E0B) : Colors.blue;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
