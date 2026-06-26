@@ -171,6 +171,9 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
     double totalIOwe = debts.where((d) => (d.type == DebtType.iOwe || d.type == DebtType.loanTaken || d.type == DebtType.emiLoan) && !d.isPaid).fold(0, (sum, d) => sum + d.remainingAmount);
     double totalTheyOwe = debts.where((d) => (d.type == DebtType.theyOwe || d.type == DebtType.loanGiven) && !d.isPaid).fold(0, (sum, d) => sum + d.remainingAmount);
     double netBalance = totalTheyOwe - totalIOwe;
+
+    double activeEmis = debts.where((d) => d.type == DebtType.emiLoan && !d.isPaid).fold(0, (sum, d) => sum + d.remainingAmount);
+    double activeLoans = debts.where((d) => (d.type == DebtType.loanTaken || d.type == DebtType.loanGiven) && !d.isPaid).fold(0, (sum, d) => sum + d.remainingAmount);
     
     int overdueCount = debts.where((d) => d.isOverdue).length;
 
@@ -228,7 +231,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('I Owe', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                            const Text('I Owe (Total)', style: TextStyle(color: Colors.white60, fontSize: 11)),
                             Text('₹${totalIOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
                           ],
                         ),
@@ -237,6 +240,26 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
                           children: [
                             const Text('Others Owe Me', style: TextStyle(color: Colors.white60, fontSize: 11)),
                             Text('₹${totalTheyOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Active EMIs', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                            Text('₹${activeEmis.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text('Active Loans', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                            Text('₹${activeLoans.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
                           ],
                         ),
                       ],
