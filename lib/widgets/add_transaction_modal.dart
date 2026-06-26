@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
 import '../models/transaction.dart';
@@ -142,10 +142,10 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
-                                color: isExpense ? Theme.of(context).primaryColor : Colors.transparent,
+                                color: isExpense ? const Color(0xFFB71C1C) : Colors.transparent,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Center(child: Text('Expense', style: TextStyle(fontWeight: FontWeight.bold, color: isExpense ? Theme.of(context).colorScheme.onPrimary : null))),
+                              child: Center(child: Text('Expense', style: TextStyle(fontWeight: FontWeight.bold, color: isExpense ? Colors.white : null))),
                             ),
                           )),
                           Expanded(child: GestureDetector(
@@ -154,10 +154,10 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
-                                color: !isExpense ? Theme.of(context).primaryColor : Colors.transparent,
+                                color: !isExpense ? const Color(0xFF10B981) : Colors.transparent,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Center(child: Text('Income', style: TextStyle(fontWeight: FontWeight.bold, color: !isExpense ? Theme.of(context).colorScheme.onPrimary : null))),
+                              child: Center(child: Text('Income', style: TextStyle(fontWeight: FontWeight.bold, color: !isExpense ? Colors.white : null))),
                             ),
                           )),
                         ],

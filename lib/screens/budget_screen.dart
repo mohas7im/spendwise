@@ -7,6 +7,7 @@ import '../providers/finance_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/premium_gradient_card.dart';
 import '../widgets/common/custom_progress_bar.dart';
+import '../widgets/common/custom_tab_bar.dart';
 import 'budget_analytics_screen.dart';
 
 class BudgetScreen extends StatefulWidget {
@@ -16,11 +17,26 @@ class BudgetScreen extends StatefulWidget {
   State<BudgetScreen> createState() => _BudgetScreenState();
 }
 
-class _BudgetScreenState extends State<BudgetScreen> {
+class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderStateMixin {
   LimitPeriod _selectedPeriod = LimitPeriod.monthly;
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this, initialIndex: 2); // 2 = monthly
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() {
+          _selectedPeriod = LimitPeriod.values[_tabController.index];
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -61,30 +77,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Budget & Goals', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
-                            // Current Selection Dropdown
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<LimitPeriod>(
-                                  value: _selectedPeriod,
-                                  isDense: true,
-                                  icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).primaryColor),
-                                  style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 13),
-                                  items: LimitPeriod.values.map((p) => DropdownMenuItem(
-                                    value: p,
-                                    child: Text(p.name.substring(0, 1).toUpperCase() + p.name.substring(1)),
-                                  )).toList(),
-                                  onChanged: (val) {
-                                    if (val != null) setState(() => _selectedPeriod = val);
-                                  },
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                         Container(
@@ -106,6 +98,19 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       ],
                     ),
                   ),
+
+                  // Tab Bar
+                  CustomTabBar(
+                    controller: _tabController,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    tabs: const [
+                      Tab(text: 'Daily'),
+                      Tab(text: 'Weekly'),
+                      Tab(text: 'Monthly'),
+                      Tab(text: 'Yearly'),
+                    ],
+                  ),
+
 
 
                   // Dashboard Summary Section
