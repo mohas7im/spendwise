@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'fuel_screen.dart'; // We will link Fuel tools here
-
+import 'expense_group_screen.dart';
 enum CalcCategory {
   expense,
   loan,
@@ -45,8 +45,8 @@ class CalculatorItem {
 final List<CalculatorItem> allCalculators = [
   // Expense & Group
   CalculatorItem(id: 'exp_grp_split', title: 'Group Expense Split', iconEmoji: '👥', category: CalcCategory.expense),
-  CalculatorItem(id: 'exp_food', title: 'Food Bill Split', iconEmoji: '🍔', category: CalcCategory.expense),
-  CalculatorItem(id: 'exp_trip', title: 'Trip Cost', iconEmoji: '✈️', category: CalcCategory.expense),
+  CalculatorItem(id: 'exp_food', title: 'Food Bill Split', iconEmoji: '🍔', category: CalcCategory.expense, destination: const ExpenseGroupScreen(initialTabIndex: 0)),
+  CalculatorItem(id: 'exp_trip', title: 'Trip Cost', iconEmoji: '✈️', category: CalcCategory.expense, destination: const ExpenseGroupScreen(initialTabIndex: 1)),
   CalculatorItem(id: 'exp_shared', title: 'Shared Expense', iconEmoji: '🤝', category: CalcCategory.expense),
   CalculatorItem(id: 'exp_debt', title: 'Debt Settlement', iconEmoji: '💳', category: CalcCategory.expense),
   CalculatorItem(id: 'exp_budget', title: 'Budget', iconEmoji: '📊', category: CalcCategory.expense),
