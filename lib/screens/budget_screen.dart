@@ -106,8 +106,38 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                         // Dashboard Summary Section
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                          child: _buildDashboardSummary(totalBudget, totalSpent, remainingBudget, overBudgetCount),
+                          child: _buildDashboardSummary(totalBudget, totalSpent, remainingBudget),
                         ),
+
+                        // Over Budget Alert Banner
+                        if (overBudgetCount > 0)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                            child: GestureDetector(
+                              onTap: () => _showOverBudgetSheet(context, budget),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.redAccent.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 20),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        '$overBudgetCount categor${overBudgetCount == 1 ? 'y' : 'ies'} over budget this month',
+                                        style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600, fontSize: 13),
+                                      ),
+                                    ),
+                                    const Icon(Icons.chevron_right, color: Colors.redAccent, size: 18),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
 
                         // Savings Goals Section
                         if (budget.savingsGoals.isNotEmpty) ...[
@@ -189,7 +219,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildDashboardSummary(double budget, double spent, double remaining, int overBudgetCount) {
+  Widget _buildDashboardSummary(double budget, double spent, double remaining) {
     return PremiumGradientCard(
       builder: (context, textColor, subTextColor) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,40 +227,100 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
           Text('Total Budget (Monthly)', style: TextStyle(color: subTextColor, fontSize: 13)),
           const SizedBox(height: 6),
           Text('₹ ${budget.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontSize: 38, fontWeight: FontWeight.bold, letterSpacing: -1)),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Spent', style: TextStyle(color: subTextColor, fontSize: 11)),
-                  Text('₹${spent.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 15)),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Spent', style: TextStyle(color: subTextColor, fontSize: 11)),
+                    const SizedBox(height: 4),
+                    Text('₹${spent.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 17)),
+                  ],
+                ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Remaining', style: TextStyle(color: subTextColor, fontSize: 11)),
-                  Text('₹${remaining.toStringAsFixed(0)}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 15)),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Remaining', style: TextStyle(color: subTextColor, fontSize: 11)),
+                    const SizedBox(height: 4),
+                    Text('₹${remaining.toStringAsFixed(0)}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 17)),
+                  ],
+                ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Status', style: TextStyle(color: subTextColor, fontSize: 11)),
-                  Text(overBudgetCount > 0 ? '$overBudgetCount Over Budget' : 'On Track', 
-                    style: TextStyle(
-                      color: overBudgetCount > 0 ? Colors.orangeAccent : Colors.greenAccent, 
-                      fontWeight: FontWeight.bold, 
-                      fontSize: 15
-                    )
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Progress', style: TextStyle(color: subTextColor, fontSize: 11)),
+                    const SizedBox(height: 4),
+                    Text('${budget > 0 ? ((spent / budget) * 100).toStringAsFixed(0) : 0}%', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 17)),
+                  ],
+                ),
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: budget > 0 ? (spent / budget).clamp(0.0, 1.0) : 0.0,
+              minHeight: 6,
+              backgroundColor: Colors.white24,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                spent > budget ? Colors.redAccent : Colors.greenAccent,
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  void _showOverBudgetSheet(BuildContext context, budget) {
+    final overItems = (budget.categoryLimits as List).where((l) => l.isOverBudget).toList();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.55,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        builder: (ctx, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+                    const SizedBox(width: 10),
+                    Text('Over Budget Categories', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  itemCount: overItems.length,
+                  itemBuilder: (ctx, i) => _buildDetailedCategoryLimitCard(overItems[i], overItems[i].period),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
