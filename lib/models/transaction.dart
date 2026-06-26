@@ -7,6 +7,7 @@ class TransactionModel {
   final DateTime date;
   final String category;
   final TransactionType type;
+  final String paymentMethod;
 
   TransactionModel({
     required this.id,
@@ -15,6 +16,7 @@ class TransactionModel {
     required this.date,
     required this.category,
     required this.type,
+    this.paymentMethod = 'Cash',
   });
 }
 

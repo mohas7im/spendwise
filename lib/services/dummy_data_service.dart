@@ -13,13 +13,49 @@ class DummyDataService {
 
   static List<TransactionModel> getDummyTransactions() {
     final now = DateTime.now();
+    // Helper to get date at start of current week (Monday)
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    final lastWeekStart = weekStart.subtract(const Duration(days: 7));
+
     return [
-      TransactionModel(id: 't1', title: 'Starbucks Reserve', amount: 8.40, date: now, category: 'Food & Drink', type: TransactionType.expense),
-      TransactionModel(id: 't2', title: 'Salary Deposit', amount: 15000, date: now, category: 'Income', type: TransactionType.income),
-      TransactionModel(id: 't3', title: 'Whole Foods Market', amount: 67.84, date: now.subtract(const Duration(days: 1)), category: 'Groceries', type: TransactionType.expense),
-      TransactionModel(id: 't4', title: 'Swiggy Order', amount: 340, date: now.subtract(const Duration(days: 1)), category: 'Food & Drink', type: TransactionType.expense),
-      TransactionModel(id: 't5', title: 'Netflix', amount: 499, date: now.subtract(const Duration(days: 2)), category: 'Entertainment', type: TransactionType.expense),
-      TransactionModel(id: 't6', title: 'Electricity Bill', amount: 1200, date: now.subtract(const Duration(days: 3)), category: 'Bills', type: TransactionType.expense),
+      // --- TODAY ---
+      TransactionModel(id: 't1', title: 'Starbucks Coffee', amount: 340, date: now, category: 'Food & Drink', type: TransactionType.expense, paymentMethod: 'UPI'),
+      TransactionModel(id: 't2', title: 'Metro Card Recharge', amount: 200, date: now, category: 'Transport', type: TransactionType.expense, paymentMethod: 'UPI'),
+      TransactionModel(id: 't3', title: 'Salary Deposit', amount: 45000, date: now, category: 'Income', type: TransactionType.income, paymentMethod: 'Bank Transfer'),
+
+      // --- THIS WEEK (but not today) ---
+      TransactionModel(id: 't4', title: 'Swiggy Order – Biryani', amount: 480, date: weekStart.add(const Duration(days: 1, hours: 13)), category: 'Food & Drink', type: TransactionType.expense, paymentMethod: 'UPI'),
+      TransactionModel(id: 't5', title: 'Big Bazaar Groceries', amount: 1250, date: weekStart.add(const Duration(days: 1, hours: 10)), category: 'Groceries', type: TransactionType.expense, paymentMethod: 'Card'),
+      TransactionModel(id: 't6', title: 'Netflix Subscription', amount: 649, date: weekStart.add(const Duration(days: 2, hours: 9)), category: 'Entertainment', type: TransactionType.expense, paymentMethod: 'Card'),
+      TransactionModel(id: 't7', title: 'Ola Cab Ride', amount: 230, date: weekStart.add(const Duration(days: 2, hours: 8)), category: 'Transport', type: TransactionType.expense, paymentMethod: 'UPI'),
+      TransactionModel(id: 't8', title: 'Electricity Bill', amount: 1850, date: weekStart.add(const Duration(days: 3, hours: 11)), category: 'Bills', type: TransactionType.expense, paymentMethod: 'UPI'),
+      TransactionModel(id: 't9', title: 'H&M T-Shirt', amount: 999, date: weekStart.add(const Duration(days: 3, hours: 15)), category: 'Shopping', type: TransactionType.expense, paymentMethod: 'Card'),
+      TransactionModel(id: 't10', title: 'Pharmacy – Vitamins', amount: 380, date: weekStart.add(const Duration(days: 4, hours: 12)), category: 'Health', type: TransactionType.expense, paymentMethod: 'Cash'),
+      TransactionModel(id: 't11', title: 'Zepto Groceries', amount: 875, date: weekStart.add(const Duration(days: 4, hours: 19)), category: 'Groceries', type: TransactionType.expense, paymentMethod: 'UPI'),
+
+      // --- LAST WEEK ---
+      TransactionModel(id: 't12', title: 'Dominos Pizza', amount: 620, date: lastWeekStart.add(const Duration(days: 0, hours: 20)), category: 'Food & Drink', type: TransactionType.expense, paymentMethod: 'UPI'),
+      TransactionModel(id: 't13', title: 'Nykaa Skincare', amount: 1499, date: lastWeekStart.add(const Duration(days: 1, hours: 14)), category: 'Shopping', type: TransactionType.expense, paymentMethod: 'Card'),
+      TransactionModel(id: 't14', title: 'Rapido Bike Taxi', amount: 95, date: lastWeekStart.add(const Duration(days: 2, hours: 9)), category: 'Transport', type: TransactionType.expense, paymentMethod: 'Cash'),
+      TransactionModel(id: 't15', title: 'Water Bill', amount: 450, date: lastWeekStart.add(const Duration(days: 3, hours: 10)), category: 'Bills', type: TransactionType.expense, paymentMethod: 'UPI'),
+      TransactionModel(id: 't16', title: 'PVR Cinemas', amount: 780, date: lastWeekStart.add(const Duration(days: 4, hours: 18)), category: 'Entertainment', type: TransactionType.expense, paymentMethod: 'Card'),
+      TransactionModel(id: 't17', title: 'Apollo Pharmacy', amount: 260, date: lastWeekStart.add(const Duration(days: 5, hours: 11)), category: 'Health', type: TransactionType.expense, paymentMethod: 'Cash'),
+      TransactionModel(id: 't18', title: 'Reliance Fresh', amount: 1100, date: lastWeekStart.add(const Duration(days: 6, hours: 8)), category: 'Groceries', type: TransactionType.expense, paymentMethod: 'Card'),
+      TransactionModel(id: 't19', title: 'Freelance Payment', amount: 15000, date: lastWeekStart.add(const Duration(days: 2, hours: 16)), category: 'Income', type: TransactionType.income, paymentMethod: 'Bank Transfer'),
+
+      // --- EARLIER THIS MONTH ---
+      TransactionModel(id: 't20', title: 'SIP Investment', amount: 5000, date: now.subtract(const Duration(days: 18)), category: 'Invest', type: TransactionType.expense, paymentMethod: 'Bank Transfer'),
+      TransactionModel(id: 't21', title: 'House Rent', amount: 12000, date: now.subtract(const Duration(days: 22)), category: 'Rent', type: TransactionType.expense, paymentMethod: 'Bank Transfer'),
+      TransactionModel(id: 't22', title: 'Zomato Dinner', amount: 550, date: now.subtract(const Duration(days: 19)), category: 'Food & Drink', type: TransactionType.expense, paymentMethod: 'UPI'),
+      TransactionModel(id: 't23', title: 'Amazon – Headphones', amount: 2499, date: now.subtract(const Duration(days: 20)), category: 'Shopping', type: TransactionType.expense, paymentMethod: 'Card'),
+      TransactionModel(id: 't24', title: 'Internet Bill', amount: 799, date: now.subtract(const Duration(days: 21)), category: 'Bills', type: TransactionType.expense, paymentMethod: 'UPI'),
+
+      // --- LAST MONTH ---
+      TransactionModel(id: 't25', title: 'Gym Membership', amount: 1500, date: now.subtract(const Duration(days: 35)), category: 'Health', type: TransactionType.expense, paymentMethod: 'Card'),
+      TransactionModel(id: 't26', title: 'Flipkart Sale', amount: 3200, date: now.subtract(const Duration(days: 38)), category: 'Shopping', type: TransactionType.expense, paymentMethod: 'Card'),
+      TransactionModel(id: 't27', title: 'Cab to Airport', amount: 850, date: now.subtract(const Duration(days: 40)), category: 'Transport', type: TransactionType.expense, paymentMethod: 'Cash'),
+      TransactionModel(id: 't28', title: 'Medical Checkup', amount: 1200, date: now.subtract(const Duration(days: 45)), category: 'Health', type: TransactionType.expense, paymentMethod: 'Card'),
+      TransactionModel(id: 't29', title: 'Mutual Fund', amount: 3000, date: now.subtract(const Duration(days: 32)), category: 'Invest', type: TransactionType.expense, paymentMethod: 'Bank Transfer'),
     ];
   }
 

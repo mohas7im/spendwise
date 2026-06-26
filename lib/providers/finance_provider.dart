@@ -123,6 +123,173 @@ class FinanceProvider extends ChangeNotifier {
     }
   }
 
+  // ─── TRANSACTION CRUD ────────────────────────────────────────────────────────
+  void addTransaction(TransactionModel tx) {
+    _transactions.add(tx);
+    if (tx.type == TransactionType.income) {
+      _totalBalance += tx.amount;
+    } else {
+      _totalBalance -= tx.amount;
+    }
+    notifyListeners();
+  }
+
+  void deleteTransaction(String id) {
+    final tx = _transactions.firstWhere((t) => t.id == id, orElse: () => throw Exception('Not found'));
+    if (tx.type == TransactionType.income) {
+      _totalBalance -= tx.amount;
+    } else {
+      _totalBalance += tx.amount;
+    }
+    _transactions.removeWhere((t) => t.id == id);
+    notifyListeners();
+  }
+
+  void updateTransaction(TransactionModel updated) {
+    final index = _transactions.indexWhere((t) => t.id == updated.id);
+    if (index == -1) return;
+    final old = _transactions[index];
+    // Reverse old effect
+    if (old.type == TransactionType.income) {
+      _totalBalance -= old.amount;
+    } else {
+      _totalBalance += old.amount;
+    }
+    // Apply new effect
+    if (updated.type == TransactionType.income) {
+      _totalBalance += updated.amount;
+    } else {
+      _totalBalance -= updated.amount;
+    }
+    _transactions[index] = updated;
+    notifyListeners();
+  }
+
+  // ─── PERIOD HELPERS ──────────────────────────────────────────────────────────
+  List<TransactionModel> _expensesInRange(DateTime start, DateTime end) {
+    return _transactions.where((t) {
+      final d = DateTime(t.date.year, t.date.month, t.date.day);
+      final s = DateTime(start.year, start.month, start.day);
+      final e = DateTime(end.year, end.month, end.day);
+      return t.type == TransactionType.expense &&
+          !d.isBefore(s) && !d.isAfter(e);
+    }).toList();
+  }
+
+  // Returns start/end of a prior period of the same duration.
+  (DateTime, DateTime) _priorRange(DateTime start, DateTime end) {
+    final duration = end.difference(start);
+    final priorEnd = start.subtract(const Duration(days: 1));
+    final priorStart = priorEnd.subtract(duration);
+    return (priorStart, priorEnd);
+  }
+
+  double _totalFor(List<TransactionModel> txs) => txs.fold(0.0, (s, t) => s + t.amount);
+
+  /// Percentage change of [current] vs [prior]. Returns null if prior is 0.
+  double? percentageChange(double current, double prior) {
+    if (prior == 0) return null;
+    return ((current - prior) / prior) * 100;
+  }
+
+  // ─── PERIOD TRANSACTION LISTS ─────────────────────────────────────────────
+  List<TransactionModel> get transactionsToday {
+    final now = DateTime.now();
+    return _expensesInRange(now, now);
+  }
+
+  List<TransactionModel> get transactionsThisWeek {
+    final now = DateTime.now();
+    final start = now.subtract(Duration(days: now.weekday - 1));
+    return _expensesInRange(start, now);
+  }
+
+  List<TransactionModel> get transactionsThisMonth {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, 1);
+    return _expensesInRange(start, now);
+  }
+
+  List<TransactionModel> get transactionsThisYear {
+    final now = DateTime.now();
+    final start = DateTime(now.year, 1, 1);
+    return _expensesInRange(start, now);
+  }
+
+  List<TransactionModel> get transactionsAllTime {
+    return _transactions.where((t) => t.type == TransactionType.expense).toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  // ─── PERIOD METADATA ─────────────────────────────────────────────────────
+  Map<String, dynamic> spendingSummary(String period) {
+    final now = DateTime.now();
+    DateTime start, end, priorStart, priorEnd;
+
+    switch (period) {
+      case 'Today':
+        start = end = now;
+        priorStart = priorEnd = now.subtract(const Duration(days: 1));
+        break;
+      case 'This Week':
+        start = now.subtract(Duration(days: now.weekday - 1));
+        end = now;
+        priorEnd = start.subtract(const Duration(days: 1));
+        priorStart = priorEnd.subtract(Duration(days: now.weekday - 1));
+        break;
+      case 'This Month':
+        start = DateTime(now.year, now.month, 1);
+        end = now;
+        priorEnd = start.subtract(const Duration(days: 1));
+        priorStart = DateTime(priorEnd.year, priorEnd.month, 1);
+        break;
+      case 'This Year':
+        start = DateTime(now.year, 1, 1);
+        end = now;
+        priorEnd = DateTime(now.year - 1, 12, 31);
+        priorStart = DateTime(now.year - 1, 1, 1);
+        break;
+      case 'All Time':
+      default:
+        final txs = transactionsAllTime;
+        final total = _totalFor(txs);
+        return {
+          'total': total,
+          'count': txs.length,
+          'pctChange': null,
+          'transactions': txs,
+          'categoryBreakdown': _categoryBreakdown(txs),
+        };
+    }
+
+    final current = _expensesInRange(start, end);
+    final prior = _expensesInRange(priorStart, priorEnd);
+    final currentTotal = _totalFor(current);
+    final priorTotal = _totalFor(prior);
+
+    return {
+      'total': currentTotal,
+      'count': current.length,
+      'pctChange': percentageChange(currentTotal, priorTotal),
+      'transactions': current,
+      'categoryBreakdown': _categoryBreakdown(current),
+    };
+  }
+
+  Map<String, Map<String, dynamic>> _categoryBreakdown(List<TransactionModel> txs) {
+    final Map<String, Map<String, dynamic>> result = {};
+    for (final tx in txs) {
+      if (!result.containsKey(tx.category)) {
+        result[tx.category] = {'total': 0.0, 'count': 0, 'transactions': <TransactionModel>[]};
+      }
+      result[tx.category]!['total'] = (result[tx.category]!['total'] as double) + tx.amount;
+      result[tx.category]!['count'] = (result[tx.category]!['count'] as int) + 1;
+      (result[tx.category]!['transactions'] as List<TransactionModel>).add(tx);
+    }
+    return result;
+  }
+
+  // ─── ANALYTICS GETTERS ────────────────────────────────────────────────────
   // Analytics & Summary Getters
   double get totalIncome => _transactions.where((t) => t.type == TransactionType.income).fold(0, (s, t) => s + t.amount);
   double get totalExpenses => _transactions.where((t) => t.type == TransactionType.expense).fold(0, (s, t) => s + t.amount);
@@ -130,24 +297,12 @@ class FinanceProvider extends ChangeNotifier {
 
   double get spendingToday {
     final now = DateTime.now();
-    return _transactions.where((t) => t.type == TransactionType.expense && t.date.year == now.year && t.date.month == now.month && t.date.day == now.day).fold(0, (s, t) => s + t.amount);
+    return _totalFor(transactionsToday);
   }
 
-  double get spendingThisWeek {
-    final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-    return _transactions.where((t) => t.type == TransactionType.expense && t.date.isAfter(startOfWeek.subtract(const Duration(days: 1)))).fold(0, (s, t) => s + t.amount);
-  }
-
-  double get spendingThisMonth {
-    final now = DateTime.now();
-    return _transactions.where((t) => t.type == TransactionType.expense && t.date.year == now.year && t.date.month == now.month).fold(0, (s, t) => s + t.amount);
-  }
-
-  double get spendingThisYear {
-    final now = DateTime.now();
-    return _transactions.where((t) => t.type == TransactionType.expense && t.date.year == now.year).fold(0, (s, t) => s + t.amount);
-  }
+  double get spendingThisWeek => _totalFor(transactionsThisWeek);
+  double get spendingThisMonth => _totalFor(transactionsThisMonth);
+  double get spendingThisYear => _totalFor(transactionsThisYear);
 
   // Unified Activity Feed
   List<ActivityItem> get recentActivity {

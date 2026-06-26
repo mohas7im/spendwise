@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../providers/finance_provider.dart';
 import '../models/transaction.dart';
 import '../models/debt.dart';
 import '../main.dart'; // for ThemeProvider
 import '../widgets/common/premium_gradient_card.dart';
 import '../widgets/unified_activity_card.dart';
+import '../widgets/spending_breakdown_sheet.dart';
+import '../widgets/add_transaction_modal.dart';
 import 'profile_screen.dart';
-import 'split_calculator_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -119,24 +121,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Spending Summary Horizon
-            const Text('Spending Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              clipBehavior: Clip.none,
-              child: Row(
-                children: [
-                  _buildSummaryPill(context, 'Today', financeProvider.spendingToday),
-                  const SizedBox(width: 12),
-                  _buildSummaryPill(context, 'This Week', financeProvider.spendingThisWeek),
-                  const SizedBox(width: 12),
-                  _buildSummaryPill(context, 'This Month', financeProvider.spendingThisMonth),
-                  const SizedBox(width: 12),
-                  _buildSummaryPill(context, 'This Year', financeProvider.spendingThisYear),
-                ],
-              ),
+            // ── Spending Summary ──
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Spending Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                GestureDetector(
+                  onTap: () => showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const AddTransactionModal(),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF059669)]),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.add, size: 14, color: Colors.white),
+                        SizedBox(width: 4),
+                        Text('Add', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
+            const SizedBox(height: 14),
+            _SpendingSummaryGrid(financeProvider: financeProvider),
             const SizedBox(height: 32),
 
             // Unified Recent Activity
@@ -167,22 +182,148 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSummaryPill(BuildContext context, String label, double amount) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+}
+
+// ─── SPENDING SUMMARY GRID ─────────────────────────────────────────────────────
+class _SpendingSummaryGrid extends StatelessWidget {
+  final FinanceProvider financeProvider;
+  const _SpendingSummaryGrid({required this.financeProvider});
+
+  @override
+  Widget build(BuildContext context) {
+    final periods = ['Today', 'This Week', 'This Month', 'This Year', 'All Time'];
+    final fmt = NumberFormat('#,##,##0', 'en_IN');
+
+    final Map<String, double> amounts = {
+      'Today': financeProvider.spendingToday,
+      'This Week': financeProvider.spendingThisWeek,
+      'This Month': financeProvider.spendingThisMonth,
+      'This Year': financeProvider.spendingThisYear,
+      'All Time': financeProvider.totalExpenses,
+    };
+
+    final Map<String, Map<String, dynamic>> summaries = {
+      for (var p in periods) p: financeProvider.spendingSummary(p),
+    };
+
+    final Map<String, List<Color>> gradients = {
+      'Today': [const Color(0xFF667EEA), const Color(0xFF764BA2)],
+      'This Week': [const Color(0xFF11998E), const Color(0xFF38EF7D)],
+      'This Month': [const Color(0xFFF7971E), const Color(0xFFFFD200)],
+      'This Year': [const Color(0xFFEB3349), const Color(0xFFF45C43)],
+      'All Time': [const Color(0xFF4776E6), const Color(0xFF8E54E9)],
+    };
+
+    return Column(children: [
+      // First two side by side
+      Row(
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-          const SizedBox(height: 4),
-          Text('₹${amount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Expanded(child: _SummaryCard(period: 'Today', amount: amounts['Today']!, summary: summaries['Today']!, gradient: gradients['Today']!, fmt: fmt)),
+          const SizedBox(width: 12),
+          Expanded(child: _SummaryCard(period: 'This Week', amount: amounts['This Week']!, summary: summaries['This Week']!, gradient: gradients['This Week']!, fmt: fmt)),
         ],
       ),
+      const SizedBox(height: 12),
+      // Next two side by side
+      Row(
+        children: [
+          Expanded(child: _SummaryCard(period: 'This Month', amount: amounts['This Month']!, summary: summaries['This Month']!, gradient: gradients['This Month']!, fmt: fmt)),
+          const SizedBox(width: 12),
+          Expanded(child: _SummaryCard(period: 'This Year', amount: amounts['This Year']!, summary: summaries['This Year']!, gradient: gradients['This Year']!, fmt: fmt)),
+        ],
+      ),
+      const SizedBox(height: 12),
+      // All Time – full width
+      _SummaryCard(period: 'All Time', amount: amounts['All Time']!, summary: summaries['All Time']!, gradient: gradients['All Time']!, fmt: fmt, fullWidth: true),
+    ]);
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  final String period;
+  final double amount;
+  final Map<String, dynamic> summary;
+  final List<Color> gradient;
+  final NumberFormat fmt;
+  final bool fullWidth;
+
+  const _SummaryCard({
+    required this.period, required this.amount, required this.summary,
+    required this.gradient, required this.fmt, this.fullWidth = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final count = summary['count'] as int;
+    final pctChange = summary['pctChange'] as double?;
+    final bool up = pctChange != null && pctChange >= 0;
+
+    return GestureDetector(
+      onTap: () => showSpendingBreakdownSheet(context, period),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: fullWidth
+            ? Row(
+                children: [
+                  Expanded(child: _CardContent(period: period, amount: amount, count: count, pctChange: pctChange, up: up, fmt: fmt)),
+                  const Icon(Icons.chevron_right, color: Colors.white54, size: 20),
+                ],
+              )
+            : _CardContent(period: period, amount: amount, count: count, pctChange: pctChange, up: up, fmt: fmt),
+      ),
+    );
+  }
+}
+
+class _CardContent extends StatelessWidget {
+  final String period;
+  final double amount;
+  final int count;
+  final double? pctChange;
+  final bool up;
+  final NumberFormat fmt;
+
+  const _CardContent({required this.period, required this.amount, required this.count, required this.pctChange, required this.up, required this.fmt});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(period, style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500)),
+            if (pctChange != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: (up ? const Color(0xFFEF4444) : const Color(0xFF10B981)).withOpacity(0.25),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(up ? Icons.trending_up : Icons.trending_down, size: 10, color: Colors.white),
+                    const SizedBox(width: 2),
+                    Text('${up ? '+' : ''}${pctChange!.toStringAsFixed(0)}%',
+                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text('₹${fmt.format(amount)}',
+          style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
+        const SizedBox(height: 4),
+        Text('$count transaction${count != 1 ? 's' : ''}',
+          style: const TextStyle(color: Colors.white60, fontSize: 11)),
+      ],
     );
   }
 }
