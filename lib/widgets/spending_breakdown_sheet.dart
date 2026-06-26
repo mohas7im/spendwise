@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../providers/finance_provider.dart';
+import '../providers/budget_provider.dart';
+import '../models/budget.dart';
 import '../models/transaction.dart';
 import 'add_transaction_modal.dart';
 
@@ -80,6 +82,8 @@ class _SpendingBreakdownSheetState extends State<SpendingBreakdownSheet> with Ti
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<FinanceProvider>(context);
+    final budgetProvider = Provider.of<BudgetProvider>(context);
+    final limits = budgetProvider.budget.categoryLimits;
     final summary = provider.spendingSummary(widget.period);
     final categoryBreakdown = summary['categoryBreakdown'] as Map<String, Map<String, dynamic>>;
     final allTxs = summary['transactions'] as List<TransactionModel>;
@@ -204,6 +208,7 @@ class _SpendingBreakdownSheetState extends State<SpendingBreakdownSheet> with Ti
                         count: summary['count'] as int,
                         categoryBreakdown: categoryBreakdown,
                         allTxs: allTxs,
+                        limits: limits,
                         onCategoryTap: _openCategory,
                         touchedIndex: _touchedIndex,
                         onTouched: (i) => setState(() => _touchedIndex = i),
@@ -230,6 +235,7 @@ class _OverviewBody extends StatelessWidget {
   final int count;
   final Map<String, Map<String, dynamic>> categoryBreakdown;
   final List<TransactionModel> allTxs;
+  final List<CategoryLimit> limits;
   final void Function(String) onCategoryTap;
   final int touchedIndex;
   final void Function(int) onTouched;
@@ -238,7 +244,7 @@ class _OverviewBody extends StatelessWidget {
 
   const _OverviewBody({
     required this.total, required this.period, required this.pctChange, required this.count,
-    required this.categoryBreakdown, required this.allTxs, required this.onCategoryTap,
+    required this.categoryBreakdown, required this.allTxs, required this.limits, required this.onCategoryTap,
     required this.touchedIndex, required this.onTouched,
     required this.textColor, required this.subTextColor, required this.cardColor, required this.surfaceColor, required this.fmt,
   });
@@ -283,18 +289,6 @@ class _OverviewBody extends StatelessWidget {
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 20),
-
-        // ── Quick Stats ──
-        Row(
-          children: [
-            Expanded(child: _QuickStat(label: 'Avg / Tx', value: '₹${fmt.format(avgTx)}', icon: Icons.bar_chart, color: const Color(0xFF3B82F6), cardColor: cardColor, textColor: textColor, subTextColor: subTextColor)),
-            const SizedBox(width: 12),
-            Expanded(child: _QuickStat(label: 'Highest Cat', value: highCat != null ? '${_CatMeta.emoji(highCat)} $highCat' : '–', icon: Icons.arrow_upward, color: const Color(0xFFEF4444), cardColor: cardColor, textColor: textColor, subTextColor: subTextColor)),
-            const SizedBox(width: 12),
-            Expanded(child: _QuickStat(label: 'Lowest Cat', value: lowCat != null ? '${_CatMeta.emoji(lowCat)} $lowCat' : '–', icon: Icons.arrow_downward, color: const Color(0xFF10B981), cardColor: cardColor, textColor: textColor, subTextColor: subTextColor)),
-          ],
         ),
         const SizedBox(height: 24),
 
@@ -362,13 +356,35 @@ class _OverviewBody extends StatelessWidget {
         ],
 
         // ── Category Rows ──
-        Text('Breakdown', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 16)),
+        Text('Category Limits & Spend', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 12),
         ...sorted.map((entry) {
           final cat = entry.key;
           final catTotal = entry.value['total'] as double;
           final catCount = entry.value['count'] as int;
-          final pct = total > 0 ? catTotal / total : 0.0;
+          
+          LimitPeriod? limitPeriod;
+          switch (period) {
+            case 'Today': limitPeriod = LimitPeriod.daily; break;
+            case 'This Week': limitPeriod = LimitPeriod.weekly; break;
+            case 'This Month': limitPeriod = LimitPeriod.monthly; break;
+            case 'This Year': limitPeriod = LimitPeriod.yearly; break;
+          }
+
+          CategoryLimit? matchedLimit;
+          if (limitPeriod != null) {
+            try {
+              matchedLimit = limits.firstWhere((l) => l.category == cat && l.period == limitPeriod);
+            } catch (e) {
+              // No limit found
+            }
+          }
+
+          final bool hasLimit = matchedLimit != null && matchedLimit.limitAmount > 0;
+          final double limitAmt = hasLimit ? matchedLimit.limitAmount : 0.0;
+          final pct = hasLimit ? (catTotal / limitAmt).clamp(0.0, 1.0) : (total > 0 ? catTotal / total : 0.0);
+          final bool isOver = hasLimit && catTotal > limitAmt;
+
           return GestureDetector(
             onTap: () => onCategoryTap(cat),
             child: Container(
@@ -397,8 +413,11 @@ class _OverviewBody extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('₹${fmt.format(catTotal)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
-                          Text('${(pct * 100).toStringAsFixed(1)}%', style: TextStyle(color: subTextColor, fontSize: 12)),
+                          Text('₹${fmt.format(catTotal)}', style: TextStyle(color: isOver ? Colors.red : textColor, fontWeight: FontWeight.bold, fontSize: 15)),
+                          if (hasLimit)
+                            Text('of ₹${fmt.format(limitAmt)} limit', style: TextStyle(color: subTextColor, fontSize: 11))
+                          else
+                            Text('${(pct * 100).toStringAsFixed(1)}% of total', style: TextStyle(color: subTextColor, fontSize: 11)),
                         ],
                       ),
                       const SizedBox(width: 8),
@@ -412,7 +431,7 @@ class _OverviewBody extends StatelessWidget {
                       value: pct,
                       minHeight: 6,
                       backgroundColor: _CatMeta.color(cat).withOpacity(0.12),
-                      valueColor: AlwaysStoppedAnimation<Color>(_CatMeta.color(cat)),
+                      valueColor: AlwaysStoppedAnimation<Color>(isOver ? Colors.red : _CatMeta.color(cat)),
                     ),
                   ),
                 ],

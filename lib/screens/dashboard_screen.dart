@@ -256,7 +256,6 @@ class _SummaryCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
         ),
         child: fullWidth
             ? Row(
