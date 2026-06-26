@@ -159,7 +159,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Recent Activity', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-                TextButton(onPressed: () {}, child: const Text('See all')),
+                TextButton(
+                  onPressed: () => showSpendingBreakdownSheet(context, 'All Time'),
+                  child: const Text('See all'),
+                ),
               ],
             ),
             const SizedBox(height: 16),
