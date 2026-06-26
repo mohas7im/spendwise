@@ -6,7 +6,6 @@ import '../providers/budget_provider.dart';
 import '../providers/finance_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/premium_gradient_card.dart';
-import '../widgets/common/custom_tab_bar.dart';
 import '../widgets/common/custom_progress_bar.dart';
 import 'budget_analytics_screen.dart';
 
@@ -17,41 +16,18 @@ class BudgetScreen extends StatefulWidget {
   State<BudgetScreen> createState() => _BudgetScreenState();
 }
 
-class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        setState(() {});
-      }
-    });
-  }
-
-  double _getTabBarViewHeight(BudgetModel budget) {
-    int count = 0;
-    switch (_tabController.index) {
-      case 0:
-        count = budget.categoryLimits.where((l) => l.period == LimitPeriod.monthly).length;
-        break;
-      case 1:
-        count = budget.categoryLimits.where((l) => l.period == LimitPeriod.weekly).length;
-        break;
-      case 2:
-        count = budget.categoryLimits.where((l) => l.period == LimitPeriod.daily).length;
-        break;
-    }
-    if (count == 0) return 200.0;
-    return count * 155.0 + 50.0;
-  }
+class _BudgetScreenState extends State<BudgetScreen> {
+  LimitPeriod _selectedPeriod = LimitPeriod.monthly;
 
   @override
   void dispose() {
-    _tabController.dispose();
     super.dispose();
+  }
+
+  double _getCategoryListHeight(BudgetModel budget) {
+    final count = budget.categoryLimits.where((l) => l.period == _selectedPeriod).length;
+    if (count == 0) return 200.0;
+    return count * 155.0 + 50.0;
   }
 
   @override
@@ -66,12 +42,13 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
           budgetProvider.recalculateSpending(financeProvider.transactions);
           final budget = budgetProvider.budget;
 
-          // Compute Dashboard Metrics
-          double totalBudget = budget.globalLimits.isNotEmpty ? budget.globalLimits.first.limitAmount : budget.categoryLimits.fold(0, (sum, l) => sum + l.limitAmount);
-          double totalSpent = budget.globalLimits.isNotEmpty ? budget.globalLimits.first.spentAmount : budget.categoryLimits.fold(0, (sum, l) => sum + l.spentAmount);
+          // Compute Dashboard Metrics — filtered by selected period
+          final periodLimits = budget.categoryLimits.where((l) => l.period == _selectedPeriod).toList();
+          double totalBudget = periodLimits.fold(0, (sum, l) => sum + l.limitAmount);
+          double totalSpent = periodLimits.fold(0, (sum, l) => sum + l.spentAmount);
           double remainingBudget = (totalBudget - totalSpent).clamp(0.0, double.infinity);
           double totalSavings = budget.savingsGoals.fold(0, (sum, g) => sum + g.currentAmount);
-          int overBudgetCount = budget.categoryLimits.where((l) => l.isOverBudget).length;
+          int overBudgetCount = periodLimits.where((l) => l.isOverBudget).length;
 
           return SafeArea(
             child: Column(
@@ -94,6 +71,41 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                         },
                       ),
                     ],
+                  ),
+                ),
+
+                // Global Period Filter
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _PeriodChip(
+                          label: 'Daily',
+                          selected: _selectedPeriod == LimitPeriod.daily,
+                          onTap: () => setState(() => _selectedPeriod = LimitPeriod.daily),
+                        ),
+                        const SizedBox(width: 8),
+                        _PeriodChip(
+                          label: 'Weekly',
+                          selected: _selectedPeriod == LimitPeriod.weekly,
+                          onTap: () => setState(() => _selectedPeriod = LimitPeriod.weekly),
+                        ),
+                        const SizedBox(width: 8),
+                        _PeriodChip(
+                          label: 'Monthly',
+                          selected: _selectedPeriod == LimitPeriod.monthly,
+                          onTap: () => setState(() => _selectedPeriod = LimitPeriod.monthly),
+                        ),
+                        const SizedBox(width: 8),
+                        _PeriodChip(
+                          label: 'Yearly',
+                          selected: _selectedPeriod == LimitPeriod.yearly,
+                          onTap: () => setState(() => _selectedPeriod = LimitPeriod.yearly),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
@@ -187,25 +199,11 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                             ],
                           ),
                         ),
-                        const SizedBox(height: 8),
-
-                        // Period Tab Bar
-                        CustomTabBar(
-                          controller: _tabController,
-                          tabs: const [Tab(text: 'Monthly'), Tab(text: 'Weekly'), Tab(text: 'Daily')],
-                        ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
 
                         SizedBox(
-                          height: _getTabBarViewHeight(budget),
-                          child: TabBarView(
-                            controller: _tabController,
-                            children: [
-                              _buildCategoryLimitsList(LimitPeriod.monthly, budget),
-                              _buildCategoryLimitsList(LimitPeriod.weekly, budget),
-                              _buildCategoryLimitsList(LimitPeriod.daily, budget),
-                            ],
-                          ),
+                          height: _getCategoryListHeight(budget),
+                          child: _buildCategoryLimitsList(_selectedPeriod, budget),
                         ),
                       ],
                     ),
@@ -220,11 +218,18 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
   }
 
   Widget _buildDashboardSummary(double budget, double spent, double remaining) {
+    final periodLabel = _selectedPeriod == LimitPeriod.daily
+        ? 'Daily'
+        : _selectedPeriod == LimitPeriod.weekly
+            ? 'Weekly'
+            : _selectedPeriod == LimitPeriod.yearly
+                ? 'Yearly'
+                : 'Monthly';
     return PremiumGradientCard(
       builder: (context, textColor, subTextColor) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Total Budget (Monthly)', style: TextStyle(color: subTextColor, fontSize: 13)),
+          Text('Total $periodLabel Budget', style: TextStyle(color: subTextColor, fontSize: 13)),
           const SizedBox(height: 6),
           Text('₹ ${budget.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontSize: 38, fontWeight: FontWeight.bold, letterSpacing: -1)),
           const SizedBox(height: 20),
@@ -807,6 +812,38 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                 const SizedBox(height: 32),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PeriodChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PeriodChip({required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? primary : Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
+            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 13,
           ),
         ),
       ),
