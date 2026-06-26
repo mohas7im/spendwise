@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
@@ -152,17 +152,17 @@ class _SpendingBreakdownSheetState extends State<SpendingBreakdownSheet> with Ti
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF059669)]),
+                        color: Theme.of(context).primaryColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.add, size: 16, color: Colors.white),
-                          SizedBox(width: 4),
-                          Text('Add', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                          Icon(Icons.add, size: 16, color: Theme.of(context).colorScheme.onPrimary),
+                          const SizedBox(width: 4),
+                          Text('Add', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
                         ],
                       ),
                     ),
@@ -258,19 +258,16 @@ class _OverviewBody extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-              begin: Alignment.topLeft, end: Alignment.bottomRight,
-            ),
+            color: Theme.of(context).primaryColor,
             borderRadius: BorderRadius.circular(24),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Total Spent', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14)),
+              Text('Total Spent', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8), fontSize: 14)),
               const SizedBox(height: 8),
               Text('₹${fmt.format(total)}',
-                style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
+                style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontSize: 36, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -571,10 +568,11 @@ class _StatChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isUp == null ? Colors.white : (isUp! ? const Color(0xFFEF4444) : const Color(0xFF10B981));
+    final onPrimary = Theme.of(context).colorScheme.onPrimary;
+    final color = isUp == null ? onPrimary : (isUp! ? const Color(0xFFEF4444) : const Color(0xFF10B981));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(color: onPrimary.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
