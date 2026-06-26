@@ -393,8 +393,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isOver ? Colors.redAccent.withOpacity(0.5) : Colors.grey.withOpacity(0.1), width: isOver ? 1.5 : 1),
-        boxShadow: isOver ? [BoxShadow(color: Colors.redAccent.withOpacity(0.05), blurRadius: 10)] : [],
+        border: Border.all(color: Colors.grey.withOpacity(0.1), width: 1),
       ),
       child: Column(
         children: [
