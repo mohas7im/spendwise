@@ -83,11 +83,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Total Net Balance', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                  Text('Total Net Balance', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 13)),
                   const SizedBox(height: 6),
                   Text(
                     '₹${financeProvider.totalBalance.toStringAsFixed(0)}',
-                    style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold, letterSpacing: -1),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 36, fontWeight: FontWeight.bold, letterSpacing: -1),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -96,22 +96,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Total Income', style: TextStyle(color: Colors.white60, fontSize: 11)),
-                          Text('₹${financeProvider.totalIncome.toStringAsFixed(0)}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 15)),
+                          Text('Total Income', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 11)),
+                          Text('₹${financeProvider.totalIncome.toStringAsFixed(0)}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15)),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Text('Total Expenses', style: TextStyle(color: Colors.white60, fontSize: 11)),
-                          Text('₹${financeProvider.totalExpenses.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 15)),
+                          Text('Total Expenses', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 11)),
+                          Text('₹${financeProvider.totalExpenses.toStringAsFixed(0)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 15)),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Text('Net Savings', style: TextStyle(color: Colors.white60, fontSize: 11)),
-                          Text('₹${financeProvider.totalSavings.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                          Text('Net Savings', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 11)),
+                          Text('₹${financeProvider.totalSavings.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontWeight: FontWeight.bold, fontSize: 15)),
                         ],
                       ),
                     ],
