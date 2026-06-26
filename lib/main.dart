@@ -6,6 +6,7 @@ import 'providers/finance_provider.dart';
 import 'providers/split_provider.dart';
 import 'providers/friends_provider.dart';
 import 'providers/budget_provider.dart';
+import 'providers/fuel_provider.dart';
 
 void main() {
   runApp(
@@ -15,6 +16,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => FinanceProvider()),
         ChangeNotifierProvider(create: (_) => SplitProvider()),
         ChangeNotifierProvider(create: (_) => BudgetProvider()),
+        ChangeNotifierProvider(create: (_) => FuelProvider()),
         ChangeNotifierProvider(create: (_) => FriendsProvider()),
       ],
       child: const ExpenseTrackerApp(),

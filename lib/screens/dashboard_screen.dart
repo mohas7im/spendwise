@@ -10,6 +10,8 @@ import '../widgets/unified_activity_card.dart';
 import '../widgets/spending_breakdown_sheet.dart';
 import '../widgets/add_transaction_modal.dart';
 import 'profile_screen.dart';
+import 'fuel_screen.dart';
+import '../providers/fuel_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -152,6 +154,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 14),
             _SpendingSummaryGrid(financeProvider: financeProvider),
+            const SizedBox(height: 32),
+
+            // Fuel & Mileage
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Fuel & Mileage', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
+                TextButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelScreen())),
+                  child: const Text('Open'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Consumer<FuelProvider>(
+              builder: (ctx, fuel, _) {
+                final avg = fuel.averageMileage;
+                final spend = fuel.totalFuelSpend;
+                return GestureDetector(
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelScreen())),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(color: Theme.of(context).primaryColor.withOpacity(0.1), shape: BoxShape.circle),
+                          child: const Text('⛽', style: TextStyle(fontSize: 24)),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(avg > 0 ? '${avg.toStringAsFixed(1)} km/l' : 'Not calculated', 
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                              Text('Average Mileage', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('₹${spend.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.redAccent)),
+                            Text('Total Spent', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
             const SizedBox(height: 32),
 
             // Unified Recent Activity
