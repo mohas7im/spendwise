@@ -54,45 +54,59 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Budget & Goals', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 12),
-                        // Current Selection Dropdown
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<LimitPeriod>(
-                              value: _selectedPeriod,
-                              isDense: true,
-                              icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).primaryColor),
-                              style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 13),
-                              items: LimitPeriod.values.map((p) => DropdownMenuItem(
-                                value: p,
-                                child: Text(p.name.substring(0, 1).toUpperCase() + p.name.substring(1)),
-                              )).toList(),
-                              onChanged: (val) {
-                                if (val != null) setState(() => _selectedPeriod = val);
-                              },
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Budget & Goals', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            // Current Selection Dropdown
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<LimitPeriod>(
+                                  value: _selectedPeriod,
+                                  isDense: true,
+                                  icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).primaryColor),
+                                  style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 13),
+                                  items: LimitPeriod.values.map((p) => DropdownMenuItem(
+                                    value: p,
+                                    child: Text(p.name.substring(0, 1).toUpperCase() + p.name.substring(1)),
+                                  )).toList(),
+                                  onChanged: (val) {
+                                    if (val != null) setState(() => _selectedPeriod = val);
+                                  },
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.analytics_outlined),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const BudgetAnalyticsScreen()),
-                            );
-                          },
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.analytics_outlined),
+                            color: Theme.of(context).primaryColor,
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const BudgetAnalyticsScreen()),
+                              );
+                            },
+                          ),
                         ),
                       ],
                     ),
                   ),
+
 
                   // Dashboard Summary Section
                   Padding(
