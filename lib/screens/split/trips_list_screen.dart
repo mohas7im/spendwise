@@ -23,7 +23,7 @@ class TripsListScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: currency,
+              initialValue: currency,
               decoration: const InputDecoration(labelText: 'Currency', border: OutlineInputBorder()),
               items: const [
                 DropdownMenuItem(value: '₹', child: Text('INR (₹)')),
@@ -85,7 +85,7 @@ class TripsListScreen extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 24,
-                          backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                          backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                           child: Icon(Icons.flight_takeoff, color: Theme.of(context).primaryColor),
                         ),
                         const SizedBox(width: 16),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
-import '../theme/app_theme.dart';
 class BalanceSection extends StatelessWidget {
   const BalanceSection({super.key});
 
@@ -41,7 +40,7 @@ class BalanceSection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Text('+ 1.2%', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),

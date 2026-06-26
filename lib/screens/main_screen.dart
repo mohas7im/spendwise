@@ -7,7 +7,6 @@ import '../widgets/add_transaction_modal.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
 import '../models/income_source.dart';
-import '../theme/app_theme.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -158,7 +157,7 @@ class _MainScreenState extends State<MainScreen> {
                 borderRadius: BorderRadius.circular(36),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.4 : 0.12),
+                    color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   )

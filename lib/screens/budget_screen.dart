@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../models/budget.dart';
 import '../providers/budget_provider.dart';
 import '../providers/finance_provider.dart';
-import '../theme/app_theme.dart';
 import '../widgets/common/premium_gradient_card.dart';
 import '../widgets/common/custom_progress_bar.dart';
 import '../widgets/common/custom_tab_bar.dart';
@@ -128,9 +127,9 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 decoration: BoxDecoration(
-                                  color: Colors.redAccent.withOpacity(0.1),
+                                  color: Colors.redAccent.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
                                 ),
                                 child: Row(
                                   children: [
@@ -289,7 +288,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
           child: Column(
             children: [
               const SizedBox(height: 12),
-              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -326,9 +325,9 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -379,7 +378,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.assignment_late_outlined, size: 48, color: Colors.grey.withOpacity(0.5)),
+              Icon(Icons.assignment_late_outlined, size: 48, color: Colors.grey.withValues(alpha: 0.5)),
               const SizedBox(height: 12),
               Text(
                 'No ${period.name} limits set yet.',
@@ -412,7 +411,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.withOpacity(0.1), width: 1),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1), width: 1),
       ),
       child: Column(
         children: [
@@ -440,7 +439,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
               if (isOver) 
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                  decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                   child: const Text('OVERSPENT', style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                 )
               else 
@@ -453,7 +452,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
             child: LinearProgressIndicator(
               value: limit.percentUsed.clamp(0.0, 1.0),
               minHeight: 8,
-              backgroundColor: Colors.grey.withOpacity(0.1),
+              backgroundColor: Colors.grey.withValues(alpha: 0.1),
               valueColor: AlwaysStoppedAnimation<Color>(progressColor),
             ),
           ),
@@ -500,7 +499,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.15)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
             ),
             child: Text(icon, style: const TextStyle(fontSize: 18)),
           ),
@@ -523,7 +522,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                 decoration: InputDecoration(
                   prefixText: '₹ ',
                   hintText: 'No limit',
-                  hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5), fontSize: 13),
+                  hintStyle: TextStyle(color: Colors.grey.withValues(alpha: 0.5), fontSize: 13),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -578,7 +577,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                 
                 // Preset Category Dropdown
                 DropdownButtonFormField<Map<String, String>?>(
-                  value: isCustomCategory ? null : selectedPreset,
+                  initialValue: isCustomCategory ? null : selectedPreset,
                   decoration: InputDecoration(
                     labelText: 'Category',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -599,7 +598,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                       child: Row(
                         children: [
                           Text('➕', style: TextStyle(fontSize: 18)),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Text('Custom Category...'),
                         ],
                       ),

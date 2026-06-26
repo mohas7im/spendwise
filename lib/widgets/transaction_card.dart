@@ -24,13 +24,13 @@ class TransactionCard extends StatelessWidget {
     final sign = isIncome ? '+' : '-';
     
     // Category tag color
-    Color tagBgColor = Colors.orange.withOpacity(0.1);
+    Color tagBgColor = Colors.orange.withValues(alpha: 0.1);
     Color tagTextColor = Colors.orange;
     if (isIncome) {
-      tagBgColor = Colors.blue.withOpacity(0.1);
+      tagBgColor = Colors.blue.withValues(alpha: 0.1);
       tagTextColor = Colors.blue;
     } else if (transaction.title.toLowerCase().contains('whole foods')) {
-      tagBgColor = Colors.blue.withOpacity(0.1);
+      tagBgColor = Colors.blue.withValues(alpha: 0.1);
       tagTextColor = Colors.blue;
     }
 
@@ -48,7 +48,7 @@ class TransactionCard extends StatelessWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: BoxDecoration(color: isDark ? iconBgColor.withOpacity(0.2) : iconBgColor, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: isDark ? iconBgColor.withValues(alpha: 0.2) : iconBgColor, shape: BoxShape.circle),
             child: Center(child: Text(emoji, style: const TextStyle(fontSize: 24))),
           ),
           const SizedBox(width: 16),

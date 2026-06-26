@@ -88,7 +88,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(
-                        backgroundColor: payment.status == PaymentStatus.paid ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                        backgroundColor: payment.status == PaymentStatus.paid ? Colors.green.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
                         child: Icon(payment.status == PaymentStatus.paid ? Icons.check : Icons.warning, color: payment.status == PaymentStatus.paid ? Colors.green : Colors.orange),
                       ),
                       title: Text('₹${payment.amount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -300,7 +300,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(isStructured ? Icons.account_balance : Icons.people, size: 64, color: Colors.grey.withOpacity(0.3)),
+            Icon(isStructured ? Icons.account_balance : Icons.people, size: 64, color: Colors.grey.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
             Text('No active ${isStructured ? 'loans' : 'debts'}', style: const TextStyle(color: Colors.grey)),
           ],
@@ -333,7 +333,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
                       Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: color.withOpacity(0.1),
+                            backgroundColor: color.withValues(alpha: 0.1),
                             child: Icon(isOwedByMe ? Icons.arrow_downward : Icons.arrow_upward, color: color, size: 16),
                           ),
                           const SizedBox(width: 12),
@@ -364,7 +364,7 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
                     const SizedBox(height: 16),
                     LinearProgressIndicator(
                       value: debt.totalPayable > 0 ? (debt.repaidAmount / debt.totalPayable) : 0,
-                      backgroundColor: Colors.grey.withOpacity(0.1),
+                      backgroundColor: Colors.grey.withValues(alpha: 0.1),
                       color: Theme.of(context).primaryColor,
                       minHeight: 6,
                       borderRadius: BorderRadius.circular(3),

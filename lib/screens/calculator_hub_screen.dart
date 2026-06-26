@@ -263,7 +263,7 @@ class _CalculatorHubScreenState extends State<CalculatorHubScreen> {
                 ),
               ],
             );
-          }).toList(),
+          }),
           
           const SliverToBoxAdapter(child: SizedBox(height: 80)),
         ],
@@ -279,7 +279,7 @@ class _CalculatorHubScreenState extends State<CalculatorHubScreen> {
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
         ),
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -293,7 +293,7 @@ class _CalculatorHubScreenState extends State<CalculatorHubScreen> {
                   onTap: () => _toggleFavorite(item.id),
                   child: Icon(
                     isFav ? Icons.star : Icons.star_border,
-                    color: isFav ? Colors.amber : Colors.grey.withOpacity(0.5),
+                    color: isFav ? Colors.amber : Colors.grey.withValues(alpha: 0.5),
                     size: 20,
                   ),
                 ),
@@ -305,7 +305,7 @@ class _CalculatorHubScreenState extends State<CalculatorHubScreen> {
             if (item.destination == null)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
+                decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(4)),
                 child: const Text('COMING SOON', style: TextStyle(color: Colors.orange, fontSize: 8, fontWeight: FontWeight.bold)),
               ),
           ],
@@ -324,7 +324,7 @@ class _CalculatorHubScreenState extends State<CalculatorHubScreen> {
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

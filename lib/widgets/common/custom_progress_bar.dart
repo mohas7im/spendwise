@@ -27,7 +27,7 @@ class CustomProgressBar extends StatelessWidget {
       child: LinearProgressIndicator(
         value: percent.clamp(0.0, 1.0),
         minHeight: minHeight,
-        backgroundColor: Colors.grey.withOpacity(0.15),
+        backgroundColor: Colors.grey.withValues(alpha: 0.15),
         valueColor: AlwaysStoppedAnimation<Color>(progressColor),
       ),
     );

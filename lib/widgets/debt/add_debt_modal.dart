@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/debt.dart';
 import '../../providers/finance_provider.dart';
-import 'package:provider/provider.dart';
 
 class AddDebtModal extends StatefulWidget {
   final FinanceProvider provider;
@@ -60,7 +59,7 @@ class _AddDebtModalState extends State<AddDebtModal> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<DebtType>(
-                      value: _debtType,
+                      initialValue: _debtType,
                       decoration: const InputDecoration(labelText: 'Debt Type', border: OutlineInputBorder()),
                       items: DebtType.values.map((t) => DropdownMenuItem(value: t, child: Text(_formatDebtType(t)))).toList(),
                       onChanged: (v) { if (v != null) setState(() => _debtType = v); },

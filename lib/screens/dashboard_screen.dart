@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/finance_provider.dart';
-import '../models/transaction.dart';
-import '../models/debt.dart';
 import '../main.dart'; // for ThemeProvider
 import '../widgets/common/premium_gradient_card.dart';
 import '../widgets/unified_activity_card.dart';
@@ -12,7 +10,6 @@ import '../widgets/add_transaction_modal.dart';
 import 'profile_screen.dart';
 import 'calculator_hub_screen.dart';
 import 'fuel_screen.dart';
-import '../providers/fuel_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -68,7 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardColor,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.notifications_none, size: 20),
@@ -176,11 +173,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
                   image: DecorationImage(
                     image: const NetworkImage('https://www.transparenttextures.com/patterns/cubes.png'), // Subtle pattern
                     fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(Theme.of(context).primaryColor.withOpacity(0.05), BlendMode.dstATop),
+                    colorFilter: ColorFilter.mode(Theme.of(context).primaryColor.withValues(alpha: 0.05), BlendMode.dstATop),
                   ),
                 ),
                 child: Column(
@@ -190,7 +187,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         Container(
                           padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: Theme.of(context).primaryColor.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                          decoration: BoxDecoration(color: Theme.of(context).primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
                           child: Icon(Icons.calculate_outlined, color: Theme.of(context).primaryColor, size: 28),
                         ),
                         const SizedBox(width: 16),
@@ -333,7 +330,7 @@ class _SummaryCard extends StatelessWidget {
             ? Row(
                 children: [
                   Expanded(child: _CardContent(period: period, amount: amount, count: count, pctChange: pctChange, up: up, fmt: fmt)),
-                  Icon(Icons.chevron_right, color: Colors.grey.withOpacity(0.5), size: 20),
+                  Icon(Icons.chevron_right, color: Colors.grey.withValues(alpha: 0.5), size: 20),
                 ],
               )
             : _CardContent(period: period, amount: amount, count: count, pctChange: pctChange, up: up, fmt: fmt),
@@ -365,7 +362,7 @@ class _CardContent extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  color: (up ? const Color(0xFFEF4444) : const Color(0xFF10B981)).withOpacity(0.15),
+                  color: (up ? const Color(0xFFEF4444) : const Color(0xFF10B981)).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -409,7 +406,7 @@ class _CalcChip extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey.withOpacity(0.1)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
             ),
             child: Text(emoji, style: const TextStyle(fontSize: 20)),
           ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/income_source.dart';
 import '../providers/finance_provider.dart';
-import '../theme/app_theme.dart';
 
 class IncomeSalaryScreen extends StatelessWidget {
   const IncomeSalaryScreen({super.key});
@@ -42,12 +41,12 @@ class IncomeSalaryScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                    border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
                   ),
                   child: Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: (Theme.of(context).primaryColor).withOpacity(0.1),
+                        backgroundColor: (Theme.of(context).primaryColor).withValues(alpha: 0.1),
                         child: Icon(_getIconForType(inc.type), color: Theme.of(context).primaryColor),
                       ),
                       const SizedBox(width: 16),
@@ -65,7 +64,7 @@ class IncomeSalaryScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: (Theme.of(context).primaryColor).withOpacity(0.05),
+                            color: (Theme.of(context).primaryColor).withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
@@ -145,7 +144,7 @@ class IncomeSalaryScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<IncomeType>(
-                    value: selectedType,
+                    initialValue: selectedType,
                     decoration: InputDecoration(labelText: 'Type', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
                     items: IncomeType.values.map((t) => DropdownMenuItem(value: t, child: Text(t.name.toUpperCase()))).toList(),
                     onChanged: (val) {

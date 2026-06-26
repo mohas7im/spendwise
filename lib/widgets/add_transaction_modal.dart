@@ -106,7 +106,7 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
             Container(
               margin: const EdgeInsets.only(top: 12),
               width: 40, height: 4,
-              decoration: BoxDecoration(color: Colors.grey.withOpacity(0.3), borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -167,7 +167,7 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                     Center(
                       child: Column(
                         children: [
-                          Text('Amount', style: TextStyle(color: Colors.grey.withOpacity(0.8), fontSize: 14)),
+                          Text('Amount', style: TextStyle(color: Colors.grey.withValues(alpha: 0.8), fontSize: 14)),
                           const SizedBox(height: 8),
                           IntrinsicWidth(
                             child: TextField(
@@ -178,9 +178,9 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                               decoration: InputDecoration(
                                 border: InputBorder.none,
                                 hintText: '0',
-                                hintStyle: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.grey.withOpacity(0.4)),
+                                hintStyle: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.grey.withValues(alpha: 0.4)),
                                 prefixText: '₹ ',
-                                prefixStyle: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.grey.withOpacity(0.6)),
+                                prefixStyle: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.grey.withValues(alpha: 0.6)),
                               ),
                             ),
                           ),
@@ -191,10 +191,10 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                     // Description
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.withOpacity(0.1))),
+                      decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.withValues(alpha: 0.1))),
                       child: TextField(
                         controller: _noteController,
-                        decoration: InputDecoration(border: InputBorder.none, hintText: 'Description...', hintStyle: TextStyle(color: Colors.grey.withOpacity(0.6)), icon: Icon(Icons.notes, color: Colors.grey.withOpacity(0.6))),
+                        decoration: InputDecoration(border: InputBorder.none, hintText: 'Description...', hintStyle: TextStyle(color: Colors.grey.withValues(alpha: 0.6)), icon: Icon(Icons.notes, color: Colors.grey.withValues(alpha: 0.6))),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -206,7 +206,7 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: paymentMethods.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        separatorBuilder: (_, _) => const SizedBox(width: 8),
                         itemBuilder: (context, i) {
                           final method = paymentMethods[i];
                           final isSelected = selectedPaymentMethod == method;
@@ -218,7 +218,7 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                               decoration: BoxDecoration(
                                 color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: isSelected ? Theme.of(context).primaryColor : Colors.grey.withOpacity(0.2)),
+                                border: Border.all(color: isSelected ? Theme.of(context).primaryColor : Colors.grey.withValues(alpha: 0.2)),
                               ),
                               child: Center(child: Text(method, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isSelected ? Theme.of(context).colorScheme.onPrimary : null))),
                             ),
@@ -235,14 +235,14 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.withOpacity(0.1))),
+                        decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.withValues(alpha: 0.1))),
                         child: Row(
                           children: [
-                            Icon(Icons.calendar_today_outlined, color: Colors.grey.withOpacity(0.7), size: 20),
+                            Icon(Icons.calendar_today_outlined, color: Colors.grey.withValues(alpha: 0.7), size: 20),
                             const SizedBox(width: 12),
                             Text('${selectedDate.day}/${selectedDate.month}/${selectedDate.year}', style: const TextStyle(fontWeight: FontWeight.w600)),
                             const Spacer(),
-                            Icon(Icons.chevron_right, color: Colors.grey.withOpacity(0.5)),
+                            Icon(Icons.chevron_right, color: Colors.grey.withValues(alpha: 0.5)),
                           ],
                         ),
                       ),
@@ -264,7 +264,7 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             decoration: BoxDecoration(
-                              color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.12) : Theme.of(context).cardColor,
+                              color: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.12) : Theme.of(context).cardColor,
                               border: Border.all(color: isSelected ? Theme.of(context).primaryColor : Colors.transparent, width: 2),
                               borderRadius: BorderRadius.circular(16),
                             ),

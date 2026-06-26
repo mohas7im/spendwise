@@ -19,10 +19,10 @@ class MetricCard extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: baseColor.withOpacity(0.1),
+        color: baseColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: baseColor.withOpacity(0.3),
+          color: baseColor.withValues(alpha: 0.3),
           width: borderWidth,
         ),
       ),

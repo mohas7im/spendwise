@@ -46,13 +46,13 @@ class PremiumBalanceCard extends StatelessWidget {
                 children: [
                   Container(
                     width: 16, height: 16,
-                    decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.8), shape: BoxShape.circle),
+                    decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.8), shape: BoxShape.circle),
                   ),
                   Transform.translate(
                     offset: const Offset(-6, 0),
                     child: Container(
                       width: 16, height: 16,
-                      decoration: BoxDecoration(color: Colors.orangeAccent.withOpacity(0.8), shape: BoxShape.circle),
+                      decoration: BoxDecoration(color: Colors.orangeAccent.withValues(alpha: 0.8), shape: BoxShape.circle),
                     ),
                   )
                 ],
@@ -94,7 +94,7 @@ class ActionPillRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 20),

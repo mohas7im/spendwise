@@ -462,9 +462,9 @@ class _FuelConsumptionTrackerTabState extends State<_FuelConsumptionTrackerTab> 
                 const SizedBox(height: 24),
                 ValueListenableBuilder(
                   valueListenable: litersCtrl,
-                  builder: (_, __, ___) => ValueListenableBuilder(
+                  builder: (_, _, _) => ValueListenableBuilder(
                     valueListenable: priceCtrl,
-                    builder: (_, __, ___) {
+                    builder: (_, _, _) {
                       final l = double.tryParse(litersCtrl.text) ?? 0;
                       final p = double.tryParse(priceCtrl.text) ?? 0;
                       if (l * p == 0) return const SizedBox();
@@ -567,12 +567,12 @@ class _FuelConsumptionTrackerTabState extends State<_FuelConsumptionTrackerTab> 
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.grey.withOpacity(0.1))),
+                            decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.grey.withValues(alpha: 0.1))),
                             child: Column(
                               children: [
                                 const Text('Avg Mileage', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 8),
-                                Text(avgMileage > 0 ? '${avgMileage.toStringAsFixed(1)}' : '--', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
+                                Text(avgMileage > 0 ? avgMileage.toStringAsFixed(1) : '--', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
                                 const Text('km/L', style: TextStyle(color: Colors.grey, fontSize: 10)),
                               ],
                             ),
@@ -582,7 +582,7 @@ class _FuelConsumptionTrackerTabState extends State<_FuelConsumptionTrackerTab> 
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.grey.withOpacity(0.1))),
+                            decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.grey.withValues(alpha: 0.1))),
                             child: Column(
                               children: [
                                 const Text('Est. Monthly', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
@@ -630,17 +630,17 @@ class _FuelConsumptionTrackerTabState extends State<_FuelConsumptionTrackerTab> 
                   return Dismissible(
                     key: Key(entry.id),
                     direction: DismissDirection.endToStart,
-                    background: Container(alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 24), color: Colors.red.withOpacity(0.2), child: const Icon(Icons.delete_outline, color: Colors.redAccent)),
+                    background: Container(alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 24), color: Colors.red.withValues(alpha: 0.2), child: const Icon(Icons.delete_outline, color: Colors.redAccent)),
                     onDismissed: (_) => Provider.of<FuelProvider>(ctx, listen: false).deleteEntry(entry.id),
                     child: Container(
                       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.grey.withOpacity(0.1))),
+                      decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.grey.withValues(alpha: 0.1))),
                       child: Column(
                         children: [
                           Row(
                             children: [
-                              Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Theme.of(context).primaryColor.withOpacity(0.1), shape: BoxShape.circle), child: const Text('⛽', style: TextStyle(fontSize: 18))),
+                              Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Theme.of(context).primaryColor.withValues(alpha: 0.1), shape: BoxShape.circle), child: const Text('⛽', style: TextStyle(fontSize: 18))),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
@@ -700,7 +700,7 @@ class _CalcCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -730,9 +730,9 @@ class _ResultBox extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: primary.withOpacity(0.1),
+        color: primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: primary.withOpacity(0.2)),
+        border: Border.all(color: primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -743,7 +743,7 @@ class _ResultBox extends StatelessWidget {
           Text(value, style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: primary, letterSpacing: -1)),
           if (subtext != null) ...[
             const SizedBox(height: 8),
-            Text(subtext!, style: TextStyle(color: primary.withOpacity(0.8), fontSize: 13, fontWeight: FontWeight.w500)),
+            Text(subtext!, style: TextStyle(color: primary.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w500)),
           ]
         ],
       ),
@@ -775,7 +775,7 @@ class _InputField extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: TextField(
         controller: controller,
@@ -786,7 +786,7 @@ class _InputField extends StatelessWidget {
           labelText: label,
           labelStyle: TextStyle(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.normal),
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
+          hintStyle: TextStyle(color: Colors.grey.withValues(alpha: 0.5)),
           prefixIcon: Padding(
             padding: const EdgeInsets.all(12),
             child: Text(icon, style: const TextStyle(fontSize: 16)),

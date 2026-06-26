@@ -136,7 +136,7 @@ class BudgetAnalyticsScreen extends StatelessWidget {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text('No category limits set.', style: TextStyle(color: Colors.grey.withOpacity(0.7))),
+          child: Text('No category limits set.', style: TextStyle(color: Colors.grey.withValues(alpha: 0.7))),
         ),
       );
     }
@@ -172,7 +172,7 @@ class BudgetAnalyticsScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.redAccent.withOpacity(0.15),
+                          color: Colors.redAccent.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Text('OVER', style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
@@ -187,7 +187,7 @@ class BudgetAnalyticsScreen extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: pct,
                     minHeight: 8,
-                    backgroundColor: Colors.grey.withOpacity(0.1),
+                    backgroundColor: Colors.grey.withValues(alpha: 0.1),
                     valueColor: AlwaysStoppedAnimation<Color>(barColor),
                   ),
                 ),
@@ -195,8 +195,8 @@ class BudgetAnalyticsScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('₹${limit.spentAmount.toStringAsFixed(0)} spent', style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6))),
-                    Text('of ₹${limit.limitAmount.toStringAsFixed(0)}', style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6))),
+                    Text('₹${limit.spentAmount.toStringAsFixed(0)} spent', style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6))),
+                    Text('of ₹${limit.limitAmount.toStringAsFixed(0)}', style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6))),
                   ],
                 ),
               ],
@@ -213,7 +213,7 @@ class BudgetAnalyticsScreen extends StatelessWidget {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text('No savings goals set.', style: TextStyle(color: Colors.grey.withOpacity(0.7))),
+          child: Text('No savings goals set.', style: TextStyle(color: Colors.grey.withValues(alpha: 0.7))),
         ),
       );
     }
@@ -244,7 +244,7 @@ class BudgetAnalyticsScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: primary.withOpacity(0.1),
+                      color: primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text('${(pct * 100).toStringAsFixed(1)}%', style: TextStyle(color: primary, fontWeight: FontWeight.bold, fontSize: 12)),
@@ -257,7 +257,7 @@ class BudgetAnalyticsScreen extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: pct,
                   minHeight: 10,
-                  backgroundColor: Colors.grey.withOpacity(0.1),
+                  backgroundColor: Colors.grey.withValues(alpha: 0.1),
                   valueColor: AlwaysStoppedAnimation<Color>(pct >= 1.0 ? Colors.green : primary),
                 ),
               ),
@@ -265,8 +265,8 @@ class BudgetAnalyticsScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('₹${goal.currentAmount.toStringAsFixed(0)} saved', style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7))),
-                  Text('Target: ₹${goal.targetAmount.toStringAsFixed(0)}', style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7))),
+                  Text('₹${goal.currentAmount.toStringAsFixed(0)} saved', style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7))),
+                  Text('Target: ₹${goal.targetAmount.toStringAsFixed(0)}', style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7))),
                 ],
               ),
             ],
@@ -315,7 +315,7 @@ class _StatChip extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6))),
+        Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6))),
         const SizedBox(height: 2),
         Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color)),
       ],

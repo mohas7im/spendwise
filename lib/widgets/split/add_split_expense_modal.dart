@@ -20,9 +20,9 @@ class _AddSplitExpenseModalState extends State<AddSplitExpenseModal> {
   SplitMethod _splitMethod = SplitMethod.equal;
   
   List<String> _selectedSharers = [];
-  Map<String, TextEditingController> _customInputControllers = {};
+  final Map<String, TextEditingController> _customInputControllers = {};
   
-  List<FoodItem> _foodItems = [];
+  final List<FoodItem> _foodItems = [];
   
   @override
   void initState() {
@@ -109,7 +109,7 @@ class _AddSplitExpenseModalState extends State<AddSplitExpenseModal> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _selectedPayerId,
+                      initialValue: _selectedPayerId,
                       decoration: const InputDecoration(labelText: 'Who Paid?', border: OutlineInputBorder()),
                       items: widget.provider.people.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))).toList(),
                       onChanged: (v) { if (v != null) setState(() => _selectedPayerId = v); },
@@ -191,8 +191,11 @@ class _AddSplitExpenseModalState extends State<AddSplitExpenseModal> {
               value: _selectedSharers.contains(p.id),
               onChanged: (val) {
                 setState(() {
-                  if (val == true) _selectedSharers.add(p.id);
-                  else _selectedSharers.remove(p.id);
+                  if (val == true) {
+                    _selectedSharers.add(p.id);
+                  } else {
+                    _selectedSharers.remove(p.id);
+                  }
                 });
               },
             )),
@@ -235,7 +238,7 @@ class _AddSplitExpenseModalState extends State<AddSplitExpenseModal> {
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -275,8 +278,11 @@ class _AddSplitExpenseModalState extends State<AddSplitExpenseModal> {
                           selected: isSelected,
                           onSelected: (val) {
                             setState(() {
-                              if (val) item.sharedByPersonIds.add(p.id);
-                              else item.sharedByPersonIds.remove(p.id);
+                              if (val) {
+                                item.sharedByPersonIds.add(p.id);
+                              } else {
+                                item.sharedByPersonIds.remove(p.id);
+                              }
                             });
                           },
                         );

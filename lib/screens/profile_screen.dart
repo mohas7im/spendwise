@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../theme/app_theme.dart';
 import '../main.dart';
 import 'income_salary_screen.dart';
 import 'friends_screen.dart';
@@ -50,7 +49,7 @@ class ProfileScreen extends StatelessWidget {
               trailing: Switch(
                 value: isDark,
                 onChanged: (value) => themeProvider.toggleTheme(value),
-                activeColor: Theme.of(context).primaryColor,
+                activeThumbColor: Theme.of(context).primaryColor,
               ),
             ),
             _buildSettingTile(context, icon: Icons.notifications_outlined, title: 'Notifications', trailing: const Icon(Icons.chevron_right, color: Colors.grey)),
@@ -103,14 +102,14 @@ class ProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: ListTile(
         onTap: onTap,
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: Theme.of(context).primaryColor),

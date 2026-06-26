@@ -107,7 +107,7 @@ class _SpendingBreakdownSheetState extends State<SpendingBreakdownSheet> with Ti
           children: [
             // Drag handle
             Container(margin: const EdgeInsets.only(top: 12), width: 40, height: 4,
-              decoration: BoxDecoration(color: Colors.grey.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
+              decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
             // Top bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -270,7 +270,7 @@ class _OverviewBody extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Total Spent', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8), fontSize: 14)),
+              Text('Total Spent', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8), fontSize: 14)),
               const SizedBox(height: 8),
               Text('₹${fmt.format(total)}',
                 style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontSize: 36, fontWeight: FontWeight.bold)),
@@ -397,7 +397,7 @@ class _OverviewBody extends StatelessWidget {
                     children: [
                       Container(
                         width: 44, height: 44,
-                        decoration: BoxDecoration(color: _CatMeta.color(cat).withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+                        decoration: BoxDecoration(color: _CatMeta.color(cat).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
                         child: Center(child: Text(_CatMeta.emoji(cat), style: const TextStyle(fontSize: 20))),
                       ),
                       const SizedBox(width: 12),
@@ -430,7 +430,7 @@ class _OverviewBody extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: pct,
                       minHeight: 6,
-                      backgroundColor: _CatMeta.color(cat).withOpacity(0.12),
+                      backgroundColor: _CatMeta.color(cat).withValues(alpha: 0.12),
                       valueColor: AlwaysStoppedAnimation<Color>(isOver ? Colors.red : _CatMeta.color(cat)),
                     ),
                   ),
@@ -469,9 +469,9 @@ class _CategoryDetailView extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: _CatMeta.color(category).withOpacity(0.12),
+            color: _CatMeta.color(category).withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: _CatMeta.color(category).withOpacity(0.3)),
+            border: Border.all(color: _CatMeta.color(category).withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -527,7 +527,7 @@ class _TxTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final payLabel = tx.paymentMethod?.isNotEmpty == true ? tx.paymentMethod! : '';
+    final payLabel = tx.paymentMethod.isNotEmpty == true ? tx.paymentMethod : '';
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
@@ -536,7 +536,7 @@ class _TxTile extends StatelessWidget {
         children: [
           Container(
             width: 44, height: 44,
-            decoration: BoxDecoration(color: _CatMeta.color(tx.category).withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: _CatMeta.color(tx.category).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
             child: Center(child: Text(_CatMeta.emoji(tx.category), style: const TextStyle(fontSize: 20))),
           ),
           const SizedBox(width: 12),
@@ -553,7 +553,7 @@ class _TxTile extends StatelessWidget {
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: subTextColor.withOpacity(0.12), borderRadius: BorderRadius.circular(6)),
+                        decoration: BoxDecoration(color: subTextColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
                         child: Text(payLabel, style: TextStyle(color: subTextColor, fontSize: 9, fontWeight: FontWeight.bold)),
                       ),
                     ],
@@ -566,7 +566,11 @@ class _TxTile extends StatelessWidget {
           const SizedBox(width: 8),
           PopupMenuButton<String>(
             icon: Icon(Icons.more_vert, color: subTextColor, size: 18),
-            onSelected: (v) { if (v == 'edit') onEdit(); else onDelete(); },
+            onSelected: (v) { if (v == 'edit') {
+              onEdit();
+            } else {
+              onDelete();
+            } },
             itemBuilder: (_) => const [
               PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 16), SizedBox(width: 8), Text('Edit')])),
               PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 16, color: Colors.red), SizedBox(width: 8), Text('Delete', style: TextStyle(color: Colors.red))])),
@@ -591,7 +595,7 @@ class _StatChip extends StatelessWidget {
     final color = isUp == null ? onPrimary : (isUp! ? const Color(0xFFEF4444) : const Color(0xFF10B981));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: onPrimary.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(color: onPrimary.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -620,7 +624,7 @@ class _QuickStat extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
             child: Icon(icon, size: 14, color: color),
           ),
           const SizedBox(height: 8),

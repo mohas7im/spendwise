@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../providers/split_provider.dart';
 import '../providers/friends_provider.dart';
 import '../models/split_bill.dart';
@@ -208,7 +207,7 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
             width: double.infinity,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.7)],
+                colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withValues(alpha: 0.7)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -258,7 +257,7 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,7 +302,7 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
               const SizedBox(height: 8),
               LinearProgressIndicator(
                 value: pct,
-                backgroundColor: Colors.grey.withOpacity(0.1),
+                backgroundColor: Colors.grey.withValues(alpha: 0.1),
                 color: Theme.of(context).primaryColor,
                 minHeight: 8,
                 borderRadius: BorderRadius.circular(4),
@@ -422,7 +421,7 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
                         padding: const EdgeInsets.all(16),
                         child: Text('Notes: ${item.notes}', style: const TextStyle(fontStyle: FontStyle.italic)),
                       ),
-                    ButtonBar(
+                    OverflowBar(
                       children: [
                         TextButton.icon(
                           icon: const Icon(Icons.edit),
@@ -466,11 +465,11 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.withOpacity(0.1)),
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
           ),
           child: Row(
             children: [
-              CircleAvatar(backgroundColor: Colors.redAccent.withOpacity(0.1), child: const Icon(Icons.arrow_upward, color: Colors.redAccent, size: 20)),
+              CircleAvatar(backgroundColor: Colors.redAccent.withValues(alpha: 0.1), child: const Icon(Icons.arrow_upward, color: Colors.redAccent, size: 20)),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
