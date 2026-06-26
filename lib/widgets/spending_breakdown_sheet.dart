@@ -54,7 +54,7 @@ class _SpendingBreakdownSheetState extends State<SpendingBreakdownSheet> with Ti
   void initState() {
     super.initState();
     _animCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 350));
-    _slideAnim = Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
         .animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
     _animCtrl.forward();
   }
