@@ -11,24 +11,24 @@ class PremiumBalanceCard extends StatelessWidget {
     return PremiumGradientCard(
       padding: const EdgeInsets.all(24),
       borderRadius: 32,
-      child: Column(
+      builder: (context, textColor, subTextColor) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Total Balance',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+                style: TextStyle(color: subTextColor, fontSize: 16),
               ),
-              const Icon(Icons.more_horiz, color: Colors.white70),
+              Icon(Icons.more_horiz, color: subTextColor),
             ],
           ),
           const SizedBox(height: 12),
           Text(
             '\$${balance.toStringAsFixed(2)}',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: textColor,
               fontSize: 40,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.2,
@@ -38,9 +38,9 @@ class PremiumBalanceCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 '****  ****  ****  4023',
-                style: TextStyle(color: Colors.white54, fontSize: 16, letterSpacing: 2),
+                style: TextStyle(color: subTextColor, fontSize: 16, letterSpacing: 2),
               ),
               Row(
                 children: [

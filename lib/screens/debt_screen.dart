@@ -204,25 +204,25 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: PremiumGradientCard(
-                child: Column(
+                builder: (context, textColor, subTextColor) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Net Balance (Debt)', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                        Text('Net Balance (Debt)', style: TextStyle(color: subTextColor, fontSize: 13)),
                         if (overdueCount > 0)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.circular(12)),
-                            child: Text('$overdueCount Overdue!', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            child: const Text('$overdueCount Overdue!', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                           )
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(
                       '${netBalance >= 0 ? '+' : '-'} ₹${netBalance.abs().toStringAsFixed(0)}',
-                      style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: -1),
+                      style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: -1),
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -231,15 +231,15 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('I Owe (Total)', style: TextStyle(color: Colors.white60, fontSize: 11)),
-                            Text('₹${totalIOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                            Text('I Owe (Total)', style: TextStyle(color: subTextColor, fontSize: 11)),
+                            Text('₹${totalIOwe.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
                           ],
                         ),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            const Text('Others Owe Me', style: TextStyle(color: Colors.white60, fontSize: 11)),
-                            Text('₹${totalTheyOwe.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                            Text('Others Owe Me', style: TextStyle(color: subTextColor, fontSize: 11)),
+                            Text('₹${totalTheyOwe.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
                           ],
                         ),
                       ],

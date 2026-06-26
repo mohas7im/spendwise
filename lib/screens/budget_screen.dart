@@ -191,12 +191,12 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
 
   Widget _buildDashboardSummary(double budget, double spent, double remaining, int overBudgetCount) {
     return PremiumGradientCard(
-      child: Column(
+      builder: (context, textColor, subTextColor) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Total Budget (Monthly)', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          Text('Total Budget (Monthly)', style: TextStyle(color: subTextColor, fontSize: 13)),
           const SizedBox(height: 6),
-          Text('₹ ${budget.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 38, fontWeight: FontWeight.bold, letterSpacing: -1)),
+          Text('₹ ${budget.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontSize: 38, fontWeight: FontWeight.bold, letterSpacing: -1)),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -204,26 +204,32 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Spent', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                  Text('Spent', style: TextStyle(color: subTextColor, fontSize: 11)),
                   Text('₹${spent.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 15)),
                 ],
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Remaining', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                  Text('Remaining', style: TextStyle(color: subTextColor, fontSize: 11)),
                   Text('₹${remaining.toStringAsFixed(0)}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 15)),
                 ],
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Over Budget', style: TextStyle(color: Colors.white60, fontSize: 11)),
-                  Text('$overBudgetCount Categories', style: TextStyle(color: overBudgetCount > 0 ? Colors.redAccent : Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                  Text('Status', style: TextStyle(color: subTextColor, fontSize: 11)),
+                  Text(overBudgetCount > 0 ? '$overBudgetCount Over Budget' : 'On Track', 
+                    style: TextStyle(
+                      color: overBudgetCount > 0 ? Colors.orangeAccent : Colors.greenAccent, 
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 15
+                    )
+                  ),
                 ],
               ),
             ],
-          )
+          ),
         ],
       ),
     );
