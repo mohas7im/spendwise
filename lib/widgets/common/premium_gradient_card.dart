@@ -4,12 +4,14 @@ class PremiumGradientCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double borderRadius;
+  final Color? color;
 
   const PremiumGradientCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(22),
     this.borderRadius = 24.0,
+    this.color,
   });
 
   @override
@@ -18,7 +20,7 @@ class PremiumGradientCard extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: color ?? Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
