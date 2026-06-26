@@ -94,8 +94,17 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Savings Goals', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-                                Text('Total: ₹${totalSavings.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+                                Row(
+                                  children: [
+                                    Text('Savings Goals', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
+                                    const SizedBox(width: 8),
+                                    Text('Total: ₹${totalSavings.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                                TextButton(
+                                  onPressed: () => _showAddSavingsGoalSheet(context, budgetProvider), 
+                                  child: Text('+ Add', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold))
+                                ),
                               ],
                             ),
                           ),
@@ -352,6 +361,177 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
   }
 
   void _showAddLimitSheet(BuildContext context, BudgetProvider provider) {
-    // Show Modal Bottom Sheet implementation
+    final categoryController = TextEditingController();
+    final amountController = TextEditingController();
+    final emojiController = TextEditingController();
+    LimitPeriod selectedPeriod = LimitPeriod.monthly;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) => Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Add Spending Limit', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: TextField(
+                        controller: emojiController,
+                        decoration: const InputDecoration(labelText: 'Emoji (e.g. 🎮)', border: OutlineInputBorder()),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 3,
+                      child: TextField(
+                        controller: categoryController,
+                        decoration: const InputDecoration(labelText: 'Category Name', border: OutlineInputBorder()),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: amountController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Limit Amount (₹)', border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<LimitPeriod>(
+                  value: selectedPeriod,
+                  decoration: const InputDecoration(labelText: 'Period', border: OutlineInputBorder()),
+                  items: LimitPeriod.values.map((p) => DropdownMenuItem(
+                    value: p,
+                    child: Text(p.name.toUpperCase()),
+                  )).toList(),
+                  onChanged: (val) {
+                    if (val != null) setState(() => selectedPeriod = val);
+                  },
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Theme.of(context).colorScheme.onPrimary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    onPressed: () {
+                      final amount = double.tryParse(amountController.text) ?? 0.0;
+                      if (categoryController.text.isNotEmpty && amount > 0) {
+                        provider.addCategoryLimit(CategoryLimit(
+                          category: categoryController.text,
+                          limitAmount: amount,
+                          spentAmount: 0,
+                          period: selectedPeriod,
+                          emoji: emojiController.text.isNotEmpty ? emojiController.text : '🔹',
+                        ));
+                        Navigator.pop(ctx);
+                      }
+                    },
+                    child: const Text('Add Limit', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAddSavingsGoalSheet(BuildContext context, BudgetProvider provider) {
+    final nameController = TextEditingController();
+    final targetController = TextEditingController();
+    final currentController = TextEditingController();
+    DateTime targetDate = DateTime.now().add(const Duration(days: 30));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) => Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Add Savings Goal', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Goal Name', border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: targetController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Target Amount (₹)', border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: currentController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Current Saved Amount (₹)', border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Target Date'),
+                  subtitle: Text(DateFormat('MMM d, yyyy').format(targetDate)),
+                  trailing: const Icon(Icons.calendar_today),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: targetDate,
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+                    );
+                    if (picked != null) setState(() => targetDate = picked);
+                  },
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Theme.of(context).colorScheme.onPrimary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    onPressed: () {
+                      final target = double.tryParse(targetController.text) ?? 0.0;
+                      final current = double.tryParse(currentController.text) ?? 0.0;
+                      if (nameController.text.isNotEmpty && target > 0) {
+                        provider.addSavingsGoal(SavingsGoal(
+                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          name: nameController.text,
+                          targetAmount: target,
+                          currentAmount: current,
+                          startDate: DateTime.now(),
+                          targetDate: targetDate,
+                        ));
+                        Navigator.pop(ctx);
+                      }
+                    },
+                    child: const Text('Create Goal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
