@@ -29,7 +29,6 @@ class UnifiedActivityCard extends StatelessWidget {
         bgColor = Colors.blue.withValues(alpha: 0.1);
         break;
       case ActivityType.transaction:
-      default:
         icon = activity.isCredit ? Icons.trending_up : Icons.receipt_long;
         iconColor = activity.isCredit ? Colors.green : Theme.of(context).primaryColor;
         bgColor = activity.isCredit ? Colors.green.withValues(alpha: 0.1) : Theme.of(context).primaryColor.withValues(alpha: 0.1);

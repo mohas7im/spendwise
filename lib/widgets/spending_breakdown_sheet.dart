@@ -253,9 +253,6 @@ class _OverviewBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final sorted = categoryBreakdown.entries.toList()
       ..sort((a, b) => (b.value['total'] as double).compareTo(a.value['total'] as double));
-    final highCat = sorted.isNotEmpty ? sorted.first.key : null;
-    final lowCat = sorted.length > 1 ? sorted.last.key : null;
-    final avgTx = count > 0 ? total / count : 0.0;
 
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -608,31 +605,3 @@ class _StatChip extends StatelessWidget {
   }
 }
 
-class _QuickStat extends StatelessWidget {
-  final String label, value;
-  final IconData icon;
-  final Color color, cardColor, textColor, subTextColor;
-  const _QuickStat({required this.label, required this.value, required this.icon, required this.color, required this.cardColor, required this.textColor, required this.subTextColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, size: 14, color: color),
-          ),
-          const SizedBox(height: 8),
-          Text(value, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 11), maxLines: 2, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 2),
-          Text(label, style: TextStyle(color: subTextColor, fontSize: 10)),
-        ],
-      ),
-    );
-  }
-}

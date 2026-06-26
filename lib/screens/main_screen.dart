@@ -42,7 +42,6 @@ class _MainScreenState extends State<MainScreen> {
 
   void _showSalaryArrivalDialog(IncomeSource inc, FinanceProvider provider) {
     final amountController = TextEditingController(text: inc.amount.toStringAsFixed(0));
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
@@ -135,9 +134,6 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final navBgColor = isDark ? const Color(0xFF161618) : Colors.white;
-    final iconColor = isDark ? Colors.white54 : Colors.black54;
-    final activeIconColor = Theme.of(context).primaryColor;
-    final activeBgColor = isDark ? Colors.white12 : Colors.black12;
 
     return Scaffold(
       extendBody: true,
@@ -206,7 +202,6 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildAddButton() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final btnColor = Theme.of(context).primaryColor;
     final iconColor = Theme.of(context).colorScheme.onPrimary;
 

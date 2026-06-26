@@ -176,13 +176,6 @@ class FinanceProvider extends ChangeNotifier {
     }).toList();
   }
 
-  // Returns start/end of a prior period of the same duration.
-  (DateTime, DateTime) _priorRange(DateTime start, DateTime end) {
-    final duration = end.difference(start);
-    final priorEnd = start.subtract(const Duration(days: 1));
-    final priorStart = priorEnd.subtract(duration);
-    return (priorStart, priorEnd);
-  }
 
   double _totalFor(List<TransactionModel> txs) => txs.fold(0.0, (s, t) => s + t.amount);
 
@@ -296,7 +289,6 @@ class FinanceProvider extends ChangeNotifier {
   double get totalSavings => totalIncome - totalExpenses;
 
   double get spendingToday {
-    final now = DateTime.now();
     return _totalFor(transactionsToday);
   }
 

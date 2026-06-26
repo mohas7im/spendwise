@@ -1,6 +1,6 @@
 import '../models/transaction.dart';
 import '../models/income_source.dart';
-import '../models/budget.dart' hide IncomeFrequency; // IncomeFrequency comes from income_source.dart
+import '../models/budget.dart';
 import '../models/debt.dart';
 
 class DummyDataService {
