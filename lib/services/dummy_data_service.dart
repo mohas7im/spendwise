@@ -31,12 +31,17 @@ class DummyDataService {
         const IncomeEntry(source: 'Freelance', amount: 3000, frequency: IncomeFrequency.monthly),
       ],
       categoryLimits: [
-        CategoryLimit(category: 'Food & Dining', emoji: '🍔', limitAmount: 3000, period: LimitPeriod.monthly, spentAmount: 1840),
+        CategoryLimit(category: 'Food & Drink', emoji: '🍔', limitAmount: 3000, period: LimitPeriod.monthly, spentAmount: 1840),
         CategoryLimit(category: 'Groceries', emoji: '🛒', limitAmount: 2000, period: LimitPeriod.monthly, spentAmount: 1200),
         CategoryLimit(category: 'Entertainment', emoji: '🎬', limitAmount: 1000, period: LimitPeriod.monthly, spentAmount: 499),
         CategoryLimit(category: 'Transport', emoji: '🚕', limitAmount: 1500, period: LimitPeriod.monthly, spentAmount: 600),
         CategoryLimit(category: 'Bills', emoji: '📄', limitAmount: 3000, period: LimitPeriod.monthly, spentAmount: 1200),
         CategoryLimit(category: 'Shopping', emoji: '🛍️', limitAmount: 2000, period: LimitPeriod.monthly, spentAmount: 2150), // Intentionally overbudget
+        // Weekly Limits
+        CategoryLimit(category: 'Food & Drink', emoji: '🍔', limitAmount: 750, period: LimitPeriod.weekly, spentAmount: 450),
+        CategoryLimit(category: 'Transport', emoji: '🚕', limitAmount: 350, period: LimitPeriod.weekly, spentAmount: 150),
+        // Daily Limits
+        CategoryLimit(category: 'Food & Drink', emoji: '🍔', limitAmount: 100, period: LimitPeriod.daily, spentAmount: 40),
       ],
       savingsGoals: [
         SavingsGoal(id: 'sg1', name: 'Vacation Fund', targetAmount: 50000, currentAmount: 15000, startDate: DateTime.now().subtract(const Duration(days: 60)), targetDate: DateTime.now().add(const Duration(days: 120))),
