@@ -446,90 +446,30 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildCustomPeriodInputRow({
-    required BuildContext context,
-    required TextEditingController controller,
-    required DateTimeRange? dateRange,
-    required VoidCallback onSelectRange,
-  }) {
-    final rangeText = dateRange != null
-        ? '${DateFormat('MMM d').format(dateRange.start)} - ${DateFormat('MMM d').format(dateRange.end)}'
-        : 'Select range';
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.15)),
-            ),
-            child: const Text('✨', style: TextStyle(fontSize: 18)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Custom',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                ),
-                const SizedBox(height: 2),
-                GestureDetector(
-                  onTap: onSelectRange,
-                  child: Text(
-                    rangeText,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: dateRange != null ? Theme.of(context).colorScheme.secondary : Colors.grey,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 3,
-            child: SizedBox(
-              height: 48,
-              child: TextField(
-                controller: controller,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  prefixText: '₹ ',
-                  hintText: 'No limit',
-                  hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5), fontSize: 13),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showAddLimitSheet(BuildContext context, BudgetProvider provider) {
-    final categoryController = TextEditingController();
-    final emojiController = TextEditingController();
+    final presetCategories = [
+      {'name': 'Food & Drink', 'emoji': '🍔'},
+      {'name': 'Groceries', 'emoji': '🛒'},
+      {'name': 'Rent', 'emoji': '🏠'},
+      {'name': 'Transport', 'emoji': '🚕'},
+      {'name': 'Shopping', 'emoji': '🛍️'},
+      {'name': 'Entertainment', 'emoji': '🎬'},
+      {'name': 'Health', 'emoji': '💊'},
+      {'name': 'Bills', 'emoji': '📄'},
+      {'name': 'Invest', 'emoji': '📈'},
+      {'name': 'Other', 'emoji': '📦'},
+    ];
+
+    Map<String, String>? selectedPreset = presetCategories.first;
+    bool isCustomCategory = false;
+
+    final categoryController = TextEditingController(text: presetCategories.first['name']);
+    final emojiController = TextEditingController(text: presetCategories.first['emoji']);
 
     final dailyController = TextEditingController();
     final weeklyController = TextEditingController();
     final monthlyController = TextEditingController();
-    final quarterlyController = TextEditingController();
     final yearlyController = TextEditingController();
-    final customController = TextEditingController();
-
-    DateTimeRange? customDateRange;
 
     showModalBottomSheet(
       context: context,
@@ -546,56 +486,90 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
               children: [
                 Text('Add Category Limits', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: TextField(
-                        controller: emojiController,
-                        decoration: InputDecoration(
-                          labelText: 'Emoji', 
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
+                
+                // Preset Category Dropdown
+                DropdownButtonFormField<Map<String, String>?>(
+                  value: isCustomCategory ? null : selectedPreset,
+                  decoration: InputDecoration(
+                    labelText: 'Category',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  items: [
+                    ...presetCategories.map((cat) => DropdownMenuItem<Map<String, String>?>(
+                      value: cat,
+                      child: Row(
+                        children: [
+                          Text(cat['emoji']!, style: const TextStyle(fontSize: 18)),
+                          const SizedBox(width: 8),
+                          Text(cat['name']!),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 3,
-                      child: TextField(
-                        controller: categoryController,
-                        decoration: InputDecoration(
-                          labelText: 'Category Name', 
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
+                    )),
+                    const DropdownMenuItem<Map<String, String>?>(
+                      value: null,
+                      child: Row(
+                        children: [
+                          Text('➕', style: TextStyle(fontSize: 18)),
+                          const SizedBox(width: 8),
+                          Text('Custom Category...'),
+                        ],
                       ),
                     ),
                   ],
+                  onChanged: (val) {
+                    setModalState(() {
+                      if (val == null) {
+                        isCustomCategory = true;
+                        categoryController.clear();
+                        emojiController.clear();
+                      } else {
+                        isCustomCategory = false;
+                        selectedPreset = val;
+                        categoryController.text = val['name']!;
+                        emojiController.text = val['emoji']!;
+                      }
+                    });
+                  },
                 ),
+                
+                // Show text inputs if Custom Category is selected
+                if (isCustomCategory) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: TextField(
+                          controller: emojiController,
+                          decoration: InputDecoration(
+                            labelText: 'Emoji', 
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 3,
+                        child: TextField(
+                          controller: categoryController,
+                          decoration: InputDecoration(
+                            labelText: 'Category Name', 
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+
                 const SizedBox(height: 24),
                 Text('Set Limits for Periods', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 _buildPeriodInputRow(context: context, label: 'Daily (Day)', icon: '⏰', controller: dailyController),
                 _buildPeriodInputRow(context: context, label: 'Weekly (Week)', icon: '📅', controller: weeklyController),
                 _buildPeriodInputRow(context: context, label: 'Monthly (Month)', icon: '🗓️', controller: monthlyController),
-                _buildPeriodInputRow(context: context, label: 'Quarterly', icon: '📊', controller: quarterlyController),
-                _buildPeriodInputRow(context: context, label: 'Yearly', icon: '📆', controller: yearlyController),
-                _buildCustomPeriodInputRow(
-                  context: context,
-                  controller: customController,
-                  dateRange: customDateRange,
-                  onSelectRange: () async {
-                    final picked = await showDateRangePicker(
-                      context: context,
-                      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-                      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-                    );
-                    if (picked != null) {
-                      setModalState(() {
-                        customDateRange = picked;
-                      });
-                    }
-                  },
-                ),
+                _buildPeriodInputRow(context: context, label: 'Yearly (Year)', icon: '📆', controller: yearlyController),
+                
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -619,7 +593,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
 
                       final newLimits = <CategoryLimit>[];
 
-                      void tryAddLimit(String text, LimitPeriod period, {DateTime? start, DateTime? end}) {
+                      void tryAddLimit(String text, LimitPeriod period) {
                         final val = double.tryParse(text) ?? 0.0;
                         if (val > 0) {
                           newLimits.add(CategoryLimit(
@@ -627,8 +601,6 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                             emoji: emoji,
                             limitAmount: val,
                             period: period,
-                            customStartDate: start,
-                            customEndDate: end,
                             spentAmount: 0.0,
                           ));
                         }
@@ -637,29 +609,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                       tryAddLimit(dailyController.text, LimitPeriod.daily);
                       tryAddLimit(weeklyController.text, LimitPeriod.weekly);
                       tryAddLimit(monthlyController.text, LimitPeriod.monthly);
-                      tryAddLimit(quarterlyController.text, LimitPeriod.quarterly);
                       tryAddLimit(yearlyController.text, LimitPeriod.yearly);
-
-                      if (customController.text.isNotEmpty) {
-                        final val = double.tryParse(customController.text) ?? 0.0;
-                        if (val > 0) {
-                          if (customDateRange == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please select a date range for the Custom limit')),
-                            );
-                            return;
-                          }
-                          newLimits.add(CategoryLimit(
-                            category: category,
-                            emoji: emoji,
-                            limitAmount: val,
-                            period: LimitPeriod.custom,
-                            customStartDate: customDateRange!.start,
-                            customEndDate: customDateRange!.end,
-                            spentAmount: 0.0,
-                          ));
-                        }
-                      }
 
                       if (newLimits.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
