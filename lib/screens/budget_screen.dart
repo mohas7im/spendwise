@@ -229,36 +229,31 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
           Text('₹ ${budget.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontSize: 38, fontWeight: FontWeight.bold, letterSpacing: -1)),
           const SizedBox(height: 20),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Spent', style: TextStyle(color: subTextColor, fontSize: 11)),
-                    const SizedBox(height: 4),
-                    Text('₹${spent.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 17)),
-                  ],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Spent', style: TextStyle(color: subTextColor, fontSize: 11)),
+                  const SizedBox(height: 4),
+                  Text('₹${spent.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 17)),
+                ],
               ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Remaining', style: TextStyle(color: subTextColor, fontSize: 11)),
-                    const SizedBox(height: 4),
-                    Text('₹${remaining.toStringAsFixed(0)}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 17)),
-                  ],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('Remaining', style: TextStyle(color: subTextColor, fontSize: 11)),
+                  const SizedBox(height: 4),
+                  Text('₹${remaining.toStringAsFixed(0)}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 17)),
+                ],
               ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Progress', style: TextStyle(color: subTextColor, fontSize: 11)),
-                    const SizedBox(height: 4),
-                    Text('${budget > 0 ? ((spent / budget) * 100).toStringAsFixed(0) : 0}%', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 17)),
-                  ],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('Progress', style: TextStyle(color: subTextColor, fontSize: 11)),
+                  const SizedBox(height: 4),
+                  Text('${budget > 0 ? ((spent / budget) * 100).toStringAsFixed(0) : 0}%', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 17)),
+                ],
               ),
             ],
           ),
