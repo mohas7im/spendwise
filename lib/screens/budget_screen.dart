@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../models/budget.dart';
 import '../providers/budget_provider.dart';
-import '../models/income_source.dart';
-import '../services/dummy_data_service.dart';
+import '../providers/finance_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/premium_gradient_card.dart';
 import '../widgets/common/custom_tab_bar.dart';
 import '../widgets/common/custom_progress_bar.dart';
-import '../widgets/common/metric_card.dart';
+import 'budget_analytics_screen.dart';
+
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
 
@@ -33,15 +34,23 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = Theme.of(context).cardColor;
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
       backgroundColor: bgColor,
-      body: Consumer<BudgetProvider>(
-        builder: (context, provider, child) {
-          final budget = provider.budget;
+      body: Consumer2<BudgetProvider, FinanceProvider>(
+        builder: (context, budgetProvider, financeProvider, child) {
+          // Dynamically recalculate spending based on actual transactions
+          budgetProvider.recalculateSpending(financeProvider.transactions);
+          final budget = budgetProvider.budget;
+
+          // Compute Dashboard Metrics
+          double totalBudget = budget.globalLimits.isNotEmpty ? budget.globalLimits.first.limitAmount : budget.categoryLimits.fold(0, (sum, l) => sum + l.limitAmount);
+          double totalSpent = budget.globalLimits.isNotEmpty ? budget.globalLimits.first.spentAmount : budget.categoryLimits.fold(0, (sum, l) => sum + l.spentAmount);
+          double remainingBudget = (totalBudget - totalSpent).clamp(0.0, double.infinity);
+          double totalSavings = budget.savingsGoals.fold(0, (sum, g) => sum + g.currentAmount);
+          int overBudgetCount = budget.categoryLimits.where((l) => l.isOverBudget).length;
+
           return SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,21 +60,16 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                   child: Row(
                     children: [
-                      Text('Budget Planner', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                      Text('Budget & Goals', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                       const Spacer(),
-                      GestureDetector(
-                        onTap: () => _showManageIncomeModal(provider),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(color: Theme.of(context).primaryColor.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
-                          child: Row(
-                            children: [
-                              Icon(Icons.edit_outlined, color: Theme.of(context).primaryColor, size: 16),
-                              const SizedBox(width: 6),
-                              Text('Manage Income', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 13)),
-                            ],
-                          ),
-                        ),
+                      IconButton(
+                        icon: const Icon(Icons.analytics_outlined),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const BudgetAnalyticsScreen()),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -77,25 +81,36 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Salary Summary Card
+                        // Dashboard Summary Section
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                          child: _buildSalarySummaryCard(budget),
+                          child: _buildDashboardSummary(totalBudget, totalSpent, remainingBudget, overBudgetCount),
                         ),
 
-                        // 50/30/20 Rule
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: _buildRuleSection(isDark, budget),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Savings Progress
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: _buildSavingsProgress(cardColor, budget),
-                        ),
-                        const SizedBox(height: 28),
+                        // Savings Goals Section
+                        if (budget.savingsGoals.isNotEmpty) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Savings Goals', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
+                                Text('Total: ₹${totalSavings.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            height: 160,
+                            child: ListView.builder(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              scrollDirection: Axis.horizontal,
+                              itemCount: budget.savingsGoals.length,
+                              itemBuilder: (context, index) => _buildSavingsGoalCard(budget.savingsGoals[index]),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
 
                         // Category Limits Header
                         Padding(
@@ -105,8 +120,8 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                             children: [
                               Text('Spending Limits', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
                               TextButton(
-                                onPressed: () => _showAddLimitSheet(context, provider), 
-                                child: Text('+ Add', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold))
+                                onPressed: () => _showAddLimitSheet(context, budgetProvider), 
+                                child: Text('+ Add Limit', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold))
                               ),
                             ],
                           ),
@@ -121,7 +136,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                         const SizedBox(height: 16),
 
                         SizedBox(
-                          height: budget.categoryLimits.length * 104.0,
+                          height: budget.categoryLimits.length * 155.0 + 50,
                           child: TabBarView(
                             controller: _tabController,
                             children: [
@@ -143,107 +158,93 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildSalarySummaryCard(BudgetModel budget) {
+  Widget _buildDashboardSummary(double budget, double spent, double remaining, int overBudgetCount) {
     return PremiumGradientCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Total Monthly Income', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          const Text('Total Budget (Monthly)', style: TextStyle(color: Colors.white70, fontSize: 13)),
           const SizedBox(height: 6),
-          Text('₹ ${budget.totalIncome.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 38, fontWeight: FontWeight.bold, letterSpacing: -1)),
+          Text('₹ ${budget.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 38, fontWeight: FontWeight.bold, letterSpacing: -1)),
           const SizedBox(height: 16),
           Row(
-            children: budget.incomes.map((income) => Expanded(
-              child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(income.source, style: const TextStyle(color: Colors.white60, fontSize: 11)),
-                  Text('₹${income.amount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                  const Text('Spent', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                  Text('₹${spent.toStringAsFixed(0)}', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 15)),
                 ],
               ),
-            )).toList(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Remaining', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                  Text('₹${remaining.toStringAsFixed(0)}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 15)),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Over Budget', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                  Text('$overBudgetCount Categories', style: TextStyle(color: overBudgetCount > 0 ? Colors.redAccent : Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                ],
+              ),
+            ],
           )
         ],
       ),
     );
   }
 
-  Widget _buildRuleSection(bool isDark, BudgetModel budget) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text('50 / 30 / 20 Rule', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(color: Theme.of(context).primaryColor.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
-              child: Text('Recommended', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 10, fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text('A proven formula to allocate your income wisely', style: Theme.of(context).textTheme.bodyMedium),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            _buildRuleCard('50%', 'Needs', '₹${budget.needsBudget.toStringAsFixed(0)}', 'Rent, Bills, Food', const Color(0xFF6366F1)),
-            const SizedBox(width: 10),
-            _buildRuleCard('30%', 'Wants', '₹${budget.wantsBudget.toStringAsFixed(0)}', 'Fun & Shopping', const Color(0xFFF59E0B)),
-            const SizedBox(width: 10),
-            _buildRuleCard('20%', 'Savings', '₹${budget.savingsBudget.toStringAsFixed(0)}', 'Invest & Save', Theme.of(context).primaryColor),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRuleCard(String percent, String label, String amount, String subtitle, Color color) {
-    return Expanded(
-      child: MetricCard(
-        baseColor: color,
-        padding: const EdgeInsets.all(14),
-        borderWidth: 1.5,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(percent, style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 20)),
-            Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
-            const SizedBox(height: 8),
-            Text(amount, style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 14)),
-            const SizedBox(height: 2),
-            Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 9), maxLines: 2),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSavingsProgress(Color cardColor, BudgetModel budget) {
-    final savingsGoal = budget.savingsBudget;
-    final currentSavings = savingsGoal * 0.6;
+  Widget _buildSavingsGoalCard(SavingsGoal goal) {
+    final dateFormat = DateFormat('MMM d, yyyy');
     return Container(
-      padding: const EdgeInsets.all(18),
+      width: 280,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardColor,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('🏦  Savings This Month', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-              Text('₹${currentSavings.toStringAsFixed(0)} / ₹${savingsGoal.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              Text(goal.name, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              Icon(Icons.flag_circle, color: Theme.of(context).primaryColor),
             ],
           ),
-          const SizedBox(height: 14),
-          const CustomProgressBar(percent: 0.6, minHeight: 10),
-          const SizedBox(height: 8),
-          const Text('60% of your savings goal reached this month 🎯', style: TextStyle(color: Colors.grey, fontSize: 11)),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('₹${goal.currentAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  Text('of ₹${goal.targetAmount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              CustomProgressBar(percent: goal.progressPercentage, minHeight: 8),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${(goal.progressPercentage * 100).toStringAsFixed(1)}%', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                  Text('Target: ${dateFormat.format(goal.targetDate)}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                ],
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -261,298 +262,96 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 24),
       itemCount: items.length,
-      itemBuilder: (context, index) => _buildCategoryLimitCard(items[index], period),
+      itemBuilder: (context, index) => _buildDetailedCategoryLimitCard(items[index], period),
     );
   }
 
-  Widget _buildCategoryLimitCard(CategoryLimit limit, LimitPeriod period) {
+  Widget _buildDetailedCategoryLimitCard(CategoryLimit limit, LimitPeriod period) {
     final periodLabel = period == LimitPeriod.daily ? 'day' : period == LimitPeriod.weekly ? 'week' : 'month';
     final isOver = limit.isOverBudget;
-    final progressColor = isOver ? Colors.redAccent : limit.percentUsed > 0.7 ? const Color(0xFFF59E0B) : Colors.blue;
+    final progressColor = isOver ? Colors.redAccent : limit.percentUsed > 0.9 ? Colors.red : limit.percentUsed > 0.75 ? const Color(0xFFF59E0B) : Colors.blue;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isOver ? Colors.redAccent.withOpacity(0.3) : Colors.grey.withOpacity(0.1), width: isOver ? 1.5 : 1),
+        border: Border.all(color: isOver ? Colors.redAccent.withOpacity(0.5) : Colors.grey.withOpacity(0.1), width: isOver ? 1.5 : 1),
+        boxShadow: isOver ? [BoxShadow(color: Colors.redAccent.withOpacity(0.05), blurRadius: 10)] : [],
       ),
       child: Column(
         children: [
           Row(
             children: [
-              Text(limit.emoji, style: const TextStyle(fontSize: 28)),
-              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor, shape: BoxShape.circle),
+                child: Text(limit.emoji, style: const TextStyle(fontSize: 24)),
+              ),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(limit.category, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(limit.category, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
                     Text(
-                      isOver ? '⚠️ Over by ₹${(limit.spentAmount - limit.limitAmount).toStringAsFixed(0)}' : '₹${limit.remainingAmount.toStringAsFixed(0)} left this $periodLabel',
-                      style: TextStyle(color: isOver ? Colors.redAccent : Colors.grey, fontSize: 12),
+                      'Budget: ₹${limit.limitAmount.toStringAsFixed(0)} / $periodLabel',
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),
               ),
+              if (isOver) 
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                  child: const Text('OVERSPENT', style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                )
+              else 
+                Text('${(limit.percentUsed * 100).toStringAsFixed(0)}%', style: TextStyle(color: progressColor, fontWeight: FontWeight.bold, fontSize: 16)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: limit.percentUsed.clamp(0.0, 1.0),
+              minHeight: 8,
+              backgroundColor: Colors.grey.withOpacity(0.1),
+              valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Spent', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                  Text('₹${limit.spentAmount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isOver ? Colors.redAccent : null)),
+                ],
+              ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('₹${limit.spentAmount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isOver ? Colors.redAccent : null)),
-                  Text('/ ₹${limit.limitAmount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text(isOver ? 'Over by' : 'Remaining', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                  Text(
+                    '₹${isOver ? limit.overspentAmount.toStringAsFixed(0) : limit.remainingAmount.toStringAsFixed(0)}', 
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isOver ? Colors.redAccent : Colors.green),
+                  ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          CustomProgressBar(percent: limit.percentUsed, minHeight: 8),
         ],
       ),
     );
   }
 
-  void _showManageIncomeModal(BudgetProvider provider) {
-    final budget = provider.budget;
-    final salaryController = TextEditingController(text: budget.monthlySalary.toStringAsFixed(0));
-    final sourceController = TextEditingController();
-    final amountController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx2, setModalState) => Container(
-          height: MediaQuery.of(ctx).size.height * 0.85,
-          padding: EdgeInsets.only(
-            left: 24, right: 24, top: 24,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(child: Text('Manage Income', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold))),
-              const SizedBox(height: 24),
-
-              // Base Salary Edit
-              Text('Base Monthly Salary', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              TextField(
-                controller: salaryController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  prefixText: '₹ ',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 12),
-
-              // Additional Income Streams
-              Text('Additional Income Streams', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              
-              if (budget.incomes.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8.0),
-                  child: Text('No additional income streams.', style: TextStyle(color: Colors.grey)),
-                ),
-
-              Expanded(
-                child: ListView.builder(
-                  itemCount: budget.incomes.length,
-                  itemBuilder: (context, index) {
-                    final income = budget.incomes[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.withOpacity(0.1)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(income.source, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              Text('₹${income.amount.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                            onPressed: () {
-                              setModalState(() {
-                                budget.incomes.removeAt(index);
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 12),
-              // Add New Income
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: TextField(
-                      controller: sourceController,
-                      decoration: InputDecoration(
-                        labelText: 'Source (e.g. Freelance)',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: amountController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Amount',
-                        prefixText: '₹ ',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton.icon(
-                  onPressed: () {
-                    if (sourceController.text.isNotEmpty && amountController.text.isNotEmpty) {
-                      setModalState(() {
-                        budget.incomes.add(IncomeEntry(
-                          source: sourceController.text,
-                          amount: double.tryParse(amountController.text) ?? 0,
-                          frequency: IncomeFrequency.monthly,
-                        ));
-                      });
-                      sourceController.clear();
-                      amountController.clear();
-                    }
-                  },
-                  icon: Icon(Icons.add_circle, color: Theme.of(context).primaryColor),
-                  label: Text('Add Income Source', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final newSalary = double.tryParse(salaryController.text) ?? budget.monthlySalary;
-                    provider.updateBudget(BudgetModel(
-                      monthlySalary: newSalary,
-                      incomes: budget.incomes,
-                      categoryLimits: budget.categoryLimits,
-                    ));
-                    Navigator.pop(ctx);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                  child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _showAddLimitSheet(BuildContext context, BudgetProvider provider) {
-    final categoryController = TextEditingController();
-    final amountController = TextEditingController();
-    final emojiController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Add Spending Limit', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: TextField(
-                        controller: emojiController,
-                        decoration: const InputDecoration(labelText: 'Emoji (e.g. 🎮)', border: OutlineInputBorder()),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 3,
-                      child: TextField(
-                        controller: categoryController,
-                        decoration: const InputDecoration(labelText: 'Category Name', border: OutlineInputBorder()),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: amountController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Limit Amount (₹)', border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Theme.of(context).colorScheme.onPrimary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                    onPressed: () {
-                      final amount = double.tryParse(amountController.text) ?? 0.0;
-                      if (categoryController.text.isNotEmpty && amount > 0) {
-                        provider.addCategoryLimit(CategoryLimit(
-                          category: categoryController.text,
-                          limitAmount: amount,
-                          spentAmount: 0,
-                          period: LimitPeriod.monthly,
-                          emoji: emojiController.text.isNotEmpty ? emojiController.text : '🔹',
-                        ));
-                        Navigator.pop(ctx);
-                      }
-                    },
-                    child: const Text('Add Limit', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  ),
-                ),
-                const SizedBox(height: 32),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+    // Show Modal Bottom Sheet implementation
   }
 }

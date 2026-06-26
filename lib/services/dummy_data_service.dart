@@ -36,7 +36,16 @@ class DummyDataService {
         CategoryLimit(category: 'Entertainment', emoji: '🎬', limitAmount: 1000, period: LimitPeriod.monthly, spentAmount: 499),
         CategoryLimit(category: 'Transport', emoji: '🚕', limitAmount: 1500, period: LimitPeriod.monthly, spentAmount: 600),
         CategoryLimit(category: 'Bills', emoji: '📄', limitAmount: 3000, period: LimitPeriod.monthly, spentAmount: 1200),
-        CategoryLimit(category: 'Shopping', emoji: '🛍️', limitAmount: 2000, period: LimitPeriod.monthly, spentAmount: 456),
+        CategoryLimit(category: 'Shopping', emoji: '🛍️', limitAmount: 2000, period: LimitPeriod.monthly, spentAmount: 2150), // Intentionally overbudget
+      ],
+      savingsGoals: [
+        SavingsGoal(id: 'sg1', name: 'Vacation Fund', targetAmount: 50000, currentAmount: 15000, startDate: DateTime.now().subtract(const Duration(days: 60)), targetDate: DateTime.now().add(const Duration(days: 120))),
+        SavingsGoal(id: 'sg2', name: 'Emergency Fund', targetAmount: 100000, currentAmount: 85000, startDate: DateTime.now().subtract(const Duration(days: 180)), targetDate: DateTime.now().add(const Duration(days: 30))),
+        SavingsGoal(id: 'sg3', name: 'New Laptop', targetAmount: 80000, currentAmount: 20000, startDate: DateTime.now().subtract(const Duration(days: 30)), targetDate: DateTime.now().add(const Duration(days: 90))),
+      ],
+      globalLimits: [
+        GlobalBudgetLimit(limitAmount: 40000, period: LimitPeriod.monthly, spentAmount: 25000),
+        GlobalBudgetLimit(limitAmount: 10000, period: LimitPeriod.weekly, spentAmount: 7500),
       ],
     );
   }
