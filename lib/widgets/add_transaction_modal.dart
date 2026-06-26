@@ -22,8 +22,6 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
     {'name': 'Entertainment', 'emoji': '🎬'},
     {'name': 'Health', 'emoji': '💊'},
     {'name': 'Bills', 'emoji': '📄'},
-    {'name': 'Loan/EMI', 'emoji': '🏦'},
-    {'name': 'Debt/Owed', 'emoji': '🤝'},
     {'name': 'Invest', 'emoji': '📈'},
     {'name': 'Salary', 'emoji': '💰'},
     {'name': 'Other', 'emoji': '📦'},

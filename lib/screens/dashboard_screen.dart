@@ -6,7 +6,6 @@ import '../models/debt.dart';
 import '../main.dart'; // for ThemeProvider
 import '../widgets/common/premium_gradient_card.dart';
 import '../widgets/unified_activity_card.dart';
-import '../widgets/analytics/analytics_charts.dart';
 import 'profile_screen.dart';
 import 'split_calculator_screen.dart';
 
@@ -140,17 +139,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 32),
 
-            // Analytics Charts
-            const Text('Spending Trends (Last 7 Days)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 16),
-            SpendingTrendsChart(weeklyData: _getWeeklyMockData(financeProvider)),
-            const SizedBox(height: 32),
-
-            const Text('Category Breakdown', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 16),
-            CategoryPieChart(categoryData: _getCategoryData(financeProvider)),
-            const SizedBox(height: 32),
-
             // Unified Recent Activity
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -196,26 +184,5 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
-  }
-
-  List<double> _getWeeklyMockData(FinanceProvider provider) {
-    // In a real app, you would group by day for the last 7 days.
-    // We provide some dummy dynamic data for the chart to look nice.
-    return [120, 450, 0, 800, 230, 50, provider.spendingToday > 0 ? provider.spendingToday : 100];
-  }
-
-  Map<String, double> _getCategoryData(FinanceProvider provider) {
-    final Map<String, double> data = {};
-    for (var t in provider.transactions.where((t) => t.type == TransactionType.expense)) {
-      data[t.category] = (data[t.category] ?? 0) + t.amount;
-    }
-    // Fallback data if none
-    if (data.isEmpty) {
-      data['Food'] = 842;
-      data['Rent'] = 1200;
-      data['Transport'] = 324;
-      data['Shopping'] = 456;
-    }
-    return data;
   }
 }
