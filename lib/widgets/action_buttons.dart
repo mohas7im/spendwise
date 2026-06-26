@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/split_calculator_screen.dart';
+import '../screens/split/trips_list_screen.dart';
 
 class ActionButtons extends StatelessWidget {
   const ActionButtons({super.key});
@@ -28,7 +28,7 @@ class ActionButtons extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitCalculatorScreen())),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TripsListScreen())),
             child: Container(
               height: 56,
               decoration: BoxDecoration(

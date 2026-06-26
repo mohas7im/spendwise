@@ -2,29 +2,81 @@ import 'package:flutter/material.dart';
 import '../models/split_bill.dart';
 
 class SplitProvider extends ChangeNotifier {
-  final List<SplitPerson> _people = [];
-  final List<SplitItem> _items = [];
-  List<Settlement> _settlements = [];
+  final List<Trip> _trips = [];
+  String? _activeTripId;
 
-  List<SplitPerson> get people => _people;
-  List<SplitItem> get items => _items;
-  List<Settlement> get settlements => _settlements;
-
-  // Pre-seed for demo
   SplitProvider() {
-    _people.add(SplitPerson(id: 'me', name: 'Me'));
+    // Pre-seed a demo trip
+    final demoTrip = Trip(
+      id: 'demo_trip_1',
+      name: 'Weekend Getaway',
+      date: DateTime.now(),
+      participants: [SplitPerson(id: 'me', name: 'Me')],
+    );
+    _trips.add(demoTrip);
+    _activeTripId = demoTrip.id;
   }
 
-  void addPerson(String name) {
-    _people.add(SplitPerson(id: DateTime.now().millisecondsSinceEpoch.toString(), name: name));
+  List<Trip> get trips => _trips;
+  
+  Trip? get activeTrip {
+    if (_activeTripId == null) return null;
+    try {
+      return _trips.firstWhere((t) => t.id == _activeTripId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  List<SplitPerson> get people => activeTrip?.participants ?? [];
+  List<SplitItem> get items => activeTrip?.expenses ?? [];
+  List<Settlement> get settlements => activeTrip?.settlements ?? [];
+
+  void setActiveTrip(String id) {
+    _activeTripId = id;
     notifyListeners();
   }
 
+  void createTrip(String name, String currency) {
+    final trip = Trip(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: name,
+      currency: currency,
+      date: DateTime.now(),
+      participants: [SplitPerson(id: 'me', name: 'Me')],
+    );
+    _trips.add(trip);
+    notifyListeners();
+  }
+
+  void deleteTrip(String id) {
+    _trips.removeWhere((t) => t.id == id);
+    if (_activeTripId == id) {
+      _activeTripId = _trips.isNotEmpty ? _trips.first.id : null;
+    }
+    notifyListeners();
+  }
+
+  void addPerson(String name) {
+    if (activeTrip == null) return;
+    activeTrip!.participants.add(SplitPerson(id: DateTime.now().millisecondsSinceEpoch.toString(), name: name));
+    notifyListeners();
+  }
+
+  void editPerson(String id, String newName) {
+    if (activeTrip == null) return;
+    final index = activeTrip!.participants.indexWhere((p) => p.id == id);
+    if (index != -1) {
+      activeTrip!.participants[index].name = newName;
+      notifyListeners();
+    }
+  }
+
   void removePerson(String id) {
-    if (id == 'me') return; // Cannot remove self
-    _people.removeWhere((p) => p.id == id);
+    if (activeTrip == null || id == 'me') return; // Cannot remove self
+    activeTrip!.participants.removeWhere((p) => p.id == id);
     // Remove person from all items too
-    for (var item in _items) {
+    for (var item in activeTrip!.expenses) {
       if (item.paidByPersonId == id) {
         item.paidByPersonId = 'me';
       }
@@ -36,23 +88,38 @@ class SplitProvider extends ChangeNotifier {
   }
 
   void addItem(SplitItem item) {
-    _items.add(item);
+    if (activeTrip == null) return;
+    activeTrip!.expenses.add(item);
     _calculateSettlements();
     notifyListeners();
   }
 
+  void updateItem(SplitItem item) {
+    if (activeTrip == null) return;
+    final index = activeTrip!.expenses.indexWhere((i) => i.id == item.id);
+    if (index != -1) {
+      activeTrip!.expenses[index] = item;
+      _calculateSettlements();
+      notifyListeners();
+    }
+  }
+
   void removeItem(String id) {
-    _items.removeWhere((i) => i.id == id);
+    if (activeTrip == null) return;
+    activeTrip!.expenses.removeWhere((i) => i.id == id);
     _calculateSettlements();
     notifyListeners();
   }
 
   // The engine that calculates who owes whom
   void _calculateSettlements() {
-    // 1. Calculate net balance for each person
-    Map<String, double> netBalances = {for (var p in _people) p.id: 0.0};
+    if (activeTrip == null) return;
+    final trip = activeTrip!;
 
-    for (var item in _items) {
+    // 1. Calculate net balance for each person
+    Map<String, double> netBalances = {for (var p in trip.participants) p.id: 0.0};
+
+    for (var item in trip.expenses) {
       // Add to the payer's balance (they are owed this amount)
       if (netBalances.containsKey(item.paidByPersonId)) {
         netBalances[item.paidByPersonId] = netBalances[item.paidByPersonId]! + item.amount;
@@ -67,7 +134,7 @@ class SplitProvider extends ChangeNotifier {
     }
 
     // 2. Simplify Debts
-    _settlements = _simplifyDebts(netBalances);
+    trip.settlements = _simplifyDebts(netBalances);
   }
 
   List<Settlement> _simplifyDebts(Map<String, double> balances) {
@@ -111,8 +178,9 @@ class SplitProvider extends ChangeNotifier {
   }
 
   SplitPerson? getPerson(String id) {
+    if (activeTrip == null) return null;
     try {
-      return _people.firstWhere((p) => p.id == id);
+      return activeTrip!.participants.firstWhere((p) => p.id == id);
     } catch (_) {
       return null;
     }

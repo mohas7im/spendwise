@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fl_chart/fl_chart.dart'; // Ensure fl_chart is in pubspec.yaml! (If not, we can remove it, but user wanted charts)
+import 'package:fl_chart/fl_chart.dart';
 import '../providers/split_provider.dart';
 import '../providers/friends_provider.dart';
 import '../models/split_bill.dart';
@@ -15,6 +15,7 @@ class SplitCalculatorScreen extends StatefulWidget {
 
 class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -134,58 +135,67 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Trip Expenses', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_add_alt_1),
-            onPressed: _showAddPersonSheet,
-          )
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabs: const [
-            Tab(text: 'Overview'),
-            Tab(text: 'Participants'),
-            Tab(text: 'Expenses'),
-            Tab(text: 'Settlements'),
-          ],
-        ),
-      ),
-      body: Consumer<SplitProvider>(
-        builder: (context, provider, child) {
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _buildOverviewTab(provider),
-              _buildParticipantsTab(provider),
-              _buildExpensesTab(provider),
-              _buildSettlementsTab(provider),
-            ],
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddExpenseModal,
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        icon: const Icon(Icons.add_shopping_cart),
-        label: const Text('Add Expense', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
+  void _exportReport() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Report copied to clipboard! (Native share sheet would open here)')),
     );
   }
 
-  Widget _buildOverviewTab(SplitProvider provider) {
-    double totalExpense = provider.items.fold(0, (sum, item) => sum + item.amount);
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SplitProvider>(
+      builder: (context, provider, child) {
+        final trip = provider.activeTrip;
+        if (trip == null) {
+          return Scaffold(appBar: AppBar(title: const Text('Error')), body: const Center(child: Text('No active trip')));
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(trip.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+            centerTitle: true,
+            actions: [
+              IconButton(icon: const Icon(Icons.share), onPressed: _exportReport),
+              IconButton(icon: const Icon(Icons.person_add_alt_1), onPressed: _showAddPersonSheet),
+            ],
+            bottom: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabs: const [
+                Tab(text: 'Overview'),
+                Tab(text: 'Participants'),
+                Tab(text: 'Expenses'),
+                Tab(text: 'Settlements'),
+              ],
+            ),
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildOverviewTab(provider, trip),
+              _buildParticipantsTab(provider, trip),
+              _buildExpensesTab(provider, trip),
+              _buildSettlementsTab(provider, trip),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: _showAddExpenseModal,
+            backgroundColor: Theme.of(context).primaryColor,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            icon: const Icon(Icons.add_shopping_cart),
+            label: const Text('Add Expense', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOverviewTab(SplitProvider provider, Trip trip) {
+    double totalExpense = trip.totalExpense;
+    String cur = trip.currency;
     
-    // Calculate personal stats for "me"
-    double paidByMe = provider.items.where((i) => i.paidByPersonId == 'me').fold(0, (sum, i) => sum + i.amount);
-    double owedByMe = provider.items.fold(0, (sum, i) => sum + (i.exactAmountsOwed['me'] ?? 0));
+    double paidByMe = trip.expenses.where((i) => i.paidByPersonId == 'me').fold(0, (sum, i) => sum + i.amount);
+    double owedByMe = trip.expenses.fold(0, (sum, i) => sum + (i.exactAmountsOwed['me'] ?? 0));
     double netBalance = paidByMe - owedByMe;
 
     return SingleChildScrollView(
@@ -193,7 +203,6 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Total Trip Expense Card
           Container(
             padding: const EdgeInsets.all(24),
             width: double.infinity,
@@ -210,30 +219,25 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
               children: [
                 const Text('Total Trip Expense', style: TextStyle(color: Colors.white70, fontSize: 14)),
                 const SizedBox(height: 8),
-                Text('₹${totalExpense.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
+                Text('$cur${totalExpense.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
           const SizedBox(height: 24),
           
-          // My Summary
           const Text('My Summary', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(
-                child: _buildMetricCard('Total Paid', '₹${paidByMe.toStringAsFixed(0)}', Colors.green),
-              ),
+              Expanded(child: _buildMetricCard('Total Paid', '$cur${paidByMe.toStringAsFixed(0)}', Colors.green)),
               const SizedBox(width: 16),
-              Expanded(
-                child: _buildMetricCard('Total Share', '₹${owedByMe.toStringAsFixed(0)}', Colors.orange),
-              ),
+              Expanded(child: _buildMetricCard('Total Share', '$cur${owedByMe.toStringAsFixed(0)}', Colors.orange)),
             ],
           ),
           const SizedBox(height: 16),
           _buildMetricCard(
             'Net Balance', 
-            '${netBalance >= 0 ? '+' : '-'} ₹${netBalance.abs().toStringAsFixed(0)}', 
+            '${netBalance >= 0 ? '+' : '-'} $cur${netBalance.abs().toStringAsFixed(0)}', 
             netBalance >= 0 ? Colors.green : Colors.red,
             subtitle: netBalance >= 0 ? 'You get back' : 'You owe',
           ),
@@ -241,7 +245,7 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
           const SizedBox(height: 32),
           const Text('Category Breakdown', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 16),
-          _buildCategoryChart(provider),
+          _buildCategoryChart(provider, trip),
           const SizedBox(height: 100),
         ],
       ),
@@ -271,21 +275,19 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
     );
   }
 
-  Widget _buildCategoryChart(SplitProvider provider) {
-    if (provider.items.isEmpty) {
+  Widget _buildCategoryChart(SplitProvider provider, Trip trip) {
+    if (trip.expenses.isEmpty) {
       return const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('No expenses yet')));
     }
     
     Map<String, double> categorySums = {};
-    for (var item in provider.items) {
+    for (var item in trip.expenses) {
       categorySums[item.category] = (categorySums[item.category] ?? 0) + item.amount;
     }
 
-    // Since I don't know if fl_chart is fully installed and working in this project, 
-    // I'll render a simple list view representation of a chart to be safe and avoid build errors.
     return Column(
       children: categorySums.entries.map((e) {
-        double pct = e.value / provider.items.fold(0, (sum, i) => sum + i.amount);
+        double pct = e.value / trip.totalExpense;
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: Column(
@@ -295,7 +297,7 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(e.key, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text('₹${e.value.toStringAsFixed(0)} (${(pct * 100).toStringAsFixed(1)}%)', style: const TextStyle(color: Colors.grey)),
+                  Text('${trip.currency}${e.value.toStringAsFixed(0)} (${(pct * 100).toStringAsFixed(1)}%)', style: const TextStyle(color: Colors.grey)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -313,15 +315,15 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
     );
   }
 
-  Widget _buildParticipantsTab(SplitProvider provider) {
+  Widget _buildParticipantsTab(SplitProvider provider, Trip trip) {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
-      itemCount: provider.people.length,
+      itemCount: trip.participants.length,
       itemBuilder: (context, index) {
-        final p = provider.people[index];
+        final p = trip.participants[index];
         
-        double paid = provider.items.where((i) => i.paidByPersonId == p.id).fold(0, (sum, i) => sum + i.amount);
-        double owed = provider.items.fold(0, (sum, i) => sum + (i.exactAmountsOwed[p.id] ?? 0));
+        double paid = trip.expenses.where((i) => i.paidByPersonId == p.id).fold(0, (sum, i) => sum + i.amount);
+        double owed = trip.expenses.fold(0, (sum, i) => sum + (i.exactAmountsOwed[p.id] ?? 0));
         double net = paid - owed;
 
         return Card(
@@ -339,7 +341,7 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
                     children: [
                       Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 4),
-                      Text('Paid: ₹${paid.toStringAsFixed(0)} • Owed: ₹${owed.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                      Text('Paid: ${trip.currency}${paid.toStringAsFixed(0)} • Owed: ${trip.currency}${owed.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -347,7 +349,7 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      net >= 0 ? '+₹${net.toStringAsFixed(0)}' : '-₹${net.abs().toStringAsFixed(0)}',
+                      net >= 0 ? '+${trip.currency}${net.toStringAsFixed(0)}' : '-${trip.currency}${net.abs().toStringAsFixed(0)}',
                       style: TextStyle(
                         fontWeight: FontWeight.bold, 
                         fontSize: 16, 
@@ -372,48 +374,89 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
     );
   }
 
-  Widget _buildExpensesTab(SplitProvider provider) {
-    if (provider.items.isEmpty) {
+  Widget _buildExpensesTab(SplitProvider provider, Trip trip) {
+    if (trip.expenses.isEmpty) {
       return const Center(child: Text('No expenses added yet.', style: TextStyle(color: Colors.grey)));
     }
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
-      itemCount: provider.items.length,
-      itemBuilder: (context, index) {
-        final item = provider.items[index];
-        final payer = provider.getPerson(item.paidByPersonId)?.name ?? 'Unknown';
-        
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(16),
-            title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text('Paid by $payer • ${item.splitMethod.name} split', style: const TextStyle(fontSize: 12)),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text('₹${item.amount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).primaryColor)),
-                Text(item.category, style: const TextStyle(fontSize: 10, color: Colors.grey)),
-              ],
+
+    final filteredExpenses = trip.expenses.where((e) => e.name.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: TextField(
+            decoration: const InputDecoration(
+              labelText: 'Search Expenses',
+              prefixIcon: Icon(Icons.search),
+              border: OutlineInputBorder(),
             ),
-            onLongPress: () => provider.removeItem(item.id),
+            onChanged: (val) => setState(() => _searchQuery = val),
           ),
-        );
-      },
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+            itemCount: filteredExpenses.length,
+            itemBuilder: (context, index) {
+              final item = filteredExpenses[index];
+              final payer = provider.getPerson(item.paidByPersonId)?.name ?? 'Unknown';
+              
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: ExpansionTile(
+                  title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text('Paid by $payer • ${item.splitMethod.name} split', style: const TextStyle(fontSize: 12)),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('${trip.currency}${item.amount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).primaryColor)),
+                      Text(item.category, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                    ],
+                  ),
+                  children: [
+                    if (item.notes != null && item.notes!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text('Notes: ${item.notes}', style: const TextStyle(fontStyle: FontStyle.italic)),
+                      ),
+                    ButtonBar(
+                      children: [
+                        TextButton.icon(
+                          icon: const Icon(Icons.edit),
+                          label: const Text('Edit'),
+                          onPressed: () {
+                            // In a real app we would open the modal with pre-filled data
+                          },
+                        ),
+                        TextButton.icon(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          label: const Text('Delete', style: TextStyle(color: Colors.red)),
+                          onPressed: () => provider.removeItem(item.id),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildSettlementsTab(SplitProvider provider) {
-    if (provider.settlements.isEmpty) {
+  Widget _buildSettlementsTab(SplitProvider provider, Trip trip) {
+    if (trip.settlements.isEmpty) {
       return const Center(child: Text('All settled up! 🎉', style: TextStyle(color: Colors.grey)));
     }
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
-      itemCount: provider.settlements.length,
+      itemCount: trip.settlements.length,
       itemBuilder: (context, index) {
-        final s = provider.settlements[index];
+        final s = trip.settlements[index];
         final fromName = provider.getPerson(s.fromPersonId)?.name ?? 'Unknown';
         final toName = provider.getPerson(s.toPersonId)?.name ?? 'Unknown';
 
@@ -438,7 +481,7 @@ class _SplitCalculatorScreenState extends State<SplitCalculatorScreen> with Sing
                   ],
                 ),
               ),
-              Text('₹${s.amount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).primaryColor)),
+              Text('${trip.currency}${s.amount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).primaryColor)),
             ],
           ),
         );

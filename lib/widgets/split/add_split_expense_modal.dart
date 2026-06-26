@@ -14,6 +14,7 @@ class _AddSplitExpenseModalState extends State<AddSplitExpenseModal> {
   final _nameController = TextEditingController();
   final _amountController = TextEditingController();
   final _categoryController = TextEditingController(text: 'General');
+  final _notesController = TextEditingController();
   
   late String _selectedPayerId;
   SplitMethod _splitMethod = SplitMethod.equal;
@@ -112,6 +113,12 @@ class _AddSplitExpenseModalState extends State<AddSplitExpenseModal> {
                       decoration: const InputDecoration(labelText: 'Who Paid?', border: OutlineInputBorder()),
                       items: widget.provider.people.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))).toList(),
                       onChanged: (v) { if (v != null) setState(() => _selectedPayerId = v); },
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _notesController,
+                      maxLines: 2,
+                      decoration: const InputDecoration(labelText: 'Notes (Optional)', border: OutlineInputBorder()),
                     ),
                     
                     const SizedBox(height: 24),
@@ -378,6 +385,7 @@ class _AddSplitExpenseModalState extends State<AddSplitExpenseModal> {
       paidByPersonId: _selectedPayerId,
       date: DateTime.now(),
       category: _categoryController.text,
+      notes: _notesController.text,
       splitMethod: _splitMethod,
       sharedByPersonIds: _selectedSharers,
       splitValues: rawValues,
