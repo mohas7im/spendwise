@@ -210,10 +210,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _CalcChip(emoji: '👥', label: 'Splits'),
-                        _CalcChip(emoji: '🏦', label: 'Loans'),
-                        _CalcChip(emoji: '⛽', label: 'Fuel'),
-                        _CalcChip(emoji: '✈️', label: 'Trips'),
+                        _CalcChip(emoji: '⛽', label: 'Fuel', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelScreen(initialTab: 0)))),
+                        _CalcChip(emoji: '🚗', label: 'Mileage', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelScreen(initialTab: 1)))),
+                        _CalcChip(emoji: '✈️', label: 'Trips', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelScreen(initialTab: 2)))),
+                        _CalcChip(emoji: '💸', label: 'Splits', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelScreen(initialTab: 3)))),
                       ],
                     ),
                   ],
@@ -394,25 +394,30 @@ class _CardContent extends StatelessWidget {
 class _CalcChip extends StatelessWidget {
   final String emoji;
   final String label;
+  final VoidCallback? onTap;
 
-  const _CalcChip({required this.emoji, required this.label});
+  const _CalcChip({required this.emoji, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey.withOpacity(0.1)),
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.withOpacity(0.1)),
+            ),
+            child: Text(emoji, style: const TextStyle(fontSize: 20)),
           ),
-          child: Text(emoji, style: const TextStyle(fontSize: 20)),
-        ),
-        const SizedBox(height: 6),
-        Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-      ],
+          const SizedBox(height: 6),
+          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 }
+

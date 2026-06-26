@@ -42,7 +42,35 @@ class CalculatorItem {
   });
 }
 
+final List<CalculatorItem> allCalculators = [
+  // Expense & Group
+  CalculatorItem(id: 'exp_grp_split', title: 'Group Expense Split', iconEmoji: '👥', category: CalcCategory.expense),
+  CalculatorItem(id: 'exp_food', title: 'Food Bill Split', iconEmoji: '🍔', category: CalcCategory.expense),
+  CalculatorItem(id: 'exp_trip', title: 'Trip Cost', iconEmoji: '✈️', category: CalcCategory.expense),
+  CalculatorItem(id: 'exp_shared', title: 'Shared Expense', iconEmoji: '🤝', category: CalcCategory.expense),
+  CalculatorItem(id: 'exp_debt', title: 'Debt Settlement', iconEmoji: '💳', category: CalcCategory.expense),
+  CalculatorItem(id: 'exp_budget', title: 'Budget', iconEmoji: '📊', category: CalcCategory.expense),
+  CalculatorItem(id: 'exp_savings', title: 'Savings Goal', iconEmoji: '🎯', category: CalcCategory.expense),
+  
+  // Loan & Finance
+  CalculatorItem(id: 'fin_emi', title: 'EMI', iconEmoji: '🏦', category: CalcCategory.loan),
+  CalculatorItem(id: 'fin_loan_int', title: 'Loan Interest', iconEmoji: '📉', category: CalcCategory.loan),
+  CalculatorItem(id: 'fin_comp_int', title: 'Compound Interest', iconEmoji: '📈', category: CalcCategory.loan),
+  CalculatorItem(id: 'fin_simp_int', title: 'Simple Interest', iconEmoji: '₹', category: CalcCategory.loan),
+  CalculatorItem(id: 'fin_afford', title: 'Loan Affordability', iconEmoji: '🏠', category: CalcCategory.loan),
+  CalculatorItem(id: 'fin_sav_grwth', title: 'Savings Growth', iconEmoji: '🌱', category: CalcCategory.loan),
+  
+  // Fuel & Vehicle
+  CalculatorItem(id: 'fuel_qty', title: 'Fuel Quantity', iconEmoji: '⛽', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 0)),
+  CalculatorItem(id: 'fuel_mil', title: 'Mileage', iconEmoji: '🚗', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 1)),
+  CalculatorItem(id: 'fuel_trip', title: 'Trip Fuel Cost', iconEmoji: '🗺️', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 2)),
+  CalculatorItem(id: 'fuel_split', title: 'Fuel Bill Split', iconEmoji: '💸', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 3)),
+  CalculatorItem(id: 'fuel_run', title: 'Vehicle Running Cost', iconEmoji: '🛠️', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 4)),
+  CalculatorItem(id: 'fuel_track', title: 'Consumption Tracker', iconEmoji: '📊', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 5)),
+];
+
 class CalculatorHubScreen extends StatefulWidget {
+
   const CalculatorHubScreen({super.key});
 
   @override
@@ -53,49 +81,22 @@ class _CalculatorHubScreenState extends State<CalculatorHubScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   String _searchQuery = '';
   Set<String> _favorites = {};
-  
-  late final List<CalculatorItem> _allCalculators;
+  List<String> _recent = [];
 
   @override
   void initState() {
     super.initState();
-    _loadFavorites();
-    
-    _allCalculators = [
-      // Expense & Group
-      CalculatorItem(id: 'exp_grp_split', title: 'Group Expense Split', iconEmoji: '👥', category: CalcCategory.expense),
-      CalculatorItem(id: 'exp_food', title: 'Food Bill Split', iconEmoji: '🍔', category: CalcCategory.expense),
-      CalculatorItem(id: 'exp_trip', title: 'Trip Cost', iconEmoji: '✈️', category: CalcCategory.expense),
-      CalculatorItem(id: 'exp_shared', title: 'Shared Expense', iconEmoji: '🤝', category: CalcCategory.expense),
-      CalculatorItem(id: 'exp_debt', title: 'Debt Settlement', iconEmoji: '💳', category: CalcCategory.expense),
-      CalculatorItem(id: 'exp_budget', title: 'Budget', iconEmoji: '📊', category: CalcCategory.expense),
-      CalculatorItem(id: 'exp_savings', title: 'Savings Goal', iconEmoji: '🎯', category: CalcCategory.expense),
-      
-      // Loan & Finance
-      CalculatorItem(id: 'fin_emi', title: 'EMI', iconEmoji: '🏦', category: CalcCategory.loan),
-      CalculatorItem(id: 'fin_loan_int', title: 'Loan Interest', iconEmoji: '📉', category: CalcCategory.loan),
-      CalculatorItem(id: 'fin_comp_int', title: 'Compound Interest', iconEmoji: '📈', category: CalcCategory.loan),
-      CalculatorItem(id: 'fin_simp_int', title: 'Simple Interest', iconEmoji: '₹', category: CalcCategory.loan),
-      CalculatorItem(id: 'fin_afford', title: 'Loan Affordability', iconEmoji: '🏠', category: CalcCategory.loan),
-      CalculatorItem(id: 'fin_sav_grwth', title: 'Savings Growth', iconEmoji: '🌱', category: CalcCategory.loan),
-      
-      // Fuel & Vehicle
-      // We will point these to the enhanced FuelScreen with specific initial tabs
-      CalculatorItem(id: 'fuel_qty', title: 'Fuel Quantity', iconEmoji: '⛽', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 0)),
-      CalculatorItem(id: 'fuel_mil', title: 'Mileage', iconEmoji: '🚗', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 1)),
-      CalculatorItem(id: 'fuel_trip', title: 'Trip Fuel Cost', iconEmoji: '🗺️', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 2)),
-      CalculatorItem(id: 'fuel_split', title: 'Fuel Bill Split', iconEmoji: '💸', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 3)),
-      CalculatorItem(id: 'fuel_run', title: 'Vehicle Running Cost', iconEmoji: '🛠️', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 4)),
-      CalculatorItem(id: 'fuel_track', title: 'Consumption Tracker', iconEmoji: '📊', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 5)),
-    ];
+    _loadFavoritesAndRecent();
   }
 
-  Future<void> _loadFavorites() async {
+  Future<void> _loadFavoritesAndRecent() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _favorites = Set<String>.from(prefs.getStringList('calc_favorites') ?? []);
+      _recent = prefs.getStringList('calc_recent') ?? [];
     });
   }
+
 
   Future<void> _toggleFavorite(String id) async {
     final prefs = await SharedPreferences.getInstance();
@@ -109,7 +110,17 @@ class _CalculatorHubScreenState extends State<CalculatorHubScreen> {
     });
   }
 
-  void _openCalculator(CalculatorItem item) {
+  void _openCalculator(CalculatorItem item) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+
+    setState(() {
+      _recent.remove(item.id);
+      _recent.insert(0, item.id);
+      if (_recent.length > 5) _recent = _recent.sublist(0, 5);
+      prefs.setStringList('calc_recent', _recent);
+    });
+
     if (item.destination != null) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => item.destination!));
     } else {
@@ -127,7 +138,7 @@ class _CalculatorHubScreenState extends State<CalculatorHubScreen> {
     final primary = Theme.of(context).primaryColor;
     
     // Filter by search
-    final filtered = _allCalculators.where((c) => c.title.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+    final filtered = allCalculators.where((c) => c.title.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
     
     // Group by category
     final grouped = <CalcCategory, List<CalculatorItem>>{};
@@ -135,7 +146,13 @@ class _CalculatorHubScreenState extends State<CalculatorHubScreen> {
       grouped[cat] = filtered.where((c) => c.category == cat).toList();
     }
 
-    final favoriteItems = _allCalculators.where((c) => _favorites.contains(c.id)).toList();
+    final favoriteItems = allCalculators.where((c) => _favorites.contains(c.id)).toList();
+    
+    // Map recent IDs to actual items safely
+    final recentItems = _recent
+        .map((id) => allCalculators.cast<CalculatorItem?>().firstWhere((c) => c?.id == id, orElse: () => null))
+        .whereType<CalculatorItem>()
+        .toList();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -165,6 +182,28 @@ class _CalculatorHubScreenState extends State<CalculatorHubScreen> {
               ),
             ),
           ),
+          
+          // Recently Used Section (if search is empty and has recents)
+          if (_searchQuery.isEmpty && recentItems.isNotEmpty) ...[
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: Text('Recently Used', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 120,
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: recentItems.length,
+                  itemBuilder: (context, i) => _buildHorizCard(recentItems[i]),
+                ),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+          ],
           
           // Favorites Section (if search is empty and has favorites)
           if (_searchQuery.isEmpty && favoriteItems.isNotEmpty) ...[

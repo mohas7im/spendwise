@@ -230,13 +230,32 @@ class _FuelBillSplitTab extends StatefulWidget {
 class _FuelBillSplitTabState extends State<_FuelBillSplitTab> {
   final _expCtrl = TextEditingController();
   final _pplCtrl = TextEditingController(text: '2');
+  final _pctCtrl = TextEditingController();
+  final _customCtrl = TextEditingController();
+  
+  String _splitMethod = 'Equal';
   double? _splitAmt;
 
   void _calculate() {
     final exp = double.tryParse(_expCtrl.text);
-    final ppl = int.tryParse(_pplCtrl.text);
-    if (exp == null || ppl == null || ppl <= 0) return;
-    setState(() => _splitAmt = exp / ppl);
+    if (exp == null) return;
+
+    if (_splitMethod == 'Equal') {
+      final ppl = int.tryParse(_pplCtrl.text);
+      if (ppl != null && ppl > 0) {
+        setState(() => _splitAmt = exp / ppl);
+      }
+    } else if (_splitMethod == 'Percentage') {
+      final pct = double.tryParse(_pctCtrl.text);
+      if (pct != null && pct >= 0 && pct <= 100) {
+        setState(() => _splitAmt = exp * (pct / 100));
+      }
+    } else if (_splitMethod == 'Custom') {
+      final custom = double.tryParse(_customCtrl.text);
+      if (custom != null) {
+        setState(() => _splitAmt = exp - custom);
+      }
+    }
   }
 
   @override
@@ -250,13 +269,43 @@ class _FuelBillSplitTabState extends State<_FuelBillSplitTab> {
             title: 'Split Trip Fuel Cost',
             children: [
               _InputField(controller: _expCtrl, label: 'Total Fuel Expense (₹)', hint: '2000', icon: '🧾', onChanged: (_) => _calculate()),
-              const SizedBox(height: 12),
-              _InputField(controller: _pplCtrl, label: 'Number of Participants', hint: '4', icon: '👥', textInput: TextInputType.number, onChanged: (_) => _calculate()),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Icon(Icons.pie_chart_outline, color: Colors.grey, size: 20),
+                  const SizedBox(width: 12),
+                  const Text('Split Method:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButton<String>(
+                      value: _splitMethod,
+                      isExpanded: true,
+                      items: ['Equal', 'Percentage', 'Custom'].map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() {
+                            _splitMethod = val;
+                            _splitAmt = null;
+                            _calculate();
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (_splitMethod == 'Equal')
+                _InputField(controller: _pplCtrl, label: 'Number of Participants', hint: '4', icon: '👥', textInput: TextInputType.number, onChanged: (_) => _calculate())
+              else if (_splitMethod == 'Percentage')
+                _InputField(controller: _pctCtrl, label: 'Your Percentage (%)', hint: '50', icon: '⚖️', onChanged: (_) => _calculate())
+              else if (_splitMethod == 'Custom')
+                _InputField(controller: _customCtrl, label: 'Amount Paid by Others (₹)', hint: '1000', icon: '💵', onChanged: (_) => _calculate()),
             ],
           ),
           if (_splitAmt != null)
             _ResultBox(
-              title: 'Amount per person',
+              title: _splitMethod == 'Equal' ? 'Amount per person' : 'You Pay',
               value: '₹${_splitAmt!.toStringAsFixed(0)}',
               emoji: '🤝',
               primary: primary,
@@ -479,8 +528,80 @@ class _FuelConsumptionTrackerTabState extends State<_FuelConsumptionTrackerTab> 
         return CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
+              child: Builder(
+                builder: (context) {
+                  // Calculate Average Mileage and Monthly Spending
+                  final sortedAll = [...entries]..sort((a, b) => a.date.compareTo(b.date));
+                  double totalLiters = 0;
+                  double totalCost = 0;
+                  double totalKm = 0;
+
+                  for (int i = 0; i < sortedAll.length; i++) {
+                    totalCost += sortedAll[i].totalCost;
+                    if (i > 0) {
+                      final km = sortedAll[i].odometer - sortedAll[i - 1].odometer;
+                      if (km > 0 && sortedAll[i].liters > 0) {
+                        totalKm += km;
+                        totalLiters += sortedAll[i].liters;
+                      }
+                    }
+                  }
+
+                  final avgMileage = totalLiters > 0 ? totalKm / totalLiters : 0.0;
+
+                  // Simple monthly average based on first and last entry
+                  double avgMonthlyCost = 0.0;
+                  if (sortedAll.isNotEmpty) {
+                    final days = sortedAll.last.date.difference(sortedAll.first.date).inDays;
+                    if (days > 30) {
+                      avgMonthlyCost = (totalCost / days) * 30;
+                    } else {
+                      avgMonthlyCost = totalCost; // If less than a month, just show total
+                    }
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.grey.withOpacity(0.1))),
+                            child: Column(
+                              children: [
+                                const Text('Avg Mileage', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 8),
+                                Text(avgMileage > 0 ? '${avgMileage.toStringAsFixed(1)}' : '--', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
+                                const Text('km/L', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.grey.withOpacity(0.1))),
+                            child: Column(
+                              children: [
+                                const Text('Est. Monthly', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 8),
+                                Text('₹${avgMonthlyCost.toStringAsFixed(0)}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.redAccent)),
+                                const Text('spending', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -605,7 +726,7 @@ class _ResultBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.top(24),
+      margin: const EdgeInsets.only(top: 24),
       padding: const EdgeInsets.all(24),
       width: double.infinity,
       decoration: BoxDecoration(
