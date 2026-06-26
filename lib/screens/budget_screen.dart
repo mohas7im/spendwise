@@ -24,12 +24,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
     super.dispose();
   }
 
-  double _getCategoryListHeight(BudgetModel budget) {
-    final count = budget.categoryLimits.where((l) => l.period == _selectedPeriod).length;
-    if (count == 0) return 200.0;
-    return count * 155.0 + 50.0;
-  }
-
   @override
   Widget build(BuildContext context) {
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
@@ -51,75 +45,60 @@ class _BudgetScreenState extends State<BudgetScreen> {
           int overBudgetCount = periodLimits.where((l) => l.isOverBudget).length;
 
           return SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                  child: Row(
-                    children: [
-                      Text('Budget & Goals', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.analytics_outlined),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const BudgetAnalyticsScreen()),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Global Period Filter
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 120),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                     child: Row(
                       children: [
-                        _PeriodChip(
-                          label: 'Daily',
-                          selected: _selectedPeriod == LimitPeriod.daily,
-                          onTap: () => setState(() => _selectedPeriod = LimitPeriod.daily),
+                        Text('Budget & Goals', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 12),
+                        // Current Selection Dropdown
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<LimitPeriod>(
+                              value: _selectedPeriod,
+                              isDense: true,
+                              icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).primaryColor),
+                              style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 13),
+                              items: LimitPeriod.values.map((p) => DropdownMenuItem(
+                                value: p,
+                                child: Text(p.name.substring(0, 1).toUpperCase() + p.name.substring(1)),
+                              )).toList(),
+                              onChanged: (val) {
+                                if (val != null) setState(() => _selectedPeriod = val);
+                              },
+                            ),
+                          ),
                         ),
-                        const SizedBox(width: 8),
-                        _PeriodChip(
-                          label: 'Weekly',
-                          selected: _selectedPeriod == LimitPeriod.weekly,
-                          onTap: () => setState(() => _selectedPeriod = LimitPeriod.weekly),
-                        ),
-                        const SizedBox(width: 8),
-                        _PeriodChip(
-                          label: 'Monthly',
-                          selected: _selectedPeriod == LimitPeriod.monthly,
-                          onTap: () => setState(() => _selectedPeriod = LimitPeriod.monthly),
-                        ),
-                        const SizedBox(width: 8),
-                        _PeriodChip(
-                          label: 'Yearly',
-                          selected: _selectedPeriod == LimitPeriod.yearly,
-                          onTap: () => setState(() => _selectedPeriod = LimitPeriod.yearly),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.analytics_outlined),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const BudgetAnalyticsScreen()),
+                            );
+                          },
                         ),
                       ],
                     ),
                   ),
-                ),
 
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 120),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Dashboard Summary Section
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                          child: _buildDashboardSummary(totalBudget, totalSpent, remainingBudget),
-                        ),
+                  // Dashboard Summary Section
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    child: _buildDashboardSummary(totalBudget, totalSpent, remainingBudget),
+                  ),
 
                         // Over Budget Alert Banner
                         if (overBudgetCount > 0)
@@ -201,21 +180,15 @@ class _BudgetScreenState extends State<BudgetScreen> {
                         ),
                         const SizedBox(height: 12),
 
-                        SizedBox(
-                          height: _getCategoryListHeight(budget),
-                          child: _buildCategoryLimitsList(_selectedPeriod, budget),
-                        ),
+                        _buildCategoryLimitsList(_selectedPeriod, budget),
                       ],
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           );
-        },
-      ),
-    );
-  }
+        }
 
   Widget _buildDashboardSummary(double budget, double spent, double remaining) {
     final periodLabel = _selectedPeriod == LimitPeriod.daily
@@ -400,6 +373,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     }
 
     return ListView.builder(
+      shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 24),
       itemCount: items.length,
@@ -408,9 +382,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
   }
 
   Widget _buildDetailedCategoryLimitCard(CategoryLimit limit, LimitPeriod period) {
-    final periodLabel = period == LimitPeriod.daily ? 'day' : period == LimitPeriod.weekly ? 'week' : 'month';
+    final periodLabel = period == LimitPeriod.daily ? 'day' : period == LimitPeriod.weekly ? 'week' : period == LimitPeriod.monthly ? 'month' : 'year';
     final isOver = limit.isOverBudget;
-    final progressColor = isOver ? Colors.redAccent : limit.percentUsed > 0.9 ? Colors.red : limit.percentUsed > 0.75 ? const Color(0xFFF59E0B) : Colors.blue;
+    final primary = Theme.of(context).primaryColor;
+    final progressColor = isOver ? Colors.redAccent : limit.percentUsed > 0.9 ? Colors.red : limit.percentUsed > 0.75 ? Colors.orange : primary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -812,38 +787,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 const SizedBox(height: 32),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PeriodChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _PeriodChip({required this.label, required this.selected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected ? primary : Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
-            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-            fontSize: 13,
           ),
         ),
       ),
