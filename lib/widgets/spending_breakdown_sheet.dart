@@ -90,10 +90,10 @@ class _SpendingBreakdownSheetState extends State<SpendingBreakdownSheet> with Ti
     final total = summary['total'] as double;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? const Color(0xFF1A1A2E) : Colors.white;
-    final cardColor = isDark ? const Color(0xFF16213E) : const Color(0xFFF8F9FA);
-    final textColor = isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1A202C);
-    final subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF718096);
+    final surfaceColor = Theme.of(context).scaffoldBackgroundColor;
+    final cardColor = Theme.of(context).cardColor;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? (isDark ? Colors.white : Colors.black);
+    final subTextColor = Theme.of(context).textTheme.bodyMedium?.color ?? (isDark ? Colors.white70 : Colors.black54);
     final fmt = NumberFormat('#,##,##0', 'en_IN');
 
     return FractionallySizedBox(
