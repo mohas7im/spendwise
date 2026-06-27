@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../widgets/common/premium_gradient_card.dart';
 
 class LoanAffordabilityScreen extends StatefulWidget {
   const LoanAffordabilityScreen({super.key});
@@ -55,25 +56,12 @@ class _LoanAffordabilityScreenState extends State<LoanAffordabilityScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      child: Column(
+                    PremiumGradientCard(
+                      builder: (context, textColor, subTextColor) => Column(
                         children: [
-                          Text('Maximum Loan You Can Afford', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+                          Text('Maximum Loan You Can Afford', style: TextStyle(color: subTextColor)),
                           const SizedBox(height: 8),
-                          Text('₹${_maxLoanAmount.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 32, fontWeight: FontWeight.bold)),
+                          Text('₹${_maxLoanAmount.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),

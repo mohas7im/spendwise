@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../widgets/common/premium_gradient_card.dart';
 
 class SavingsGrowthScreen extends StatefulWidget {
   const SavingsGrowthScreen({super.key});
@@ -10,16 +11,20 @@ class SavingsGrowthScreen extends StatefulWidget {
 
 class _SavingsGrowthScreenState extends State<SavingsGrowthScreen> {
   final _initialCtrl = TextEditingController(text: '10000');
-  final _monthlyCtrl = TextEditingController(text: '5000');
-  double _returnRate = 12.0;
-  double _years = 10;
+  final _monthlyCtrl = TextEditingController(text: '10000');
+  final _yearsCtrl = TextEditingController(text: '10');
+  final _returnCtrl = TextEditingController(text: '12.0');
 
   double get _futureValue {
     final p = double.tryParse(_initialCtrl.text) ?? 0;
     final pmt = double.tryParse(_monthlyCtrl.text) ?? 0;
+    final yValue = double.tryParse(_yearsCtrl.text) ?? 0;
     
-    final r = _returnRate / 100 / 12;
-    final n = _years * 12;
+    if (pmt <= 0 || yValue <= 0) return p;
+    
+    final rValue = double.tryParse(_returnCtrl.text) ?? 0;
+    final r = rValue / 100 / 12;
+    final n = yValue * 12;
     
     if (r == 0) return p + (pmt * n);
     
@@ -30,8 +35,8 @@ class _SavingsGrowthScreenState extends State<SavingsGrowthScreen> {
   
   double get _totalInvested {
     final p = double.tryParse(_initialCtrl.text) ?? 0;
-    final pmt = double.tryParse(_monthlyCtrl.text) ?? 0;
-    return p + (pmt * _years * 12);
+    final yValue = double.tryParse(_yearsCtrl.text) ?? 0;
+    return p + ((double.tryParse(_monthlyCtrl.text) ?? 0) * (yValue * 12));
   }
 
   double get _totalInterest => _futureValue - _totalInvested;
@@ -61,25 +66,12 @@ class _SavingsGrowthScreenState extends State<SavingsGrowthScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      child: Column(
+                    PremiumGradientCard(
+                      builder: (context, textColor, subTextColor) => Column(
                         children: [
-                          Text('Future Value', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+                          Text('Future Value', style: TextStyle(color: subTextColor)),
                           const SizedBox(height: 8),
-                          Text('₹${_futureValue.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 32, fontWeight: FontWeight.bold)),
+                          Text('₹${_futureValue.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -87,15 +79,15 @@ class _SavingsGrowthScreenState extends State<SavingsGrowthScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Total Invested', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 12)),
-                                  Text('₹${_totalInvested.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text('Total Invested', style: TextStyle(color: subTextColor, fontSize: 12)),
+                                  Text('₹${_totalInvested.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text('Wealth Gained', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 12)),
-                                  Text('₹${_totalInterest.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text('Wealth Gained', style: TextStyle(color: subTextColor, fontSize: 12)),
+                                  Text('₹${_totalInterest.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ],
@@ -118,39 +110,19 @@ class _SavingsGrowthScreenState extends State<SavingsGrowthScreen> {
                       decoration: const InputDecoration(labelText: 'Monthly Contribution (₹)', border: OutlineInputBorder()),
                       onChanged: (_) => setState(() {}),
                     ),
-                    const SizedBox(height: 24),
-                    
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Expected Return Rate (%)'),
-                        Text('${_returnRate.toStringAsFixed(1)}%', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      ],
-                    ),
-                    Slider(
-                      value: _returnRate,
-                      min: 1,
-                      max: 30,
-                      divisions: 58,
-                      activeColor: Colors.teal,
-                      onChanged: (v) => setState(() => _returnRate = v),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _yearsCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Investment Duration (Years)', border: OutlineInputBorder()),
+                      onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 16),
-                    
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Investment Period (Years)'),
-                        Text('${_years.toStringAsFixed(1)} Yrs', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      ],
-                    ),
-                    Slider(
-                      value: _years,
-                      min: 1,
-                      max: 40,
-                      divisions: 39,
-                      activeColor: Colors.teal,
-                      onChanged: (v) => setState(() => _years = v),
+                    TextField(
+                      controller: _returnCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Expected Return Rate (%)', border: OutlineInputBorder()),
+                      onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 40),
                   ],

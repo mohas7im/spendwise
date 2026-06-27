@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../widgets/common/premium_gradient_card.dart';
 
 class EmiCalculatorScreen extends StatefulWidget {
   const EmiCalculatorScreen({super.key});
@@ -58,25 +59,12 @@ class _EmiCalculatorScreenState extends State<EmiCalculatorScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      child: Column(
+                    PremiumGradientCard(
+                      builder: (context, textColor, subTextColor) => Column(
                         children: [
-                          Text('Monthly EMI', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+                          Text('Monthly EMI', style: TextStyle(color: subTextColor)),
                           const SizedBox(height: 8),
-                          Text('₹${_emi.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 32, fontWeight: FontWeight.bold)),
+                          Text('₹${_emi.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -84,15 +72,15 @@ class _EmiCalculatorScreenState extends State<EmiCalculatorScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Total Interest', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 12)),
-                                  Text('₹${_totalInterest.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text('Total Interest', style: TextStyle(color: subTextColor, fontSize: 12)),
+                                  Text('₹${_totalInterest.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text('Total Payment', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 12)),
-                                  Text('₹${_totalPayment.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text('Total Payment', style: TextStyle(color: subTextColor, fontSize: 12)),
+                                  Text('₹${_totalPayment.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ],

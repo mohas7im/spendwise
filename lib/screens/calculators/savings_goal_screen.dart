@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../widgets/common/premium_gradient_card.dart';
 
 class SavingsGoalScreen extends StatefulWidget {
   const SavingsGoalScreen({super.key});
@@ -11,17 +12,19 @@ class SavingsGoalScreen extends StatefulWidget {
 class _SavingsGoalScreenState extends State<SavingsGoalScreen> {
   final _goalCtrl = TextEditingController(text: '1000000');
   final _currentCtrl = TextEditingController(text: '50000');
-  double _years = 5;
-  double _returnRate = 8.0;
+  final _yearsCtrl = TextEditingController(text: '5');
+  final _returnCtrl = TextEditingController(text: '8.0');
 
   double get _monthlyRequired {
     final goal = double.tryParse(_goalCtrl.text) ?? 0;
     final current = double.tryParse(_currentCtrl.text) ?? 0;
-    if (goal <= 0 || _years <= 0) return 0;
+    final yValue = double.tryParse(_yearsCtrl.text) ?? 0;
+    if (goal <= 0 || yValue <= 0) return 0;
     
     // Future value of current savings
-    final r = _returnRate / 100 / 12;
-    final n = _years * 12;
+    final rValue = double.tryParse(_returnCtrl.text) ?? 0;
+    final r = rValue / 100 / 12;
+    final n = yValue * 12;
     
     final fvCurrent = current * pow(1 + r, n);
     final remainingGoal = goal - fvCurrent;
@@ -60,25 +63,12 @@ class _SavingsGoalScreenState extends State<SavingsGoalScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      child: Column(
+                    PremiumGradientCard(
+                      builder: (context, textColor, subTextColor) => Column(
                         children: [
-                          Text('Monthly Savings Required', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
+                          Text('Monthly Savings Required', style: TextStyle(color: subTextColor)),
                           const SizedBox(height: 8),
-                          Text('₹${_monthlyRequired.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 32, fontWeight: FontWeight.bold)),
+                          Text('₹${_monthlyRequired.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -99,37 +89,19 @@ class _SavingsGoalScreenState extends State<SavingsGoalScreen> {
                     ),
                     const SizedBox(height: 24),
                     
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Time to Goal (Years)'),
-                        Text('${_years.toStringAsFixed(1)} Yrs', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      ],
-                    ),
-                    Slider(
-                      value: _years,
-                      min: 0.5,
-                      max: 30,
-                      divisions: 59,
-                      activeColor: Colors.green,
-                      onChanged: (v) => setState(() => _years = v),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _yearsCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Time to Goal (Years, e.g. 1.5)', border: OutlineInputBorder()),
+                      onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 16),
-                    
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Expected Annual Return (%)'),
-                        Text('${_returnRate.toStringAsFixed(1)}%', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      ],
-                    ),
-                    Slider(
-                      value: _returnRate,
-                      min: 1,
-                      max: 20,
-                      divisions: 38,
-                      activeColor: Colors.green,
-                      onChanged: (v) => setState(() => _returnRate = v),
+                    TextField(
+                      controller: _returnCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Expected Annual Return (%)', border: OutlineInputBorder()),
+                      onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 40),
                   ],
