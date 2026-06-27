@@ -16,6 +16,14 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     final nameCtrl = TextEditingController(text: existingSub?['name'] ?? '');
     final costCtrl = TextEditingController(text: existingSub?['cost']?.toString() ?? '');
     String cycle = existingSub?['cycle'] ?? 'Monthly';
+    bool isCustom = cycle != 'Monthly' && cycle != 'Yearly';
+    if (isCustom) {
+      // If it's a custom cycle like "1000 Days", extract the number
+      cycle = 'Custom (Days)';
+    }
+    final customDaysCtrl = TextEditingController(
+      text: isCustom ? existingSub!['cycle'].toString().split(' ').first : '1000',
+    );
     DateTime nextBilling = existingSub?['nextBilling'] ?? DateTime.now().add(const Duration(days: 30));
 
     showModalBottomSheet(
@@ -49,9 +57,17 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               DropdownButtonFormField<String>(
                 value: cycle,
                 decoration: const InputDecoration(labelText: 'Billing Cycle', border: OutlineInputBorder()),
-                items: ['Monthly', 'Yearly'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                items: ['Monthly', 'Yearly', 'Custom (Days)'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                 onChanged: (val) => setModalState(() => cycle = val!),
               ),
+              if (cycle == 'Custom (Days)') ...[
+                const SizedBox(height: 16),
+                TextField(
+                  controller: customDaysCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Number of Days', border: OutlineInputBorder()),
+                ),
+              ],
               const SizedBox(height: 16),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -81,10 +97,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   ),
                   onPressed: () {
                     if (nameCtrl.text.isNotEmpty && costCtrl.text.isNotEmpty) {
+                      final finalCycle = cycle == 'Custom (Days)' ? '${customDaysCtrl.text} Days' : cycle;
                       final subData = {
                         'name': nameCtrl.text,
                         'cost': double.parse(costCtrl.text),
-                        'cycle': cycle,
+                        'cycle': finalCycle,
                         'nextBilling': nextBilling,
                         'color': existingSub?['color'] ?? Colors.deepPurpleAccent,
                         'icon': existingSub?['icon'] ?? Icons.subscriptions,
@@ -116,8 +133,12 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       DateTime payDate;
       if (sub['cycle'] == 'Monthly') {
         payDate = sub['nextBilling'].subtract(Duration(days: 30 * (i + 1)));
-      } else {
+      } else if (sub['cycle'] == 'Yearly') {
         payDate = sub['nextBilling'].subtract(Duration(days: 365 * (i + 1)));
+      } else {
+        // Handle custom days, e.g., "1000 Days"
+        final days = int.tryParse(sub['cycle'].toString().split(' ').first) ?? 30;
+        payDate = sub['nextBilling'].subtract(Duration(days: days * (i + 1)));
       }
       return {'date': payDate, 'amount': sub['cost']};
     });
