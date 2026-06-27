@@ -21,13 +21,15 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: 1); // 1 = monthly
+    _tabController = TabController(length: 4, vsync: this, initialIndex: 2); // 2 = monthly
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {
           if (_tabController.index == 0) {
             _selectedPeriod = LimitPeriod.daily;
           } else if (_tabController.index == 1) {
+            _selectedPeriod = LimitPeriod.weekly;
+          } else if (_tabController.index == 2) {
             _selectedPeriod = LimitPeriod.monthly;
           } else {
             _selectedPeriod = LimitPeriod.yearly;
@@ -95,6 +97,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                     padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
                     tabs: const [
                       Tab(text: 'Daily'),
+                      Tab(text: 'Weekly'),
                       Tab(text: 'Monthly'),
                       Tab(text: 'Yearly'),
                     ],
@@ -154,9 +157,11 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
   Widget _buildDashboardSummary(double budget, double spent, double remaining) {
     final periodLabel = _selectedPeriod == LimitPeriod.daily
         ? 'Daily'
-        : _selectedPeriod == LimitPeriod.yearly
-            ? 'Yearly'
-            : 'Monthly';
+        : _selectedPeriod == LimitPeriod.weekly
+            ? 'Weekly'
+            : _selectedPeriod == LimitPeriod.yearly
+                ? 'Yearly'
+                : 'Monthly';
     return PremiumGradientCard(
       builder: (context, textColor, subTextColor) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -427,6 +432,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
     final emojiController = TextEditingController(text: presetCategories.first['emoji']);
 
     final dailyController = TextEditingController();
+    final weeklyController = TextEditingController();
     final monthlyController = TextEditingController();
     final yearlyController = TextEditingController();
 
@@ -482,6 +488,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                             }
 
                             tryAddLimit(dailyController.text, LimitPeriod.daily);
+                            tryAddLimit(weeklyController.text, LimitPeriod.weekly);
                             tryAddLimit(monthlyController.text, LimitPeriod.monthly);
                             tryAddLimit(yearlyController.text, LimitPeriod.yearly);
 
@@ -546,6 +553,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                           Text('Set Limits for Periods', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
                           _buildPeriodInputRow(context: context, label: 'Daily (Day)', icon: '⏰', controller: dailyController),
+                          _buildPeriodInputRow(context: context, label: 'Weekly (Week)', icon: '📅', controller: weeklyController),
                           _buildPeriodInputRow(context: context, label: 'Monthly (Month)', icon: '🗓️', controller: monthlyController),
                           _buildPeriodInputRow(context: context, label: 'Yearly (Year)', icon: '📆', controller: yearlyController),
                           const SizedBox(height: 32),
