@@ -121,13 +121,13 @@ class _BuyCoffeeScreenState extends State<BuyCoffeeScreen> {
               builder: (context, textColor, subTextColor) {
                 return InkWell(
                   onTap: _processPayment,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(16),
                   child: Container(
-                    height: 60,
+                    height: 50,
                     alignment: Alignment.center,
                     child: Text(
                       'Pay Now',
-                      style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                 );
