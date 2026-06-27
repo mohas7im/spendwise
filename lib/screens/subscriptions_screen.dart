@@ -108,6 +108,123 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     );
   }
 
+  void _showSubscriptionDetails(BuildContext context, Map<String, dynamic> sub, FinanceProvider provider, int index) {
+    final daysLeft = sub['nextBilling'].difference(DateTime.now()).inDays;
+    
+    // Mock some payment history based on cycle
+    final history = List.generate(3, (i) {
+      DateTime payDate;
+      if (sub['cycle'] == 'Monthly') {
+        payDate = sub['nextBilling'].subtract(Duration(days: 30 * (i + 1)));
+      } else {
+        payDate = sub['nextBilling'].subtract(Duration(days: 365 * (i + 1)));
+      }
+      return {'date': payDate, 'amount': sub['cost']};
+    });
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: (sub['color'] as Color).withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(sub['icon'], color: sub['color'], size: 28),
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(sub['name'], style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                        Text('${sub['cycle']} Plan', style: const TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  ],
+                ),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (val) {
+                    Navigator.pop(ctx);
+                    if (val == 'edit') {
+                      _showSubscriptionModal(context, provider, editIndex: index, existingSub: sub);
+                    } else if (val == 'delete') {
+                      provider.deleteSubscription(index);
+                    }
+                  },
+                  itemBuilder: (c) => [
+                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                  ],
+                ),
+              ],
+            ),
+            const Divider(height: 32),
+            
+            // Info Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Amount', style: TextStyle(color: Colors.grey)),
+                    Text('₹${sub['cost'].toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text('Next Billing', style: TextStyle(color: Colors.grey)),
+                    Text(
+                      '${sub['nextBilling'].day}/${sub['nextBilling'].month}/${sub['nextBilling'].year}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold, 
+                        fontSize: 16,
+                        color: daysLeft <= 3 ? Colors.redAccent : Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            
+            Text('Payment History', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            
+            // Mock History List
+            ...history.map((h) => ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: CircleAvatar(
+                backgroundColor: Colors.green.withValues(alpha: 0.1),
+                child: const Icon(Icons.check, color: Colors.green),
+              ),
+              title: Text('₹${h['amount'].toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text('${(h['date'] as DateTime).day}/${(h['date'] as DateTime).month}/${(h['date'] as DateTime).year} • Paid automatically'),
+            )),
+            
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
@@ -194,59 +311,63 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: (sub['color'] as Color).withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => _showSubscriptionDetails(context, sub, financeProvider, index),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: (sub['color'] as Color).withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(sub['icon'], color: sub['color'], size: 24),
                             ),
-                            child: Icon(sub['icon'], color: sub['color'], size: 24),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(sub['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                  const SizedBox(height: 4),
+                                  Text(sub['cycle'], style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text(sub['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text('₹${sub['cost'].toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                 const SizedBox(height: 4),
-                                Text(sub['cycle'], style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                Text(
+                                  daysLeft == 0 ? 'Today' : (daysLeft < 0 ? 'Overdue' : 'In $daysLeft days'),
+                                  style: TextStyle(
+                                    color: daysLeft <= 3 ? Colors.redAccent : Colors.grey,
+                                    fontWeight: daysLeft <= 3 ? FontWeight.bold : FontWeight.normal,
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ],
                             ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text('₹${sub['cost'].toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                              const SizedBox(height: 4),
-                              Text(
-                                daysLeft == 0 ? 'Today' : (daysLeft < 0 ? 'Overdue' : 'In $daysLeft days'),
-                                style: TextStyle(
-                                  color: daysLeft <= 3 ? Colors.redAccent : Colors.grey,
-                                  fontWeight: daysLeft <= 3 ? FontWeight.bold : FontWeight.normal,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                          PopupMenuButton<String>(
-                            icon: const Icon(Icons.more_vert, color: Colors.grey),
-                            onSelected: (val) {
-                              if (val == 'edit') {
-                                _showSubscriptionModal(context, financeProvider, editIndex: index, existingSub: sub);
-                              } else if (val == 'delete') {
-                                financeProvider.deleteSubscription(index);
-                              }
-                            },
-                            itemBuilder: (ctx) => [
-                              const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                              const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
-                            ],
-                          ),
-                        ],
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert, color: Colors.grey),
+                              onSelected: (val) {
+                                if (val == 'edit') {
+                                  _showSubscriptionModal(context, financeProvider, editIndex: index, existingSub: sub);
+                                } else if (val == 'delete') {
+                                  financeProvider.deleteSubscription(index);
+                                }
+                              },
+                              itemBuilder: (ctx) => [
+                                const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
