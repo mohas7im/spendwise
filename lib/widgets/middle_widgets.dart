@@ -5,6 +5,8 @@ class MiddleWidgets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -26,7 +28,7 @@ class MiddleWidgets extends StatelessWidget {
             height: 160,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF161618),
+              color: isDark ? const Color(0xFF1A1A1A) : Colors.black,
               borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
@@ -63,7 +65,7 @@ class MiddleWidgets extends StatelessWidget {
             height: 160,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF161618),
+              color: isDark ? const Color(0xFF1A1A1A) : Colors.black,
               borderRadius: BorderRadius.circular(24),
             ),
             child: const Column(

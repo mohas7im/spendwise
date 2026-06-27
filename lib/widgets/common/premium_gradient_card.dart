@@ -19,7 +19,7 @@ class PremiumGradientCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     // Invert the theme colors for the hero effect
-    final cardColor = isDark ? const Color(0xFFF8F9FA) : const Color(0xFF1A1A1A);
+    final cardColor = isDark ? const Color(0xFFF8F9FA) : Colors.black;
     final textColor = isDark ? Colors.black : Colors.white;
     final subTextColor = isDark ? Colors.black54 : Colors.white70;
 

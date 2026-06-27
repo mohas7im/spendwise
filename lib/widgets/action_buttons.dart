@@ -6,6 +6,8 @@ class ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Row(
       children: [
         Expanded(
@@ -32,7 +34,7 @@ class ActionButtons extends StatelessWidget {
             child: Container(
               height: 56,
               decoration: BoxDecoration(
-                color: const Color(0xFF1C1C1E),
+                color: isDark ? const Color(0xFF1C1C1E) : Colors.black,
                 borderRadius: BorderRadius.circular(28),
               ),
               child: Row(
@@ -51,7 +53,7 @@ class ActionButtons extends StatelessWidget {
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E),
+            color: isDark ? const Color(0xFF1C1C1E) : Colors.black,
             borderRadius: BorderRadius.circular(16),
           ),
           child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 24),

@@ -8,10 +8,12 @@ class BalanceSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
     
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF161618), // Main card background
+        color: isDark ? const Color(0xFF1A1A1A) : Colors.black, // Main card background
         borderRadius: BorderRadius.circular(32),
       ),
       child: Column(
@@ -53,7 +55,7 @@ class BalanceSection extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F0F0F), // Darker inner card
+              color: isDark ? const Color(0xFF252525) : const Color(0xFF1A1A1A), // Darker inner card
               borderRadius: BorderRadius.circular(24),
             ),
             child: Row(

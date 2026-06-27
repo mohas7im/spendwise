@@ -351,7 +351,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF161618) : Colors.grey.shade100,
+                color: isDark ? Colors.black : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(child: Text(emoji, style: const TextStyle(fontSize: 24))),
@@ -369,7 +369,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                         height: 6,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade200,
+                          color: isDark ? Colors.black : Colors.grey.shade200,
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
