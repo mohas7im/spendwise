@@ -10,7 +10,6 @@ import '../widgets/add_transaction_modal.dart';
 import 'profile_screen.dart';
 import 'accounts_screen.dart';
 import 'all_activity_screen.dart';
-import 'buy_coffee_screen.dart';
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -183,48 +182,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
             ),
             const SizedBox(height: 32),
-            _buildDeveloperFooter(context),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildDeveloperFooter(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        children: [
-          const Text('Developed by Hashim', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          const SizedBox(height: 4),
-          const Text('GitHub: mohas7im', style: TextStyle(color: Colors.grey, fontSize: 12)),
-          const Text('mohammedhashim530@gmail.com', style: TextStyle(color: Colors.grey, fontSize: 12)),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (ctx) => const BuyCoffeeScreen()));
-            },
-            style: TextButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              minimumSize: const Size(0, 36),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('☕', style: TextStyle(fontSize: 16)),
-                const SizedBox(width: 8),
-                Text('Buy me a coffee', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
