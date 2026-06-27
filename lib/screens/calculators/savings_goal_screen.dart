@@ -63,14 +63,22 @@ class _SavingsGoalScreenState extends State<SavingsGoalScreen> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [Colors.green, Colors.green.shade700]),
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
                       ),
                       child: Column(
                         children: [
-                          const Text('Monthly Savings Required', style: TextStyle(color: Colors.white70)),
+                          Text('Monthly Savings Required', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
                           const SizedBox(height: 8),
-                          Text('₹${_monthlyRequired.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                          Text('₹${_monthlyRequired.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 32, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),

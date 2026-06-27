@@ -56,14 +56,22 @@ class _LoanAffordabilityScreenState extends State<LoanAffordabilityScreen> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [Colors.blue, Colors.blue.shade700]),
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
                       ),
                       child: Column(
                         children: [
-                          const Text('Maximum Loan You Can Afford', style: TextStyle(color: Colors.white70)),
+                          Text('Maximum Loan You Can Afford', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
                           const SizedBox(height: 8),
-                          Text('₹${_maxLoanAmount.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                          Text('₹${_maxLoanAmount.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 32, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),

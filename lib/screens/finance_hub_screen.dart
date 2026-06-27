@@ -205,7 +205,7 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Net Balance', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+              Text('Net Balance', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 14)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -217,7 +217,7 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          const Text('₹1,45,000', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+          Text('₹1,45,000', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 32, fontWeight: FontWeight.bold)),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -236,13 +236,13 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+        Text(label, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 12)),
         const SizedBox(height: 4),
         Row(
           children: [
             Container(width: 8, height: 8, decoration: BoxDecoration(color: iconColor, shape: BoxShape.circle)),
             const SizedBox(width: 6),
-            Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            Text(value, style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 14, fontWeight: FontWeight.bold)),
           ],
         ),
       ],

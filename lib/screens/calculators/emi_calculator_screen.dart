@@ -56,14 +56,22 @@ class _EmiCalculatorScreenState extends State<EmiCalculatorScreen> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [Colors.indigo, Colors.indigo.shade700]),
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
                       ),
                       child: Column(
                         children: [
-                          const Text('Monthly EMI', style: TextStyle(color: Colors.white70)),
+                          Text('Monthly EMI', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color)),
                           const SizedBox(height: 8),
-                          Text('₹${_emi.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                          Text('₹${_emi.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 32, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -71,15 +79,15 @@ class _EmiCalculatorScreenState extends State<EmiCalculatorScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Total Interest', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                                  Text('₹${_totalInterest.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  Text('Total Interest', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 12)),
+                                  Text('₹${_totalInterest.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                 ],
                               ),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  const Text('Total Payment', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                                  Text('₹${_totalPayment.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  Text('Total Payment', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 12)),
+                                  Text('₹${_totalPayment.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ],
