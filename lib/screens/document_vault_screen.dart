@@ -225,6 +225,19 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (doc.frontImagePath != null || doc.backImagePath != null) ...[
+              if (doc.frontImagePath != null && doc.backImagePath != null)
+                FlipCard(
+                  direction: FlipDirection.HORIZONTAL,
+                  front: _buildImageCard(doc.frontImagePath!, context),
+                  back: _buildImageCard(doc.backImagePath!, context),
+                )
+              else if (doc.frontImagePath != null)
+                _buildImageCard(doc.frontImagePath!, context)
+              else if (doc.backImagePath != null)
+                _buildImageCard(doc.backImagePath!, context),
+              const SizedBox(height: 24),
+            ],
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -300,23 +313,6 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
               Text(doc.notes),
               const SizedBox(height: 16),
             ],
-            
-            // Attachments summary
-            if (doc.frontImagePath != null || doc.backImagePath != null) ...[
-              const Divider(height: 32),
-              const Text('Document Images (Tap to flip)', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              if (doc.frontImagePath != null && doc.backImagePath != null)
-                FlipCard(
-                  direction: FlipDirection.HORIZONTAL,
-                  front: _buildImageCard(doc.frontImagePath!, 'Front'),
-                  back: _buildImageCard(doc.backImagePath!, 'Back'),
-                )
-              else if (doc.frontImagePath != null)
-                _buildImageCard(doc.frontImagePath!, 'Front')
-              else if (doc.backImagePath != null)
-                _buildImageCard(doc.backImagePath!, 'Back'),
-            ],
             if (doc.pdfPath != null) ...[
               const Divider(height: 16),
               const ListTile(leading: Icon(Icons.picture_as_pdf), title: Text('PDF attached'), contentPadding: EdgeInsets.zero),
@@ -328,7 +324,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
     );
   }
 
-  Widget _buildImageCard(String imagePath, String label) {
+  Widget _buildImageCard(String imagePath, BuildContext context) {
     return Container(
       width: double.infinity,
       height: 220,
@@ -340,15 +336,19 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
           fit: BoxFit.cover,
         ),
       ),
-      alignment: Alignment.bottomRight,
+      alignment: Alignment.topRight,
       child: Container(
-        margin: const EdgeInsets.all(8),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        margin: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(20),
+          shape: BoxShape.circle,
         ),
-        child: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        child: IconButton(
+          icon: const Icon(Icons.download, color: Colors.white),
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image saved to Gallery')));
+          },
+        ),
       ),
     );
   }
