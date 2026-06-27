@@ -113,7 +113,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                   ),
 
                   if (totalBudget > 0)
-                    _buildBudgetVsActualChart(totalBudget, totalSpent, context),
+                    _buildBudgetVsActualChart(totalBudget, totalSpent, budget, _selectedPeriod, context),
 
                   // Over Budget Alert Banner
                   if (overBudgetCount > 0)
@@ -565,7 +565,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildBudgetVsActualChart(double totalBudget, double totalSpent, BuildContext context) {
+  Widget _buildBudgetVsActualChart(double totalBudget, double totalSpent, BudgetModel budget, LimitPeriod period, BuildContext context) {
     final primary = Theme.of(context).primaryColor;
     final isOver = totalSpent > totalBudget;
     
@@ -580,7 +580,23 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Budget vs Spent', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Budget vs Spent', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                TextButton.icon(
+                  onPressed: () => _showDetailedAnalyticsSheet(context, budget, period),
+                  icon: const Icon(Icons.analytics, size: 16),
+                  label: const Text('Detailed View', style: TextStyle(fontSize: 12)),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).primaryColor,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -596,7 +612,20 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
                   maxY: (totalBudget > totalSpent ? totalBudget : totalSpent) * 1.2,
-                  barTouchData: BarTouchData(enabled: false),
+                  barTouchData: BarTouchData(
+                    enabled: false,
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipColor: (group) => Colors.transparent,
+                      tooltipPadding: EdgeInsets.zero,
+                      tooltipMargin: 8,
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        return BarTooltipItem(
+                          '₹${rod.toY.toStringAsFixed(0)}',
+                          TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyMedium?.color),
+                        );
+                      },
+                    ),
+                  ),
                   titlesData: FlTitlesData(
                     show: true,
                     bottomTitles: AxisTitles(
@@ -621,10 +650,12 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                     BarChartGroupData(
                       x: 0,
                       barRods: [BarChartRodData(toY: totalBudget, color: primary, width: 44, borderRadius: BorderRadius.circular(10))],
+                      showingTooltipIndicators: [0],
                     ),
                     BarChartGroupData(
                       x: 1,
                       barRods: [BarChartRodData(toY: totalSpent, color: isOver ? Colors.redAccent : Colors.green, width: 44, borderRadius: BorderRadius.circular(10))],
+                      showingTooltipIndicators: [0],
                     ),
                   ],
                 ),
@@ -632,6 +663,118 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDetailedAnalyticsSheet(BuildContext context, BudgetModel budget, LimitPeriod period) {
+    final items = budget.categoryLimits.where((l) => l.period == period).toList();
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        return DraggableScrollableSheet(
+          initialChildSize: 0.92,
+          minChildSize: 0.5,
+          maxChildSize: 0.92,
+          builder: (ctx, scrollController) => AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.fastOutSlowIn,
+            padding: EdgeInsets.only(bottom: bottomInset),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const SizedBox(width: 48),
+                      Text('Detailed Analytics', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
+                      IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Category Breakdown (${period.name})', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        _buildCategoryUtilizationChart(items, context),
+                        const SizedBox(height: 32),
+                        Text('Utilization List', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        _buildDetailedCategoryUtilizationList(items, period, context),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCategoryUtilizationChart(List<CategoryLimit> items, BuildContext context) {
+    if (items.isEmpty) {
+       return const Center(child: Text('No categories set.', style: TextStyle(color: Colors.grey)));
+    }
+    return Container(
+      height: 250,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+      ),
+      child: PieChart(
+        PieChartData(
+          sectionsSpace: 2,
+          centerSpaceRadius: 40,
+          sections: items.map((limit) {
+            return PieChartSectionData(
+              color: limit.isOverBudget ? Colors.redAccent : Colors.primaries[items.indexOf(limit) % Colors.primaries.length],
+              value: limit.spentAmount > 0 ? limit.spentAmount : 1, // Avoid 0 size
+              title: limit.emoji,
+              radius: limit.isOverBudget ? 60 : 50,
+              titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailedCategoryUtilizationList(List<CategoryLimit> items, LimitPeriod period, BuildContext context) {
+    if (items.isEmpty) return const SizedBox();
+    final sorted = [...items]..sort((a, b) => b.spentAmount.compareTo(a.spentAmount));
+    
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        children: sorted.map((limit) => _buildDetailedCategoryLimitCard(limit, period)).toList(),
       ),
     );
   }
