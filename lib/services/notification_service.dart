@@ -54,6 +54,38 @@ class NotificationService {
     );
   }
 
+  Future<void> scheduleVaultExpiryReminder({required String id, required String name, required String type, required DateTime expiryDate}) async {
+    // 30 days before expiry
+    DateTime reminderTime = expiryDate.subtract(const Duration(days: 30));
+    
+    // If 30 days before is in the past, maybe try 7 days before
+    if (reminderTime.isBefore(DateTime.now())) {
+      reminderTime = expiryDate.subtract(const Duration(days: 7));
+    }
+    
+    // If still in the past, don't schedule
+    if (reminderTime.isBefore(DateTime.now())) {
+      return;
+    }
+
+    await _notificationsPlugin.zonedSchedule(
+      id: id.hashCode,
+      title: '$type Expiring Soon',
+      body: 'Your $name is expiring on ${expiryDate.day}/${expiryDate.month}/${expiryDate.year}. Please renew it soon!',
+      scheduledDate: tz.TZDateTime.from(reminderTime, tz.local),
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'vault_channel',
+          'Vault Reminders',
+          channelDescription: 'Reminders for document and card expiries',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+
   Future<void> cancelReminder(String id) async {
     await _notificationsPlugin.cancel(id: id.hashCode);
   }

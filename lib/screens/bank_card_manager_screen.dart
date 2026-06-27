@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flip_card/flip_card.dart';
+import 'package:flutter/services.dart';
 import '../providers/vault_provider.dart';
 import '../models/vault_models.dart';
 
@@ -13,6 +14,9 @@ class BankCardManagerScreen extends StatefulWidget {
 
 class _BankCardManagerScreenState extends State<BankCardManagerScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _revealSensitiveInfo = false;
+  String _searchQuery = '';
+  final TextEditingController _searchCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -20,43 +24,82 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
     _tabController = TabController(length: 2, vsync: this);
   }
 
-  void _showAddBankModal(BuildContext context, VaultProvider provider) {
-    final bankCtrl = TextEditingController();
-    final accCtrl = TextEditingController();
-    final holderCtrl = TextEditingController();
+  void _showAddBankModal(BuildContext context, VaultProvider provider, {BankAccount? existingAcc}) {
+    final bankCtrl = TextEditingController(text: existingAcc?.bankName ?? '');
+    final accCtrl = TextEditingController(text: existingAcc?.accountNumber ?? '');
+    final holderCtrl = TextEditingController(text: existingAcc?.holderName ?? '');
+    final ifscCtrl = TextEditingController(text: existingAcc?.ifscCode ?? '');
+    final branchCtrl = TextEditingController(text: existingAcc?.branch ?? '');
+    final upiCtrl = TextEditingController(text: existingAcc?.upiId ?? '');
+    final notesCtrl = TextEditingController(text: existingAcc?.notes ?? '');
+    String accType = existingAcc?.accountType.isNotEmpty == true ? existingAcc!.accountType : 'Savings';
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SingleChildScrollView(
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          height: MediaQuery.of(context).size.height * 0.9,
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Add Bank Account', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              TextField(
-                controller: bankCtrl,
-                decoration: const InputDecoration(labelText: 'Bank Name', border: OutlineInputBorder()),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(existingAcc == null ? 'Add Bank Account' : 'Edit Bank Account', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  if (existingAcc != null)
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        provider.deleteBankAccount(existingAcc.id);
+                        Navigator.pop(ctx);
+                        Navigator.pop(context); // Close details sheet too
+                      },
+                    ),
+                ],
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: accCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Account Number', border: OutlineInputBorder()),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      TextField(controller: bankCtrl, decoration: const InputDecoration(labelText: 'Bank Name', border: OutlineInputBorder())),
+                      const SizedBox(height: 16),
+                      TextField(controller: accCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Account Number', border: OutlineInputBorder())),
+                      const SizedBox(height: 16),
+                      TextField(controller: ifscCtrl, decoration: const InputDecoration(labelText: 'IFSC Code', border: OutlineInputBorder())),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(child: TextField(controller: branchCtrl, decoration: const InputDecoration(labelText: 'Branch', border: OutlineInputBorder()))),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: accType,
+                              decoration: const InputDecoration(labelText: 'Account Type', border: OutlineInputBorder()),
+                              items: ['Savings', 'Current', 'Salary', 'Fixed Deposit'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                              onChanged: (val) => setModalState(() => accType = val!),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(controller: holderCtrl, decoration: const InputDecoration(labelText: 'Holder Name', border: OutlineInputBorder())),
+                      const SizedBox(height: 16),
+                      TextField(controller: upiCtrl, decoration: const InputDecoration(labelText: 'UPI ID (Optional)', border: OutlineInputBorder())),
+                      const SizedBox(height: 16),
+                      TextField(controller: notesCtrl, decoration: const InputDecoration(labelText: 'Notes', border: OutlineInputBorder())),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: holderCtrl,
-                decoration: const InputDecoration(labelText: 'Holder Name', border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -66,17 +109,24 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   onPressed: () {
-                    if (bankCtrl.text.isNotEmpty) {
-                      provider.addBankAccount(BankAccount(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    if (bankCtrl.text.isNotEmpty && accCtrl.text.isNotEmpty) {
+                      final acc = BankAccount(
+                        id: existingAcc?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
                         bankName: bankCtrl.text,
                         accountNumber: accCtrl.text,
                         holderName: holderCtrl.text,
-                      ));
+                        ifscCode: ifscCtrl.text,
+                        branch: branchCtrl.text,
+                        accountType: accType,
+                        upiId: upiCtrl.text,
+                        notes: notesCtrl.text,
+                      );
+                      existingAcc == null ? provider.addBankAccount(acc) : provider.updateBankAccount(acc);
                       Navigator.pop(ctx);
+                      if (existingAcc != null) Navigator.pop(context);
                     }
                   },
-                  child: const Text('Save Account'),
+                  child: Text(existingAcc == null ? 'Save Account' : 'Update Account'),
                 ),
               ),
               const SizedBox(height: 24),
@@ -87,11 +137,16 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
     );
   }
 
-  void _showAddCardModal(BuildContext context, VaultProvider provider) {
-    final nameCtrl = TextEditingController();
-    final numCtrl = TextEditingController();
-    final expCtrl = TextEditingController();
-    int selectedColor = Colors.deepPurple.value;
+  void _showAddCardModal(BuildContext context, VaultProvider provider, {PaymentCard? existingCard}) {
+    final nameCtrl = TextEditingController(text: existingCard?.cardName ?? '');
+    final numCtrl = TextEditingController(text: existingCard?.cardNumber ?? '');
+    final expCtrl = TextEditingController(text: existingCard?.expiryDate ?? '');
+    final cvvCtrl = TextEditingController(text: existingCard?.cvv ?? '');
+    final holderCtrl = TextEditingController(text: existingCard?.holderName ?? '');
+    final notesCtrl = TextEditingController(text: existingCard?.notes ?? '');
+    int selectedColor = existingCard?.colorValue ?? Colors.indigo.value;
+    String cardType = existingCard?.cardType.isNotEmpty == true ? existingCard!.cardType : 'Credit';
+    String network = existingCard?.network.isNotEmpty == true ? existingCard!.network : 'Visa';
 
     showModalBottomSheet(
       context: context,
@@ -99,84 +154,249 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) => Container(
+          height: MediaQuery.of(context).size.height * 0.9,
           padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Add Payment Card', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Bank / Card Name', border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: numCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Card Number', border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: expCtrl,
-                  decoration: const InputDecoration(labelText: 'Expiry (MM/YY)', border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 12,
-                  children: [Colors.deepPurple, Colors.black87, Colors.indigo, Colors.redAccent].map((c) => GestureDetector(
-                    onTap: () => setModalState(() => selectedColor = c.value),
-                    child: CircleAvatar(
-                      backgroundColor: c,
-                      radius: 20,
-                      child: selectedColor == c.value ? const Icon(Icons.check, color: Colors.white) : null,
-                    ),
-                  )).toList(),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    onPressed: () {
-                      if (nameCtrl.text.isNotEmpty) {
-                        provider.addPaymentCard(PaymentCard(
-                          id: DateTime.now().millisecondsSinceEpoch.toString(),
-                          cardName: nameCtrl.text,
-                          bank: nameCtrl.text,
-                          cardType: 'Credit',
-                          cardNumber: numCtrl.text,
-                          holderName: 'Your Name',
-                          expiryDate: expCtrl.text,
-                          network: 'Visa',
-                          colorValue: selectedColor,
-                        ));
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(existingCard == null ? 'Add Payment Card' : 'Edit Payment Card', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  if (existingCard != null)
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        provider.deletePaymentCard(existingCard.id);
                         Navigator.pop(ctx);
-                      }
-                    },
-                    child: const Text('Save Card'),
+                        Navigator.pop(context);
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Bank / Card Name', border: OutlineInputBorder())),
+                      const SizedBox(height: 16),
+                      TextField(controller: numCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Card Number', border: OutlineInputBorder())),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(child: TextField(controller: expCtrl, decoration: const InputDecoration(labelText: 'Expiry (MM/YY)', border: OutlineInputBorder()))),
+                          const SizedBox(width: 16),
+                          Expanded(child: TextField(controller: cvvCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'CVV', border: OutlineInputBorder()))),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(controller: holderCtrl, decoration: const InputDecoration(labelText: 'Card Holder Name', border: OutlineInputBorder())),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: cardType,
+                              decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder()),
+                              items: ['Credit', 'Debit', 'Prepaid'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                              onChanged: (val) => setModalState(() => cardType = val!),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: network,
+                              decoration: const InputDecoration(labelText: 'Network', border: OutlineInputBorder()),
+                              items: ['Visa', 'Mastercard', 'RuPay', 'Amex'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                              onChanged: (val) => setModalState(() => network = val!),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(controller: notesCtrl, decoration: const InputDecoration(labelText: 'Notes', border: OutlineInputBorder())),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 12,
+                        children: [Colors.deepPurple, Colors.black87, Colors.indigo, Colors.redAccent, Colors.teal, Colors.orange].map((c) => GestureDetector(
+                          onTap: () => setModalState(() => selectedColor = c.value),
+                          child: CircleAvatar(
+                            backgroundColor: c,
+                            radius: 20,
+                            child: selectedColor == c.value ? const Icon(Icons.check, color: Colors.white) : null,
+                          ),
+                        )).toList(),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 24),
-              ],
-            ),
+              ),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  onPressed: () {
+                    if (nameCtrl.text.isNotEmpty) {
+                      final card = PaymentCard(
+                        id: existingCard?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                        cardName: nameCtrl.text,
+                        bank: nameCtrl.text,
+                        cardType: cardType,
+                        cardNumber: numCtrl.text,
+                        holderName: holderCtrl.text,
+                        expiryDate: expCtrl.text,
+                        network: network,
+                        colorValue: selectedColor,
+                        cvv: cvvCtrl.text,
+                        notes: notesCtrl.text,
+                      );
+                      existingCard == null ? provider.addPaymentCard(card) : provider.updatePaymentCard(card);
+                      Navigator.pop(ctx);
+                      if (existingCard != null) Navigator.pop(context);
+                    }
+                  },
+                  child: Text(existingCard == null ? 'Save Card' : 'Update Card'),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
         ),
       ),
     );
   }
 
+  void _showBankDetails(BuildContext context, BankAccount acc, VaultProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(child: Text(acc.bankName, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold))),
+                IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAddBankModal(context, provider, existingAcc: acc)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(acc.accountType, style: const TextStyle(color: Colors.grey)),
+            const Divider(height: 32),
+            _buildDetailRow('Holder Name', acc.holderName),
+            _buildDetailRow('Account No', _revealSensitiveInfo ? acc.accountNumber : _mask(acc.accountNumber), copyText: acc.accountNumber),
+            _buildDetailRow('IFSC Code', acc.ifscCode, copyText: acc.ifscCode),
+            _buildDetailRow('Branch', acc.branch),
+            _buildDetailRow('UPI ID', acc.upiId, copyText: acc.upiId),
+            if (acc.notes.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              const Text('Notes', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              Text(acc.notes),
+            ],
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCardDetails(BuildContext context, PaymentCard card, VaultProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(child: Text(card.cardName, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold))),
+                IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAddCardModal(context, provider, existingCard: card)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('${card.network} • ${card.cardType}', style: const TextStyle(color: Colors.grey)),
+            const Divider(height: 32),
+            _buildDetailRow('Holder Name', card.holderName),
+            _buildDetailRow('Card Number', _revealSensitiveInfo ? card.cardNumber : _mask(card.cardNumber, visible: 4), copyText: card.cardNumber),
+            _buildDetailRow('Expiry', card.expiryDate),
+            _buildDetailRow('CVV', _revealSensitiveInfo ? card.cvv : '***'),
+            if (card.notes.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              const Text('Notes', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              Text(card.notes),
+            ],
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, {String? copyText}) {
+    if (value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              const SizedBox(height: 2),
+              Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+            ],
+          ),
+          if (copyText != null && copyText.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.copy, color: Colors.blueAccent, size: 20),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: copyText));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$label copied')));
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _mask(String text, {int visible = 4}) {
+    if (text.length <= visible) return text;
+    return '${'*' * (text.length - visible)}${text.substring(text.length - visible)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final vaultProvider = Provider.of<VaultProvider>(context);
+
+    var banks = vaultProvider.bankAccounts;
+    var cards = vaultProvider.paymentCards;
+    
+    if (_searchQuery.isNotEmpty) {
+      banks = banks.where((b) => b.bankName.toLowerCase().contains(_searchQuery.toLowerCase()) || b.accountNumber.contains(_searchQuery)).toList();
+      cards = cards.where((c) => c.cardName.toLowerCase().contains(_searchQuery.toLowerCase()) || c.cardNumber.contains(_searchQuery)).toList();
+    }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -184,6 +404,13 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
         title: const Text('Banks & Cards'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(_revealSensitiveInfo ? Icons.visibility : Icons.visibility_off, color: _revealSensitiveInfo ? Colors.red : Colors.grey),
+            onPressed: () => setState(() => _revealSensitiveInfo = !_revealSensitiveInfo),
+            tooltip: 'Reveal Sensitive Info',
+          )
+        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: Theme.of(context).primaryColor,
@@ -195,51 +422,90 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          // Bank Accounts Tab
-          vaultProvider.bankAccounts.isEmpty
-              ? const Center(child: Text('No bank accounts found.', style: TextStyle(color: Colors.grey)))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: vaultProvider.bankAccounts.length,
-                  itemBuilder: (ctx, i) {
-                    final acc = vaultProvider.bankAccounts[i];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(16),
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.indigo.withValues(alpha: 0.1),
-                          child: const Icon(Icons.account_balance, color: Colors.indigo),
-                        ),
-                        title: Text(acc.bankName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('A/C: **** ${acc.accountNumber.length > 4 ? acc.accountNumber.substring(acc.accountNumber.length - 4) : acc.accountNumber}'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TextField(
+              controller: _searchCtrl,
+              decoration: InputDecoration(
+                hintText: 'Search accounts & cards...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+              ),
+              onChanged: (val) => setState(() => _searchQuery = val),
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                // Bank Accounts Tab
+                banks.isEmpty
+                    ? const Center(child: Text('No bank accounts found.', style: TextStyle(color: Colors.grey)))
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: banks.length,
+                        itemBuilder: (ctx, i) {
+                          final acc = banks[i];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            child: ListTile(
+                              onTap: () => _showBankDetails(context, acc, vaultProvider),
+                              contentPadding: const EdgeInsets.all(16),
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.indigo.withValues(alpha: 0.1),
+                                child: const Icon(Icons.account_balance, color: Colors.indigo),
+                              ),
+                              title: Text(acc.bankName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Text('A/C: ${_revealSensitiveInfo ? acc.accountNumber : _mask(acc.accountNumber)}'),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.copy, color: Colors.grey, size: 20),
+                                onPressed: () {
+                                  Clipboard.setData(ClipboardData(text: acc.accountNumber));
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account number copied')));
+                                },
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-          
-          // Payment Cards Tab
-          vaultProvider.paymentCards.isEmpty
-              ? const Center(child: Text('No payment cards found.', style: TextStyle(color: Colors.grey)))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: vaultProvider.paymentCards.length,
-                  itemBuilder: (ctx, i) {
-                    final card = vaultProvider.paymentCards[i];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: FlipCard(
-                        direction: FlipDirection.HORIZONTAL,
-                        front: _buildCardFront(card),
-                        back: _buildCardBack(card),
+                
+                // Payment Cards Tab
+                cards.isEmpty
+                    ? const Center(child: Text('No payment cards found.', style: TextStyle(color: Colors.grey)))
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: cards.length,
+                        itemBuilder: (ctx, i) {
+                          final card = cards[i];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: GestureDetector(
+                              onLongPress: () => _showCardDetails(context, card, vaultProvider),
+                              child: FlipCard(
+                                direction: FlipDirection.HORIZONTAL,
+                                front: _buildCardFront(card),
+                                back: _buildCardBack(card),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
+              ],
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -278,7 +544,7 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
           ),
           const Spacer(),
           Text(
-            card.cardNumber.isNotEmpty ? '**** **** **** ${card.cardNumber.length > 4 ? card.cardNumber.substring(card.cardNumber.length - 4) : card.cardNumber}' : '**** **** **** ****',
+            card.cardNumber.isNotEmpty ? (_revealSensitiveInfo ? card.cardNumber : _mask(card.cardNumber, visible: 4)) : '**** **** **** ****',
             style: const TextStyle(color: Colors.white, fontSize: 22, letterSpacing: 2),
           ),
           const SizedBox(height: 16),
@@ -341,7 +607,7 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(card.cvv.isNotEmpty ? card.cvv : '***', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic)),
+                  child: Text(card.cvv.isNotEmpty ? (_revealSensitiveInfo ? card.cvv : '***') : '***', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic)),
                 ),
               ],
             ),
