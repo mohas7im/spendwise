@@ -16,45 +16,63 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Finance Hub', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: Icon(Icons.calculate, color: Theme.of(context).primaryColor),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (ctx) => const CalculatorsMenuModal(),
-                );
-              },
-            ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 120),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Finance Hub',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.black12,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.calculate, color: Colors.blueAccent),
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (ctx) => const CalculatorsMenuModal(),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: Text(
+                  'Your financial overview, debts, and growth.',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: _buildSummaryDashboard(context),
+              ),
+              const SizedBox(height: 24),
+              
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: _buildModuleCards(context),
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
-          )
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSummaryDashboard(context),
-            const SizedBox(height: 24),
-            _buildModuleCards(context),
-            const SizedBox(height: 100), // padding for FAB
-          ],
         ),
       ),
     );
@@ -66,11 +84,11 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
       children: [
         const Text('Finance Modules', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
-        _ModuleCard(
+        _buildVaultTile(
+          context: context,
           title: 'Debts & Loans',
-          description: 'Track people who owe you, EMIs, and active debts.',
+          subtitle: 'Track people who owe you, and EMIs.',
           icon: Icons.account_balance_wallet,
-          color: Colors.blue,
           onTap: () {
             showModalBottomSheet(
               context: context,
@@ -80,12 +98,11 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
             );
           },
         ),
-        const SizedBox(height: 16),
-        _ModuleCard(
+        _buildVaultTile(
+          context: context,
           title: 'Savings Goals',
-          description: 'Set and track your goals for a car, vacation, or home.',
+          subtitle: 'Set and track your savings targets.',
           icon: Icons.track_changes,
-          color: Colors.green,
           onTap: () {
             showModalBottomSheet(
               context: context,
@@ -95,12 +112,11 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
             );
           },
         ),
-        const SizedBox(height: 16),
-        _ModuleCard(
+        _buildVaultTile(
+          context: context,
           title: 'Growth & Investments',
-          description: 'Track your Mutual Funds, FDs, and compound returns.',
+          subtitle: 'Track your Mutual Funds and FDs.',
           icon: Icons.trending_up,
-          color: Colors.teal,
           onTap: () {
             showModalBottomSheet(
               context: context,
@@ -114,127 +130,47 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
     );
   }
 
-  Widget _buildSummaryDashboard(BuildContext context) {
+  Widget _buildVaultTile({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withValues(alpha: 0.8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Net Balance', style: TextStyle(color: Colors.white70, fontSize: 14)),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(12)),
-                child: const Text('+12%', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text('₹1,45,000', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildSummaryStat('I Owe', '₹12,500', Colors.redAccent),
-              _buildSummaryStat('Owed to Me', '₹4,200', Colors.greenAccent),
-              _buildSummaryStat('EMIs Due', '₹8,500', Colors.orangeAccent),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryStat(String label, String value, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-        const SizedBox(height: 4),
-        Row(
-          children: [
-            Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-            const SizedBox(width: 6),
-            Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _ModuleCard extends StatelessWidget {
-  final String title;
-  final String description;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _ModuleCard({
-    required this.title,
-    required this.description,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 2),
           )
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: color, size: 32),
+                CircleAvatar(
+                  backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  child: Icon(icon, color: Theme.of(context).primaryColor),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 4),
-                      Text(description, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                      Text(subtitle, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                     ],
                   ),
                 ),
@@ -244,6 +180,72 @@ class _ModuleCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSummaryDashboard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Net Balance', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1), 
+                  borderRadius: BorderRadius.circular(12)
+                ),
+                child: const Text('+12%', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text('₹1,45,000', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSummaryStat(context, 'I Owe', '₹12,500', Colors.red),
+              _buildSummaryStat(context, 'Owed to Me', '₹4,200', Colors.green),
+              _buildSummaryStat(context, 'EMIs Due', '₹8,500', Colors.orange),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryStat(BuildContext context, String label, String value, Color iconColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Container(width: 8, height: 8, decoration: BoxDecoration(color: iconColor, shape: BoxShape.circle)),
+            const SizedBox(width: 6),
+            Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ],
     );
   }
 }
