@@ -10,15 +10,17 @@ class LoanAffordabilityScreen extends StatefulWidget {
 
 class _LoanAffordabilityScreenState extends State<LoanAffordabilityScreen> {
   final _emiCtrl = TextEditingController(text: '15000');
-  double _interestRate = 9.5;
-  double _years = 10;
+  final _rateCtrl = TextEditingController(text: '9.5');
+  final _yearsCtrl = TextEditingController(text: '10');
 
   double get _maxLoanAmount {
     final emi = double.tryParse(_emiCtrl.text) ?? 0;
-    if (emi <= 0 || _years <= 0) return 0;
+    final yValue = double.tryParse(_yearsCtrl.text) ?? 0;
+    if (emi <= 0 || yValue <= 0) return 0;
     
-    final r = _interestRate / 12 / 100;
-    final n = _years * 12;
+    final rValue = double.tryParse(_rateCtrl.text) ?? 0;
+    final r = rValue / 12 / 100;
+    final n = yValue * 12;
     
     if (r == 0) return emi * n;
     
@@ -85,37 +87,19 @@ class _LoanAffordabilityScreenState extends State<LoanAffordabilityScreen> {
                     ),
                     const SizedBox(height: 24),
                     
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Interest Rate (%)'),
-                        Text('${_interestRate.toStringAsFixed(1)}%', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      ],
-                    ),
-                    Slider(
-                      value: _interestRate,
-                      min: 1,
-                      max: 25,
-                      divisions: 48,
-                      activeColor: Colors.blue,
-                      onChanged: (v) => setState(() => _interestRate = v),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _rateCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Interest Rate (%)', border: OutlineInputBorder()),
+                      onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 16),
-                    
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Tenure (Years)'),
-                        Text('${_years.toStringAsFixed(1)} Yrs', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      ],
-                    ),
-                    Slider(
-                      value: _years,
-                      min: 0.5,
-                      max: 30,
-                      divisions: 59,
-                      activeColor: Colors.blue,
-                      onChanged: (v) => setState(() => _years = v),
+                    TextField(
+                      controller: _yearsCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Tenure (Years, e.g. 1.5)', border: OutlineInputBorder()),
+                      onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 40),
                   ],

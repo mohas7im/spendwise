@@ -10,22 +10,27 @@ class EmiCalculatorScreen extends StatefulWidget {
 
 class _EmiCalculatorScreenState extends State<EmiCalculatorScreen> {
   final _amountCtrl = TextEditingController(text: '500000');
-  double _interestRate = 10.5;
-  double _years = 5;
+  final _rateCtrl = TextEditingController(text: '10.5');
+  final _yearsCtrl = TextEditingController(text: '5');
 
   double get _emi {
     final p = double.tryParse(_amountCtrl.text) ?? 0;
-    if (p <= 0 || _years <= 0) return 0;
+    final yValue = double.tryParse(_yearsCtrl.text) ?? 0;
+    if (p <= 0 || yValue <= 0) return 0;
     
-    final r = _interestRate / 12 / 100;
-    final n = _years * 12;
+    final rValue = double.tryParse(_rateCtrl.text) ?? 0;
+    final r = rValue / 12 / 100;
+    final n = yValue * 12;
     
     if (r == 0) return p / n;
     
     return (p * r * pow(1 + r, n)) / (pow(1 + r, n) - 1);
   }
 
-  double get _totalPayment => _emi * (_years * 12);
+  double get _totalPayment {
+    final yValue = double.tryParse(_yearsCtrl.text) ?? 0;
+    return _emi * (yValue * 12);
+  }
   double get _totalInterest => _totalPayment - (double.tryParse(_amountCtrl.text) ?? 0);
 
   @override
@@ -105,37 +110,19 @@ class _EmiCalculatorScreenState extends State<EmiCalculatorScreen> {
                     ),
                     const SizedBox(height: 24),
                     
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Interest Rate (%)'),
-                        Text('${_interestRate.toStringAsFixed(1)}%', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      ],
-                    ),
-                    Slider(
-                      value: _interestRate,
-                      min: 1,
-                      max: 25,
-                      divisions: 48,
-                      activeColor: Colors.indigo,
-                      onChanged: (v) => setState(() => _interestRate = v),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _rateCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Interest Rate (%) - up to 50%', border: OutlineInputBorder()),
+                      onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 16),
-                    
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Tenure (Years)'),
-                        Text('${_years.toStringAsFixed(1)} Yrs', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      ],
-                    ),
-                    Slider(
-                      value: _years,
-                      min: 0.5,
-                      max: 30,
-                      divisions: 59,
-                      activeColor: Colors.indigo,
-                      onChanged: (v) => setState(() => _years = v),
+                    TextField(
+                      controller: _yearsCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Tenure (Years, e.g. 1.5 for 18 months)', border: OutlineInputBorder()),
+                      onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 40),
                   ],
