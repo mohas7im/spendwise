@@ -168,9 +168,9 @@ class _MainScreenState extends State<MainScreen> {
                 children: [
                   _buildNavItem(0, Icons.home_outlined, Icons.home, ''),
                   _buildNavItem(1, Icons.pie_chart_outline, Icons.pie_chart, ''),
-                  _buildNavItem(2, Icons.apps_outlined, Icons.apps, ''),
+                  _buildNavItem(2, Icons.calculate_outlined, Icons.calculate, ''),
                   _buildAddButton(),
-                  _buildNavItem(4, Icons.calculate_outlined, Icons.calculate, ''),
+                  _buildNavItem(4, Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, ''),
                   _buildNavItem(5, Icons.bar_chart_outlined, Icons.bar_chart, ''),
                   _buildNavItem(6, Icons.calendar_today_outlined, Icons.calendar_month, ''),
                 ],
