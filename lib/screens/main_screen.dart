@@ -5,7 +5,7 @@ import 'stats_screen.dart';
 import 'subscriptions_screen.dart';
 import 'personal_vault_screen.dart';
 import 'finance_hub_screen.dart';
-import '../widgets/quick_actions_modal.dart';
+import '../widgets/add_transaction_modal.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
 import '../models/income_source.dart';
@@ -139,7 +139,7 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const QuickActionsModal(),
+      builder: (context) => const AddTransactionModal(),
     );
   }
 
