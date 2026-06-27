@@ -93,11 +93,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
 
                   // Savings Goals Section Removed
 
-                  // Category Limits Header
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text('Spending Limits', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-                  ),
+                  // Category Limits Header Removed
 
                   // Tab Bar for Limits
                   CustomTabBar(
@@ -291,93 +287,71 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
       );
     }
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+    final sorted = [...items]..sort((a, b) => b.spentAmount.compareTo(a.spentAmount));
+
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      itemCount: items.length,
-      itemBuilder: (context, index) => _buildDetailedCategoryLimitCard(items[index], period),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: sorted.map((limit) => _buildDetailedCategoryLimitCard(limit, period)).toList(),
+        ),
+      ),
     );
+
   }
 
   Widget _buildDetailedCategoryLimitCard(CategoryLimit limit, LimitPeriod period) {
-    final periodLabel = period == LimitPeriod.daily ? 'day' : period == LimitPeriod.weekly ? 'week' : period == LimitPeriod.monthly ? 'month' : 'year';
-    final isOver = limit.isOverBudget;
     final primary = Theme.of(context).primaryColor;
-    final progressColor = isOver ? Colors.redAccent : limit.percentUsed > 0.9 ? Colors.red : limit.percentUsed > 0.75 ? Colors.orange : primary;
+    final pct = (limit.percentUsed).clamp(0.0, 1.0);
+    final isOver = limit.isOverBudget;
+    final barColor = isOver ? Colors.redAccent : pct > 0.9 ? Colors.orange : primary;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.1), width: 1),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor, shape: BoxShape.circle),
-                child: Text(limit.emoji, style: const TextStyle(fontSize: 24)),
-              ),
-              const SizedBox(width: 16),
+              Text(limit.emoji, style: const TextStyle(fontSize: 18)),
+              const SizedBox(width: 10),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(limit.category, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Budget: ₹${limit.limitAmount.toStringAsFixed(0)} / $periodLabel',
-                      style: const TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                  ],
-                ),
+                child: Text(limit.category, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14), overflow: TextOverflow.ellipsis),
               ),
-              if (isOver) 
+              if (isOver)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                  child: const Text('OVERSPENT', style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text('OVER', style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                 )
-              else 
-                Text('${(limit.percentUsed * 100).toStringAsFixed(0)}%', style: TextStyle(color: progressColor, fontWeight: FontWeight.bold, fontSize: 16)),
+              else
+                Text('${(pct * 100).toStringAsFixed(0)}%', style: TextStyle(color: barColor, fontWeight: FontWeight.bold, fontSize: 13)),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
-              value: limit.percentUsed.clamp(0.0, 1.0),
+              value: pct,
               minHeight: 8,
               backgroundColor: Colors.grey.withValues(alpha: 0.1),
-              valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+              valueColor: AlwaysStoppedAnimation<Color>(barColor),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Spent', style: TextStyle(color: Colors.grey, fontSize: 11)),
-                  Text('₹${limit.spentAmount.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isOver ? Colors.redAccent : null)),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(isOver ? 'Over by' : 'Remaining', style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                  Text(
-                    '₹${isOver ? limit.overspentAmount.toStringAsFixed(0) : limit.remainingAmount.toStringAsFixed(0)}', 
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isOver ? Colors.redAccent : Colors.green),
-                  ),
-                ],
-              ),
+              Text('₹${limit.spentAmount.toStringAsFixed(0)} spent', style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6))),
+              Text('of ₹${limit.limitAmount.toStringAsFixed(0)}', style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6))),
             ],
           ),
         ],
