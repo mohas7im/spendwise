@@ -66,7 +66,7 @@ class DebtsManagerModal extends StatelessWidget {
       direction: DismissDirection.endToStart,
       background: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(16)),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
         child: const Icon(Icons.delete, color: Colors.white),
@@ -76,10 +76,11 @@ class DebtsManagerModal extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 10,
               offset: const Offset(0, 4),
             )
@@ -88,7 +89,7 @@ class DebtsManagerModal extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             onTap: () => _showAddEditDebtModal(context, debt),
             child: Padding(
               padding: const EdgeInsets.all(16),
