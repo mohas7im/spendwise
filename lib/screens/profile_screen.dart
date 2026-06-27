@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import 'income_salary_screen.dart';
 import 'friends_screen.dart';
+import 'categories_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -158,6 +159,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }),
             _buildSettingTile(context, icon: Icons.group_outlined, title: 'Friends', subtitle: 'Manage your connected friends', trailing: const Icon(Icons.chevron_right, color: Colors.grey), onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (ctx) => const FriendsScreen()));
+            }),
+            _buildSettingTile(context, icon: Icons.category_outlined, title: 'Custom Categories', subtitle: 'Manage your expense categories', trailing: const Icon(Icons.chevron_right, color: Colors.grey), onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (ctx) => const CategoriesScreen()));
             }),
 
             const SizedBox(height: 24),

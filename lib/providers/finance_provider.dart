@@ -4,6 +4,7 @@ import '../services/dummy_data_service.dart';
 import '../models/income_source.dart';
 import '../models/transaction.dart';
 import '../models/subscription.dart';
+import '../models/category.dart';
 import '../services/db_helper.dart';
 import '../services/notification_service.dart';
 
@@ -13,6 +14,7 @@ class FinanceProvider extends ChangeNotifier {
   List<IncomeSource> _incomeSources = [];
   List<TransactionModel> _transactions = [];
   List<SubscriptionModel> _subscriptions = [];
+  List<CategoryModel> _categories = [];
 
   FinanceProvider() {
     _debts = DummyDataService.getDummyDebts();
@@ -21,7 +23,24 @@ class FinanceProvider extends ChangeNotifier {
       IncomeSource(id: 'inc2', name: 'Freelance Design', amount: 15000, type: IncomeType.freelance, frequency: IncomeFrequency.monthly, creditDate: 28),
     ];
     _transactions = DummyDataService.getDummyTransactions();
+    _initCategories();
     _initSubscriptions();
+  }
+
+  void _initCategories() {
+    _categories = [
+      CategoryModel(id: 'cat_food', name: 'Food & Drink', emoji: '🍔', color: Colors.orange),
+      CategoryModel(id: 'cat_groceries', name: 'Groceries', emoji: '🛒', color: Colors.green),
+      CategoryModel(id: 'cat_rent', name: 'Rent', emoji: '🏠', color: Colors.blue),
+      CategoryModel(id: 'cat_transport', name: 'Transport', emoji: '🚕', color: Colors.purple),
+      CategoryModel(id: 'cat_shopping', name: 'Shopping', emoji: '🛍️', color: Colors.pink),
+      CategoryModel(id: 'cat_entertainment', name: 'Entertainment', emoji: '🎬', color: Colors.red),
+      CategoryModel(id: 'cat_health', name: 'Health', emoji: '💊', color: Colors.teal),
+      CategoryModel(id: 'cat_bills', name: 'Bills', emoji: '📄', color: Colors.amber),
+      CategoryModel(id: 'cat_invest', name: 'Invest', emoji: '📈', color: Colors.indigo),
+      CategoryModel(id: 'cat_income', name: 'Income', emoji: '💰', color: Colors.lightGreen),
+      CategoryModel(id: 'cat_other', name: 'Other', emoji: '📦', color: Colors.grey),
+    ];
   }
 
   Future<void> _initSubscriptions() async {
@@ -59,6 +78,25 @@ class FinanceProvider extends ChangeNotifier {
   List<IncomeSource> get incomeSources => _incomeSources;
   List<TransactionModel> get transactions => _transactions;
   List<SubscriptionModel> get subscriptions => _subscriptions;
+  List<CategoryModel> get categories => _categories;
+
+  void addCategory(CategoryModel category) {
+    _categories.add(category);
+    notifyListeners();
+  }
+
+  void updateCategory(CategoryModel category) {
+    final index = _categories.indexWhere((c) => c.id == category.id);
+    if (index != -1) {
+      _categories[index] = category;
+      notifyListeners();
+    }
+  }
+
+  void deleteCategory(String id) {
+    _categories.removeWhere((c) => c.id == id);
+    notifyListeners();
+  }
 
   void recordDebtPayment(String debtId, double paymentAmount, {PaymentStatus status = PaymentStatus.paid, String? note}) {
     final debtIndex = _debts.indexWhere((d) => d.id == debtId);

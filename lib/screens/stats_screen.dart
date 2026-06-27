@@ -31,22 +31,22 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
-  String _getCategoryEmoji(String category) {
-    final Map<String, String> map = {
-      'Food & Drink': '🍔', 'Groceries': '🛒', 'Rent': '🏠', 'Transport': '🚕',
-      'Shopping': '🛍️', 'Entertainment': '🎬', 'Health': '💊', 'Bills': '📄',
-      'Invest': '📈', 'Income': '💰', 'Other': '📦'
-    };
-    return map[category] ?? '📦';
+  String _getCategoryEmoji(String categoryName) {
+    final categories = Provider.of<FinanceProvider>(context, listen: false).categories;
+    try {
+      return categories.firstWhere((c) => c.name == categoryName).emoji;
+    } catch (e) {
+      return '📦';
+    }
   }
 
-  Color _getCategoryColor(String category) {
-    final Map<String, Color> map = {
-      'Food & Drink': Colors.orange, 'Groceries': Colors.green, 'Rent': Colors.blue, 'Transport': Colors.purple,
-      'Shopping': Colors.pink, 'Entertainment': Colors.red, 'Health': Colors.teal, 'Bills': Colors.amber,
-      'Invest': Colors.indigo, 'Income': Colors.lightGreen, 'Other': Colors.grey
-    };
-    return map[category] ?? Colors.grey;
+  Color _getCategoryColor(String categoryName) {
+    final categories = Provider.of<FinanceProvider>(context, listen: false).categories;
+    try {
+      return categories.firstWhere((c) => c.name == categoryName).color;
+    } catch (e) {
+      return Colors.grey;
+    }
   }
 
   List<TransactionModel> _getFilteredTransactions(List<TransactionModel> allTransactions) {

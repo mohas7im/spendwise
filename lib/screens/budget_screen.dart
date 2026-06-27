@@ -412,24 +412,17 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
   }
 
   void _showAddLimitSheet(BuildContext context, BudgetProvider provider) {
-    final presetCategories = [
-      {'name': 'Food & Drink', 'emoji': '🍔'},
-      {'name': 'Groceries', 'emoji': '🛒'},
-      {'name': 'Rent', 'emoji': '🏠'},
-      {'name': 'Transport', 'emoji': '🚕'},
-      {'name': 'Shopping', 'emoji': '🛍️'},
-      {'name': 'Entertainment', 'emoji': '🎬'},
-      {'name': 'Health', 'emoji': '💊'},
-      {'name': 'Bills', 'emoji': '📄'},
-      {'name': 'Invest', 'emoji': '📈'},
-      {'name': 'Other', 'emoji': '📦'},
-    ];
+    final financeProvider = Provider.of<FinanceProvider>(context, listen: false);
+    final presetCategories = financeProvider.categories.map((c) => {
+      'name': c.name,
+      'emoji': c.emoji,
+    }).toList();
 
-    Map<String, String>? selectedPreset = presetCategories.first;
-    bool isCustomCategory = false;
+    Map<String, String>? selectedPreset = presetCategories.isNotEmpty ? presetCategories.first : null;
+    bool isCustomCategory = presetCategories.isEmpty;
 
-    final categoryController = TextEditingController(text: presetCategories.first['name']);
-    final emojiController = TextEditingController(text: presetCategories.first['emoji']);
+    final categoryController = TextEditingController(text: presetCategories.isNotEmpty ? presetCategories.first['name'] : '');
+    final emojiController = TextEditingController(text: presetCategories.isNotEmpty ? presetCategories.first['emoji'] : '📦');
 
     final dailyController = TextEditingController();
     final weeklyController = TextEditingController();
