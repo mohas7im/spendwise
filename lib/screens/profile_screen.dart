@@ -4,8 +4,81 @@ import '../main.dart';
 import 'income_salary_screen.dart';
 import 'friends_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String _name = 'Alex Morgan';
+  String _email = 'alex.morgan@example.com';
+  String _avatarUrl = 'https://i.pravatar.cc/300?img=11';
+
+  void _showEditProfileSheet() {
+    final nameController = TextEditingController(text: _name);
+    final emailController = TextEditingController(text: _email);
+    final avatarController = TextEditingController(text: _avatarUrl);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Edit Profile', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 24),
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(labelText: 'Full Name', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(labelText: 'Email Address', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: avatarController,
+                decoration: InputDecoration(labelText: 'Avatar Image URL', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _name = nameController.text;
+                      _email = emailController.text;
+                      _avatarUrl = avatarController.text;
+                    });
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,21 +96,45 @@ class ProfileScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Avatar
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: const DecorationImage(
-                  image: NetworkImage('https://i.pravatar.cc/300?img=11'),
-                  fit: BoxFit.cover,
-                ),
-                border: Border.all(color: Theme.of(context).primaryColor, width: 3),
+            GestureDetector(
+              onTap: _showEditProfileSheet,
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: NetworkImage(_avatarUrl),
+                        fit: BoxFit.cover,
+                      ),
+                      border: Border.all(color: Theme.of(context).primaryColor, width: 3),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 2),
+                    ),
+                    child: const Icon(Icons.edit, color: Colors.white, size: 16),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
-            Text('Alex Morgan', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const Text('alex.morgan@example.com', style: TextStyle(color: Colors.grey)),
+            GestureDetector(
+              onTap: _showEditProfileSheet,
+              child: Column(
+                children: [
+                  Text(_name, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(_email, style: const TextStyle(color: Colors.grey)),
+                ],
+              ),
+            ),
             const SizedBox(height: 32),
 
             // Settings Sections
@@ -62,14 +159,8 @@ class ProfileScreen extends StatelessWidget {
             _buildSettingTile(context, icon: Icons.group_outlined, title: 'Friends', subtitle: 'Manage your connected friends', trailing: const Icon(Icons.chevron_right, color: Colors.grey), onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (ctx) => const FriendsScreen()));
             }),
-            _buildSettingTile(context, icon: Icons.pie_chart_outline, title: 'Budget Rules', subtitle: 'Configure 50/30/20 preferences', trailing: const Icon(Icons.chevron_right, color: Colors.grey)),
-            _buildSettingTile(context, icon: Icons.category_outlined, title: 'Custom Categories', trailing: const Icon(Icons.chevron_right, color: Colors.grey)),
 
             const SizedBox(height: 24),
-            _buildSectionHeader('Account'),
-            _buildSettingTile(context, icon: Icons.security_outlined, title: 'Security', trailing: const Icon(Icons.chevron_right, color: Colors.grey)),
-            _buildSettingTile(context, icon: Icons.help_outline, title: 'Help & Support', trailing: const Icon(Icons.chevron_right, color: Colors.grey)),
-            const SizedBox(height: 16),
             
             TextButton.icon(
               onPressed: () {},
