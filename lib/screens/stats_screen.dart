@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../widgets/common/custom_tab_bar.dart';
+import '../providers/finance_provider.dart';
+import '../models/transaction.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -16,6 +20,9 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
@@ -24,80 +31,106 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
-  void _showDayDetailsModal(BuildContext context, int dayIndex) {
-    final days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    final amounts = [12000.0, 8000.0, 15000.0, 18000.0, 9000.0, 11000.0, 16000.0];
-    
-    // Generate mock transactions for that day
-    final mockTransactions = [
-      {'name': 'Groceries', 'amount': amounts[dayIndex] * 0.4, 'icon': Icons.shopping_cart, 'color': Colors.blue},
-      {'name': 'Dining', 'amount': amounts[dayIndex] * 0.3, 'icon': Icons.restaurant, 'color': Colors.orange},
-      {'name': 'Transport', 'amount': amounts[dayIndex] * 0.3, 'icon': Icons.directions_car, 'color': Colors.green},
-    ];
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 24, left: 24, right: 24, top: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${days[dayIndex]} Spending', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text('Total: ₹${amounts[dayIndex].toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, color: Colors.grey)),
-            const SizedBox(height: 24),
-            ...mockTransactions.map((t) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(
-                backgroundColor: (t['color'] as Color).withValues(alpha: 0.1),
-                child: Icon(t['icon'] as IconData, color: t['color'] as Color),
-              ),
-              title: Text(t['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
-              trailing: Text('₹${(t['amount'] as double).toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            )),
-          ],
-        ),
-      ),
-    );
+  String _getCategoryEmoji(String category) {
+    final Map<String, String> map = {
+      'Food & Drink': '🍔', 'Groceries': '🛒', 'Rent': '🏠', 'Transport': '🚕',
+      'Shopping': '🛍️', 'Entertainment': '🎬', 'Health': '💊', 'Bills': '📄',
+      'Invest': '📈', 'Income': '💰', 'Other': '📦'
+    };
+    return map[category] ?? '📦';
   }
 
-  void _showCategoryDetailsModal(BuildContext context, String name, String emoji, double totalAmount) {
-    // Generate mock transactions for that category
-    List<Map<String, dynamic>> mockTransactions = [];
-    if (name == 'Food & Dining') {
-      mockTransactions = [
-        {'title': 'Shawarma', 'amount': totalAmount * 0.4},
-        {'title': 'Mandhi', 'amount': totalAmount * 0.4},
-        {'title': 'Coffee', 'amount': totalAmount * 0.2},
-      ];
-    } else if (name == 'Shopping') {
-      mockTransactions = [
-        {'title': 'Sneakers', 'amount': totalAmount * 0.6},
-        {'title': 'T-Shirt', 'amount': totalAmount * 0.3},
-        {'title': 'Socks', 'amount': totalAmount * 0.1},
-      ];
-    } else if (name == 'Transport') {
-      mockTransactions = [
-        {'title': 'Uber to Work', 'amount': totalAmount * 0.5},
-        {'title': 'Metro Card', 'amount': totalAmount * 0.3},
-        {'title': 'Uber Home', 'amount': totalAmount * 0.2},
-      ];
-    } else if (name == 'Bills') {
-      mockTransactions = [
-        {'title': 'Electricity', 'amount': totalAmount * 0.7},
-        {'title': 'Water', 'amount': totalAmount * 0.3},
-      ];
+  Color _getCategoryColor(String category) {
+    final Map<String, Color> map = {
+      'Food & Drink': Colors.orange, 'Groceries': Colors.green, 'Rent': Colors.blue, 'Transport': Colors.purple,
+      'Shopping': Colors.pink, 'Entertainment': Colors.red, 'Health': Colors.teal, 'Bills': Colors.amber,
+      'Invest': Colors.indigo, 'Income': Colors.lightGreen, 'Other': Colors.grey
+    };
+    return map[category] ?? Colors.grey;
+  }
+
+  List<TransactionModel> _getFilteredTransactions(List<TransactionModel> allTransactions) {
+    final now = DateTime.now();
+    return allTransactions.where((t) {
+      if (t.type != TransactionType.expense) return false;
+      if (_tabController.index == 0) {
+        return t.date.isAfter(now.subtract(const Duration(days: 7)));
+      } else if (_tabController.index == 1) {
+        return t.date.year == now.year && t.date.month == now.month;
+      } else {
+        return t.date.year == now.year;
+      }
+    }).toList();
+  }
+
+  Map<String, dynamic> _getChartData(List<TransactionModel> txs) {
+    final now = DateTime.now();
+    List<double> barValues = [];
+    List<String> barLabels = [];
+    List<List<TransactionModel>> barTransactions = [];
+
+    if (_tabController.index == 0) {
+      for (int i = 6; i >= 0; i--) {
+        final d = now.subtract(Duration(days: i));
+        barLabels.add(DateFormat('E').format(d));
+        final dayTxs = txs.where((t) => t.date.year == d.year && t.date.month == d.month && t.date.day == d.day).toList();
+        barTransactions.add(dayTxs);
+        barValues.add(dayTxs.fold(0.0, (sum, t) => sum + t.amount));
+      }
+    } else if (_tabController.index == 1) {
+      for (int i = 0; i < 5; i++) {
+        barLabels.add('W${i+1}');
+        final wTxs = txs.where((t) {
+          int w = ((t.date.day - 1) / 7).floor();
+          if (w > 4) w = 4;
+          return w == i;
+        }).toList();
+        barTransactions.add(wTxs);
+        barValues.add(wTxs.fold(0.0, (sum, t) => sum + t.amount));
+      }
     } else {
-      mockTransactions = [
-        {'title': 'Item 1', 'amount': totalAmount * 0.5},
-        {'title': 'Item 2', 'amount': totalAmount * 0.5},
-      ];
+      for (int i = 1; i <= 12; i++) {
+        barLabels.add(DateFormat('MMM').format(DateTime(now.year, i, 1)));
+        final mTxs = txs.where((t) => t.date.month == i).toList();
+        barTransactions.add(mTxs);
+        barValues.add(mTxs.fold(0.0, (sum, t) => sum + t.amount));
+      }
     }
 
+    double maxY = barValues.isEmpty ? 1000 : barValues.reduce((a, b) => a > b ? a : b);
+    if (maxY == 0) maxY = 1000;
+    
+    return {
+      'values': barValues,
+      'labels': barLabels,
+      'transactions': barTransactions,
+      'maxY': maxY * 1.2,
+    };
+  }
+
+  List<Map<String, dynamic>> _getTopCategories(List<TransactionModel> txs) {
+    final Map<String, double> catSums = {};
+    for (var t in txs) {
+      catSums[t.category] = (catSums[t.category] ?? 0) + t.amount;
+    }
+    
+    final sorted = catSums.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final top = sorted.take(4).toList();
+    
+    final totalSpent = txs.fold(0.0, (sum, t) => sum + t.amount);
+    
+    return top.map((e) {
+      return {
+        'name': e.key,
+        'emoji': _getCategoryEmoji(e.key),
+        'amount': e.value,
+        'percentage': totalSpent > 0 ? (e.value / totalSpent) : 0.0,
+        'transactions': txs.where((t) => t.category == e.key).toList(),
+      };
+    }).toList();
+  }
+
+  void _showTransactionsModal(BuildContext context, String title, double totalAmount, List<TransactionModel> txs) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -109,27 +142,23 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text(emoji, style: const TextStyle(fontSize: 32)),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(name, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                    Text('Total: ₹${totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, color: Colors.grey)),
-                  ],
+            Text(title, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('Total: ₹${totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, color: Colors.grey)),
+            const SizedBox(height: 24),
+            if (txs.isEmpty)
+              const Padding(padding: EdgeInsets.all(16), child: Center(child: Text('No transactions', style: TextStyle(color: Colors.grey))))
+            else
+              ...txs.map((t) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  backgroundColor: _getCategoryColor(t.category).withValues(alpha: 0.1),
+                  child: Text(_getCategoryEmoji(t.category), style: const TextStyle(fontSize: 20)),
                 ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            const Text('Recent Items', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 16),
-            ...mockTransactions.map((t) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(t['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
-              trailing: Text('₹${(t['amount'] as double).toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            )),
+                title: Text(t.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(DateFormat('MMM dd, yyyy').format(t.date), style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                trailing: Text('₹${t.amount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              )),
           ],
         ),
       ),
@@ -139,19 +168,23 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final provider = Provider.of<FinanceProvider>(context);
+    
+    final filteredTxs = _getFilteredTransactions(provider.transactions);
+    final totalSpent = filteredTxs.fold(0.0, (sum, t) => sum + t.amount);
+    final chartData = _getChartData(filteredTxs);
+    final topCategories = _getTopCategories(filteredTxs);
     
     return Scaffold(
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
               child: Text('Analytics', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
             ),
 
-            // Tab Bar
             CustomTabBar(
               controller: _tabController,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -167,23 +200,20 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                 padding: const EdgeInsets.only(bottom: 120),
                 child: Column(
                   children: [
-                    // Total Spent
                     const Text('Total Spent', style: TextStyle(color: Colors.grey, fontSize: 14)),
                     const SizedBox(height: 4),
-                    const Text('₹18,450', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: -1)),
+                    Text('₹${totalSpent.toStringAsFixed(0)}', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: -1)),
                     const SizedBox(height: 32),
 
-                    // Bar Chart
                     SizedBox(
                       height: 250,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: _buildBarChart(isDark),
+                        child: _buildBarChart(isDark, chartData),
                       ),
                     ),
                     const SizedBox(height: 32),
 
-                    // Top Categories
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Row(
@@ -193,11 +223,18 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                       ),
                     ),
                     const SizedBox(height: 16),
-
-                    _buildCategoryRow('Food & Dining', '🍔', 4500, 0.45, context),
-                    _buildCategoryRow('Shopping', '🛍️', 3200, 0.32, context),
-                    _buildCategoryRow('Transport', '🚕', 1800, 0.18, context),
-                    _buildCategoryRow('Bills', '📄', 1200, 0.12, context),
+                    
+                    if (topCategories.isEmpty)
+                      const Padding(padding: EdgeInsets.all(24), child: Center(child: Text('No spending data for this period.', style: TextStyle(color: Colors.grey))))
+                    else
+                      ...topCategories.map((c) => _buildCategoryRow(
+                        c['name'] as String, 
+                        c['emoji'] as String, 
+                        c['amount'] as double, 
+                        c['percentage'] as double,
+                        c['transactions'] as List<TransactionModel>,
+                        context
+                      )),
                   ],
                 ),
               ),
@@ -208,18 +245,30 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildBarChart(bool isDark) {
+  Widget _buildBarChart(bool isDark, Map<String, dynamic> chartData) {
+    final values = chartData['values'] as List<double>;
+    final labels = chartData['labels'] as List<String>;
+    final transactions = chartData['transactions'] as List<List<TransactionModel>>;
+    final maxY = chartData['maxY'] as double;
+    
+    // Find index with max value for highlighting
+    int maxIndex = 0;
+    for (int i = 0; i < values.length; i++) {
+      if (values[i] > values[maxIndex]) maxIndex = i;
+    }
+    if (values.isEmpty || values[maxIndex] == 0) maxIndex = -1;
+
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: 20000,
+        maxY: maxY,
         barTouchData: BarTouchData(
           enabled: true,
           handleBuiltInTouches: false,
           touchCallback: (FlTouchEvent event, barTouchResponse) {
             if (event is FlTapUpEvent && barTouchResponse != null && barTouchResponse.spot != null) {
               final index = barTouchResponse.spot!.touchedBarGroupIndex;
-              _showDayDetailsModal(context, index);
+              _showTransactionsModal(context, labels[index], values[index], transactions[index]);
             }
           },
           touchTooltipData: BarTouchTooltipData(
@@ -227,7 +276,8 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
             tooltipPadding: EdgeInsets.zero,
             tooltipMargin: 8,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              final isActive = groupIndex == 3; // Match the highest value
+              if (rod.toY == 0) return null;
+              final isActive = groupIndex == maxIndex;
               return BarTooltipItem(
                 '₹${rod.toY.round()}',
                 TextStyle(
@@ -245,24 +295,15 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (value, meta) {
-                final isActive = value.toInt() == 3; // Hardcoding index 3 (Wed) or max value index as active
+                final index = value.toInt();
+                if (index < 0 || index >= labels.length) return const SizedBox();
+                final isActive = index == maxIndex;
                 final style = TextStyle(
                   color: isActive ? (Theme.of(context).primaryColor) : Colors.grey,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 );
-                String text;
-                switch (value.toInt()) {
-                  case 0: text = 'Sun'; break;
-                  case 1: text = 'Mon'; break;
-                  case 2: text = 'Tue'; break;
-                  case 3: text = 'Wed'; break;
-                  case 4: text = 'Thu'; break;
-                  case 5: text = 'Fri'; break;
-                  case 6: text = 'Sat'; break;
-                  default: text = ''; break;
-                }
-                return SideTitleWidget(meta: meta, space: 8, child: Text(text, style: style));
+                return SideTitleWidget(meta: meta, space: 8, child: Text(labels[index], style: style));
               },
             ),
           ),
@@ -272,82 +313,84 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
         ),
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
-        barGroups: [
-          _buildBarGroup(0, 12000, isDark),
-          _buildBarGroup(1, 8000, isDark),
-          _buildBarGroup(2, 15000, isDark),
-          _buildBarGroup(3, 18000, isDark),
-          _buildBarGroup(4, 9000, isDark),
-          _buildBarGroup(5, 11000, isDark),
-          _buildBarGroup(6, 16000, isDark),
-        ],
+        barGroups: List.generate(values.length, (index) {
+          return _buildBarGroup(index, values[index], index == maxIndex, isDark, values.length > 7 ? 16 : 28);
+        }),
       ),
     );
   }
 
-  BarChartGroupData _buildBarGroup(int x, double y, bool isDark) {
-    final isActive = x == 3; // Making the highest value (index 3) active
+  BarChartGroupData _buildBarGroup(int x, double y, bool isActive, bool isDark, double width) {
     return BarChartGroupData(
       x: x,
-      showingTooltipIndicators: [0], // Always show tooltip for the first rod
+      showingTooltipIndicators: y > 0 ? [0] : [],
       barRods: [
         BarChartRodData(
           toY: y,
           color: isActive ? Colors.red.shade900 : (isDark ? const Color(0xFF2A2D34) : Colors.grey.shade300),
-          width: 28,
+          width: width,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(6),
             topRight: Radius.circular(6),
           ),
-          backDrawRodData: BackgroundBarChartRodData(show: false),
         ),
       ],
     );
   }
 
-  Widget _buildCategoryRow(String name, String emoji, double amount, double percent, BuildContext context) {
+  Widget _buildCategoryRow(String name, String emoji, double amount, double percentage, List<TransactionModel> txs, BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
-      onTap: () => _showCategoryDetailsModal(context, name, emoji, amount),
+      onTap: () => _showTransactionsModal(context, '$emoji $name', amount, txs),
+      borderRadius: BorderRadius.circular(16),
       child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              shape: BoxShape.circle,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF161618) : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Center(child: Text(emoji, style: const TextStyle(fontSize: 24))),
             ),
-            child: Center(child: Text(emoji, style: const TextStyle(fontSize: 24))),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                    Text('₹${amount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: percent,
-                    minHeight: 6,
-                    backgroundColor: Theme.of(context).cardColor,
-                    valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 4),
+                  Stack(
+                    children: [
+                      Container(
+                        height: 6,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                      Container(
+                        height: 6,
+                        width: MediaQuery.of(context).size.width * 0.5 * percentage,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Text('₹${amount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
       ),
-    ));
+    );
   }
 }
