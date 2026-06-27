@@ -24,6 +24,93 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
+  void _showDayDetailsModal(BuildContext context, int dayIndex) {
+    final days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    final amounts = [12000.0, 8000.0, 15000.0, 18000.0, 9000.0, 11000.0, 16000.0];
+    
+    // Generate mock transactions for that day
+    final mockTransactions = [
+      {'name': 'Groceries', 'amount': amounts[dayIndex] * 0.4, 'icon': Icons.shopping_cart, 'color': Colors.blue},
+      {'name': 'Dining', 'amount': amounts[dayIndex] * 0.3, 'icon': Icons.restaurant, 'color': Colors.orange},
+      {'name': 'Transport', 'amount': amounts[dayIndex] * 0.3, 'icon': Icons.directions_car, 'color': Colors.green},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 24, left: 24, right: 24, top: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${days[dayIndex]} Spending', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('Total: ₹${amounts[dayIndex].toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, color: Colors.grey)),
+            const SizedBox(height: 24),
+            ...mockTransactions.map((t) => ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: CircleAvatar(
+                backgroundColor: (t['color'] as Color).withValues(alpha: 0.1),
+                child: Icon(t['icon'] as IconData, color: t['color'] as Color),
+              ),
+              title: Text(t['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+              trailing: Text('₹${(t['amount'] as double).toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCategoryDetailsModal(BuildContext context, String name, String emoji, double totalAmount) {
+    // Generate mock transactions for that category
+    final mockTransactions = [
+      {'date': 'Today', 'amount': totalAmount * 0.5},
+      {'date': 'Yesterday', 'amount': totalAmount * 0.3},
+      {'date': '3 days ago', 'amount': totalAmount * 0.2},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 24, left: 24, right: 24, top: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 32)),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                    Text('Total: ₹${totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, color: Colors.grey)),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            const Text('Recent Transactions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 16),
+            ...mockTransactions.map((t) => ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(t['date'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+              trailing: Text('₹${(t['amount'] as double).toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -102,7 +189,14 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
         alignment: BarChartAlignment.spaceAround,
         maxY: 20000,
         barTouchData: BarTouchData(
-          enabled: false,
+          enabled: true,
+          handleBuiltInTouches: false,
+          touchCallback: (FlTouchEvent event, barTouchResponse) {
+            if (event is FlTapUpEvent && barTouchResponse != null && barTouchResponse.spot != null) {
+              final index = barTouchResponse.spot!.touchedBarGroupIndex;
+              _showDayDetailsModal(context, index);
+            }
+          },
           touchTooltipData: BarTouchTooltipData(
             getTooltipColor: (group) => Colors.transparent,
             tooltipPadding: EdgeInsets.zero,
@@ -187,7 +281,9 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
   }
 
   Widget _buildCategoryRow(String name, String emoji, double amount, double percent, BuildContext context) {
-    return Padding(
+    return InkWell(
+      onTap: () => _showCategoryDetailsModal(context, name, emoji, amount),
+      child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: Row(
         children: [
@@ -227,6 +323,6 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
           ),
         ],
       ),
-    );
+    ));
   }
 }
