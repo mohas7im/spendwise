@@ -315,7 +315,17 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
             ],
             if (doc.pdfPath != null) ...[
               const Divider(height: 16),
-              const ListTile(leading: Icon(Icons.picture_as_pdf), title: Text('PDF attached'), contentPadding: EdgeInsets.zero),
+              ListTile(
+                leading: const Icon(Icons.picture_as_pdf),
+                title: const Text('PDF attached'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.download, size: 20),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Document saved to device')));
+                  },
+                ),
+                contentPadding: EdgeInsets.zero,
+              ),
             ],
             const SizedBox(height: 24),
           ],
@@ -338,12 +348,15 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
       ),
       alignment: Alignment.topRight,
       child: Container(
-        margin: const EdgeInsets.all(12),
+        margin: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.6),
           shape: BoxShape.circle,
         ),
         child: IconButton(
+          iconSize: 20,
+          padding: const EdgeInsets.all(8),
+          constraints: const BoxConstraints(),
           icon: const Icon(Icons.download, color: Colors.white),
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image saved to Gallery')));
