@@ -187,7 +187,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
 
             CustomTabBar(
               controller: _tabController,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
               tabs: const [
                 Tab(text: 'Weekly'),
                 Tab(text: 'Monthly'),

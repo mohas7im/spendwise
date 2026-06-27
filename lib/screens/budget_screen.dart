@@ -89,16 +89,10 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-
-                  // Savings Goals Section Removed
-
-                  // Category Limits Header Removed
-
                   // Tab Bar for Limits
                   CustomTabBar(
                     controller: _tabController,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
                     tabs: const [
                       Tab(text: 'Daily'),
                       Tab(text: 'Monthly'),
@@ -208,7 +202,11 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
               minHeight: 6,
               backgroundColor: Colors.white24,
               valueColor: AlwaysStoppedAnimation<Color>(
-                spent > budget ? Colors.redAccent : Colors.greenAccent,
+                spent > budget
+                    ? Colors.redAccent
+                    : (spent / budget) > 0.8
+                        ? Colors.orangeAccent
+                        : Colors.greenAccent,
               ),
             ),
           ),
@@ -306,10 +304,9 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
   }
 
   Widget _buildDetailedCategoryLimitCard(CategoryLimit limit, LimitPeriod period) {
-    final primary = Theme.of(context).primaryColor;
     final pct = (limit.percentUsed).clamp(0.0, 1.0);
     final isOver = limit.isOverBudget;
-    final barColor = isOver ? Colors.redAccent : pct > 0.9 ? Colors.orange : primary;
+    final barColor = isOver ? Colors.redAccent : pct > 0.8 ? Colors.orangeAccent : Colors.greenAccent;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
