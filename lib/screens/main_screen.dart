@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'budget_screen.dart';
-import 'debt_screen.dart';
 import 'stats_screen.dart';
 import 'subscriptions_screen.dart';
+import 'personal_vault_screen.dart';
 import 'finance_hub_screen.dart';
-import '../widgets/add_transaction_modal.dart';
+import '../widgets/quick_actions_modal.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
 import '../models/income_source.dart';
@@ -112,9 +112,9 @@ class _MainScreenState extends State<MainScreen> {
       case 1:
         return const BudgetScreen();
       case 2:
-        return const FinanceHubScreen(); // Replaced CalculatorHubScreen
+        return const PersonalVaultScreen(); // Replaced CalculatorHubScreen
       case 4:
-        return const DebtScreen();
+        return const FinanceHubScreen();
       case 5:
         return const StatsScreen();
       case 6:
@@ -139,7 +139,7 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const AddTransactionModal(),
+      builder: (context) => const QuickActionsModal(),
     );
   }
 
@@ -177,9 +177,9 @@ class _MainScreenState extends State<MainScreen> {
                 children: [
                   _buildNavItem(0, Icons.home_outlined, Icons.home, ''),
                   _buildNavItem(1, Icons.pie_chart_outline, Icons.pie_chart, ''),
-                  _buildNavItem(2, Icons.calculate_outlined, Icons.calculate, ''),
+                  _buildNavItem(2, Icons.security_outlined, Icons.security, ''),
                   _buildAddButton(),
-                  _buildNavItem(4, Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, ''),
+                  _buildNavItem(4, Icons.account_balance_outlined, Icons.account_balance, ''),
                   _buildNavItem(5, Icons.bar_chart_outlined, Icons.bar_chart, ''),
                   _buildNavItem(6, Icons.calendar_today_outlined, Icons.calendar_month, ''),
                 ],

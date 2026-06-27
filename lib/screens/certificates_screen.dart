@@ -250,7 +250,8 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Certificates'),
+        title: Text('Certificates', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 22)),
+        centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -272,7 +273,12 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
                         },
                       )
                     : null,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                filled: true,
+                fillColor: Theme.of(context).cardColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
               onChanged: (val) => setState(() => _searchQuery = val),
@@ -288,10 +294,22 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
                       final cert = certs[index];
                       final isExpired = cert.expiryDate != null && cert.expiryDate!.isBefore(DateTime.now());
 
-                      return Card(
+                      return Container(
                         margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        child: ListTile(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            )
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: ListTile(
                           onTap: () => _showCertificateDetails(context, cert, vaultProvider),
                           contentPadding: const EdgeInsets.all(16),
                           leading: CircleAvatar(
@@ -308,7 +326,8 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
                             ],
                           ),
                         ),
-                      );
+                      ),
+                    );
                     },
                   ),
           ),

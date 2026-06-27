@@ -3,25 +3,23 @@ import '../widgets/common/custom_tab_bar.dart';
 
 class ExpenseGroupScreen extends StatefulWidget {
   final int initialTabIndex;
-  
-  const ExpenseGroupScreen({
-    super.key,
-    this.initialTabIndex = 0,
-  });
+
+  const ExpenseGroupScreen({super.key, this.initialTabIndex = 0});
 
   @override
   State<ExpenseGroupScreen> createState() => _ExpenseGroupScreenState();
 }
 
-class _ExpenseGroupScreenState extends State<ExpenseGroupScreen> with SingleTickerProviderStateMixin {
+class _ExpenseGroupScreenState extends State<ExpenseGroupScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 2, 
-      vsync: this, 
+      length: 2,
+      vsync: this,
       initialIndex: widget.initialTabIndex,
     );
   }
@@ -36,7 +34,10 @@ class _ExpenseGroupScreenState extends State<ExpenseGroupScreen> with SingleTick
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Expense & Group', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Expense & Group',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         centerTitle: true,
@@ -54,10 +55,7 @@ class _ExpenseGroupScreenState extends State<ExpenseGroupScreen> with SingleTick
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: const [
-                _FoodBillSplitTab(),
-                _TripCostTab(),
-              ],
+              children: const [_FoodBillSplitTab(), _TripCostTab()],
             ),
           ),
         ],
@@ -104,14 +102,15 @@ class _FoodBillSplitTabState extends State<_FoodBillSplitTab> {
             subtitle: 'Subtotal: ₹${subtotal.toStringAsFixed(0)}',
           ),
           const SizedBox(height: 24),
-          
+
           Row(
             children: [
               Expanded(
                 child: _InputField(
                   label: 'Tax (%)',
                   icon: Icons.receipt_long,
-                  onChanged: (v) => setState(() => _taxPercent = double.tryParse(v) ?? 0),
+                  onChanged: (v) =>
+                      setState(() => _taxPercent = double.tryParse(v) ?? 0),
                 ),
               ),
               const SizedBox(width: 16),
@@ -119,7 +118,8 @@ class _FoodBillSplitTabState extends State<_FoodBillSplitTab> {
                 child: _InputField(
                   label: 'Tip (%)',
                   icon: Icons.volunteer_activism,
-                  onChanged: (v) => setState(() => _tipPercent = double.tryParse(v) ?? 0),
+                  onChanged: (v) =>
+                      setState(() => _tipPercent = double.tryParse(v) ?? 0),
                 ),
               ),
             ],
@@ -129,16 +129,19 @@ class _FoodBillSplitTabState extends State<_FoodBillSplitTab> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('People & Items', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const Text(
+                'People & Items',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
               TextButton.icon(
                 icon: const Icon(Icons.add),
                 label: const Text('Add Person'),
                 onPressed: _addPerson,
-              )
+              ),
             ],
           ),
           const SizedBox(height: 8),
-          
+
           ...List.generate(_people.length, (index) {
             final p = _people[index];
             double proportion = subtotal > 0 ? p.amount / subtotal : 0;
@@ -159,33 +162,60 @@ class _FoodBillSplitTabState extends State<_FoodBillSplitTab> {
                   Expanded(
                     flex: 2,
                     child: TextField(
-                      decoration: const InputDecoration(labelText: 'Name', isDense: true, border: InputBorder.none),
+                      decoration: const InputDecoration(
+                        labelText: 'Name',
+                        isDense: true,
+                        border: InputBorder.none,
+                      ),
                       onChanged: (v) => setState(() => p.name = v),
-                      controller: TextEditingController(text: p.name)..selection = TextSelection.collapsed(offset: p.name.length),
+                      controller: TextEditingController(text: p.name)
+                        ..selection = TextSelection.collapsed(
+                          offset: p.name.length,
+                        ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     flex: 2,
                     child: TextField(
-                      decoration: const InputDecoration(labelText: 'Item Cost', isDense: true, border: InputBorder.none, prefixText: '₹'),
+                      decoration: const InputDecoration(
+                        labelText: 'Item Cost',
+                        isDense: true,
+                        border: InputBorder.none,
+                        prefixText: '₹',
+                      ),
                       keyboardType: TextInputType.number,
-                      onChanged: (v) => setState(() => p.amount = double.tryParse(v) ?? 0),
+                      onChanged: (v) =>
+                          setState(() => p.amount = double.tryParse(v) ?? 0),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Text('Owes', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                      Text('₹${pTotal.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor, fontSize: 16)),
+                      const Text(
+                        'Owes',
+                        style: TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
+                      Text(
+                        '₹${pTotal.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColor,
+                          fontSize: 16,
+                        ),
+                      ),
                     ],
                   ),
                   if (_people.length > 1)
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.grey, size: 20),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.grey,
+                        size: 20,
+                      ),
                       onPressed: () => setState(() => _people.removeAt(index)),
-                    )
+                    ),
                 ],
               ),
             );
@@ -201,7 +231,6 @@ class PersonItem {
   double amount;
   PersonItem({required this.name, required this.amount});
 }
-
 
 // ---------------------------------------------------------------------------
 // 2. Trip Cost Tab
@@ -222,9 +251,10 @@ class _TripCostTabState extends State<_TripCostTab> {
   @override
   Widget build(BuildContext context) {
     double totalTravel = _travelCost;
-    double totalAccommodation = _accommodationPerNight * (_daysCount - 1 > 0 ? _daysCount - 1 : 1);
+    double totalAccommodation =
+        _accommodationPerNight * (_daysCount - 1 > 0 ? _daysCount - 1 : 1);
     double totalFood = _foodActivitiesPerDay * _daysCount;
-    
+
     double totalTripCost = totalTravel + totalAccommodation + totalFood;
     double costPerPerson = _peopleCount > 0 ? totalTripCost / _peopleCount : 0;
 
@@ -256,28 +286,46 @@ class _TripCostTabState extends State<_TripCostTab> {
 
           Row(
             children: [
-              Expanded(child: _InputField(label: 'People', icon: Icons.group, onChanged: (v) => setState(() => _peopleCount = int.tryParse(v) ?? 1))),
+              Expanded(
+                child: _InputField(
+                  label: 'People',
+                  icon: Icons.group,
+                  onChanged: (v) =>
+                      setState(() => _peopleCount = int.tryParse(v) ?? 1),
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _InputField(label: 'Days', icon: Icons.calendar_today, onChanged: (v) => setState(() => _daysCount = int.tryParse(v) ?? 1))),
+              Expanded(
+                child: _InputField(
+                  label: 'Days',
+                  icon: Icons.calendar_today,
+                  onChanged: (v) =>
+                      setState(() => _daysCount = int.tryParse(v) ?? 1),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           _InputField(
             label: 'Travel / Flights (Total)',
             icon: Icons.flight,
-            onChanged: (v) => setState(() => _travelCost = double.tryParse(v) ?? 0),
+            onChanged: (v) =>
+                setState(() => _travelCost = double.tryParse(v) ?? 0),
           ),
           const SizedBox(height: 16),
           _InputField(
             label: 'Accommodation (Per Night)',
             icon: Icons.hotel,
-            onChanged: (v) => setState(() => _accommodationPerNight = double.tryParse(v) ?? 0),
+            onChanged: (v) => setState(
+              () => _accommodationPerNight = double.tryParse(v) ?? 0,
+            ),
           ),
           const SizedBox(height: 16),
           _InputField(
             label: 'Food & Activities (Per Day)',
             icon: Icons.restaurant,
-            onChanged: (v) => setState(() => _foodActivitiesPerDay = double.tryParse(v) ?? 0),
+            onChanged: (v) =>
+                setState(() => _foodActivitiesPerDay = double.tryParse(v) ?? 0),
           ),
         ],
       ),
@@ -304,17 +352,38 @@ class _ResultBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         children: [
-          Text(title, style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+          Text(
+            title,
+            style: TextStyle(
+              color: Theme.of(context).primaryColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
           if (subtitle != null) ...[
             const SizedBox(height: 4),
-            Text(subtitle!, style: TextStyle(color: Theme.of(context).primaryColor.withValues(alpha: 0.6), fontSize: 12)),
-          ]
+            Text(
+              subtitle!,
+              style: TextStyle(
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.6),
+                fontSize: 12,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -326,7 +395,11 @@ class _InputField extends StatelessWidget {
   final IconData icon;
   final Function(String) onChanged;
 
-  const _InputField({required this.label, required this.icon, required this.onChanged});
+  const _InputField({
+    required this.label,
+    required this.icon,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {

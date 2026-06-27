@@ -401,7 +401,8 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Banks & Cards'),
+        title: Text('Banks & Cards', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 22)),
+        centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -417,8 +418,8 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
           unselectedLabelColor: Colors.grey,
           indicatorColor: Theme.of(context).primaryColor,
           tabs: const [
-            Tab(text: 'Bank Accounts'),
             Tab(text: 'Payment Cards'),
+            Tab(text: 'Bank Accounts'),
           ],
         ),
       ),
@@ -440,7 +441,12 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                         },
                       )
                     : null,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                filled: true,
+                fillColor: Theme.of(context).cardColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
               onChanged: (val) => setState(() => _searchQuery = val),
@@ -450,6 +456,16 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
             child: TabBarView(
               controller: _tabController,
               children: [
+                // Payment Cards Tab
+                cards.isEmpty
+                    ? const Center(child: Text('No payment cards found.', style: TextStyle(color: Colors.grey)))
+                    : _StackedCardsView(
+                        cards: cards,
+                        onCardLongPress: (card) => _showCardDetails(context, card, vaultProvider),
+                        buildFront: _buildCardFront,
+                        buildBack: _buildCardBack,
+                      ),
+                
                 // Bank Accounts Tab
                 banks.isEmpty
                     ? const Center(child: Text('No bank accounts found.', style: TextStyle(color: Colors.grey)))
@@ -458,10 +474,22 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                         itemCount: banks.length,
                         itemBuilder: (ctx, i) {
                           final acc = banks[i];
-                          return Card(
+                          return Container(
                             margin: const EdgeInsets.only(bottom: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            child: ListTile(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                )
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: ListTile(
                               onTap: () => _showBankDetails(context, acc, vaultProvider),
                               contentPadding: const EdgeInsets.all(16),
                               leading: CircleAvatar(
@@ -477,27 +505,6 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account number copied')));
                                 },
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                
-                // Payment Cards Tab
-                cards.isEmpty
-                    ? const Center(child: Text('No payment cards found.', style: TextStyle(color: Colors.grey)))
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: cards.length,
-                        itemBuilder: (ctx, i) {
-                          final card = cards[i];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: GestureDetector(
-                              onLongPress: () => _showCardDetails(context, card, vaultProvider),
-                              child: FlipCard(
-                                direction: FlipDirection.HORIZONTAL,
-                                front: _buildCardFront(card),
-                                back: _buildCardBack(card),
                               ),
                             ),
                           );
@@ -511,9 +518,9 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (_tabController.index == 0) {
-            _showAddBankModal(context, vaultProvider);
-          } else {
             _showAddCardModal(context, vaultProvider);
+          } else {
+            _showAddBankModal(context, vaultProvider);
           }
         },
         backgroundColor: Theme.of(context).primaryColor,
@@ -619,6 +626,87 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
           ),
         ],
       ),
+    );
+  }
+}
+
+class _StackedCardsView extends StatefulWidget {
+  final List<PaymentCard> cards;
+  final Function(PaymentCard) onCardLongPress;
+  final Widget Function(PaymentCard) buildFront;
+  final Widget Function(PaymentCard) buildBack;
+
+  const _StackedCardsView({
+    Key? key,
+    required this.cards,
+    required this.onCardLongPress,
+    required this.buildFront,
+    required this.buildBack,
+  }) : super(key: key);
+
+  @override
+  State<_StackedCardsView> createState() => _StackedCardsViewState();
+}
+
+class _StackedCardsViewState extends State<_StackedCardsView> {
+  int? expandedIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GestureDetector(
+          onTap: () {
+            if (expandedIndex != null) {
+              setState(() => expandedIndex = null);
+            }
+          },
+          child: Container(
+            color: Colors.transparent,
+            height: constraints.maxHeight,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: List.generate(widget.cards.length, (i) {
+                final card = widget.cards[i];
+                final isExpanded = expandedIndex == i;
+                final isOtherExpanded = expandedIndex != null && expandedIndex != i;
+                
+                double topOffset = i * 60.0;
+                if (isExpanded) {
+                  topOffset = 20.0;
+                } else if (isOtherExpanded) {
+                  topOffset = constraints.maxHeight + 100; // Slide off screen
+                }
+
+                return AnimatedPositioned(
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.fastOutSlowIn,
+                  top: topOffset,
+                  left: 16,
+                  right: 16,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        expandedIndex = isExpanded ? null : i;
+                      });
+                    },
+                    onLongPress: () => widget.onCardLongPress(card),
+                    child: AnimatedScale(
+                      duration: const Duration(milliseconds: 400),
+                      scale: isOtherExpanded ? 0.9 : 1.0,
+                      child: FlipCard(
+                        direction: FlipDirection.HORIZONTAL,
+                        front: widget.buildFront(card),
+                        back: widget.buildBack(card),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        );
+      }
     );
   }
 }
