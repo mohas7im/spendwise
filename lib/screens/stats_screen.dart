@@ -67,11 +67,36 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
 
   void _showCategoryDetailsModal(BuildContext context, String name, String emoji, double totalAmount) {
     // Generate mock transactions for that category
-    final mockTransactions = [
-      {'date': 'Today', 'amount': totalAmount * 0.5},
-      {'date': 'Yesterday', 'amount': totalAmount * 0.3},
-      {'date': '3 days ago', 'amount': totalAmount * 0.2},
-    ];
+    List<Map<String, dynamic>> mockTransactions = [];
+    if (name == 'Food & Dining') {
+      mockTransactions = [
+        {'title': 'Shawarma', 'amount': totalAmount * 0.4},
+        {'title': 'Mandhi', 'amount': totalAmount * 0.4},
+        {'title': 'Coffee', 'amount': totalAmount * 0.2},
+      ];
+    } else if (name == 'Shopping') {
+      mockTransactions = [
+        {'title': 'Sneakers', 'amount': totalAmount * 0.6},
+        {'title': 'T-Shirt', 'amount': totalAmount * 0.3},
+        {'title': 'Socks', 'amount': totalAmount * 0.1},
+      ];
+    } else if (name == 'Transport') {
+      mockTransactions = [
+        {'title': 'Uber to Work', 'amount': totalAmount * 0.5},
+        {'title': 'Metro Card', 'amount': totalAmount * 0.3},
+        {'title': 'Uber Home', 'amount': totalAmount * 0.2},
+      ];
+    } else if (name == 'Bills') {
+      mockTransactions = [
+        {'title': 'Electricity', 'amount': totalAmount * 0.7},
+        {'title': 'Water', 'amount': totalAmount * 0.3},
+      ];
+    } else {
+      mockTransactions = [
+        {'title': 'Item 1', 'amount': totalAmount * 0.5},
+        {'title': 'Item 2', 'amount': totalAmount * 0.5},
+      ];
+    }
 
     showModalBottomSheet(
       context: context,
@@ -98,11 +123,11 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
               ],
             ),
             const SizedBox(height: 32),
-            const Text('Recent Transactions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const Text('Recent Items', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 16),
             ...mockTransactions.map((t) => ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text(t['date'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(t['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
               trailing: Text('₹${(t['amount'] as double).toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             )),
           ],
