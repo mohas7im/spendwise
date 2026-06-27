@@ -3,6 +3,8 @@ import 'dashboard_screen.dart';
 import 'budget_screen.dart';
 import 'debt_screen.dart';
 import 'stats_screen.dart';
+import 'subscriptions_screen.dart';
+import 'calculator_hub_screen.dart';
 import '../widgets/add_transaction_modal.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
@@ -106,13 +108,15 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const BudgetScreen(),
+    const CalculatorHubScreen(),
     Container(), // '+' add action
     const DebtScreen(),
     const StatsScreen(),
+    const SubscriptionsScreen(),
   ];
 
   void _onItemTapped(int index) {
-    if (index == 2) {
+    if (index == 3) {
       _showAddModal();
     } else {
       setState(() {
@@ -164,9 +168,11 @@ class _MainScreenState extends State<MainScreen> {
                 children: [
                   _buildNavItem(0, Icons.home_outlined, Icons.home, ''),
                   _buildNavItem(1, Icons.pie_chart_outline, Icons.pie_chart, ''),
+                  _buildNavItem(2, Icons.apps_outlined, Icons.apps, ''),
                   _buildAddButton(),
-                  _buildNavItem(3, Icons.receipt_long_outlined, Icons.receipt_long, ''),
-                  _buildNavItem(4, Icons.bar_chart_outlined, Icons.bar_chart, ''),
+                  _buildNavItem(4, Icons.calculate_outlined, Icons.calculate, ''),
+                  _buildNavItem(5, Icons.bar_chart_outlined, Icons.bar_chart, ''),
+                  _buildNavItem(6, Icons.calendar_today_outlined, Icons.calendar_month, ''),
                 ],
               ),
             ),
@@ -187,7 +193,7 @@ class _MainScreenState extends State<MainScreen> {
       onTap: () => _onItemTapped(index),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: isSelected ? activeBgColor : Colors.transparent,
           shape: BoxShape.circle,
@@ -195,7 +201,7 @@ class _MainScreenState extends State<MainScreen> {
         child: Icon(
           isSelected ? iconFilled : iconOutlined,
           color: isSelected ? activeIconColor : iconColor,
-          size: 28,
+          size: 24,
         ),
       ),
     );
@@ -206,15 +212,15 @@ class _MainScreenState extends State<MainScreen> {
     final iconColor = Theme.of(context).colorScheme.onPrimary;
 
     return GestureDetector(
-      onTap: () => _onItemTapped(2),
+      onTap: () => _onItemTapped(3),
       child: Container(
-        width: 52,
-        height: 52,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
           color: btnColor,
           shape: BoxShape.circle,
         ),
-        child: Icon(Icons.add, color: iconColor, size: 28),
+        child: Icon(Icons.add, color: iconColor, size: 24),
       ),
     );
   }

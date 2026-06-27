@@ -8,9 +8,7 @@ import '../widgets/unified_activity_card.dart';
 import '../widgets/spending_breakdown_sheet.dart';
 import '../widgets/add_transaction_modal.dart';
 import 'profile_screen.dart';
-import 'calculator_hub_screen.dart';
-import 'fuel_screen.dart';
-
+import 'accounts_screen.dart';
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -79,8 +77,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 24),
             
             // Financial Summary Section
-            PremiumGradientCard(
-              builder: (context, textColor, subTextColor) => Column(
+            GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountsScreen())),
+              child: PremiumGradientCard(
+                builder: (context, textColor, subTextColor) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Total Net Balance', style: TextStyle(color: subTextColor, fontSize: 13)),
@@ -119,6 +119,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
+            ),
             const SizedBox(height: 24),
 
             // ── Spending Summary ──
@@ -153,72 +154,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 14),
             _SpendingSummaryGrid(financeProvider: financeProvider),
             const SizedBox(height: 32),
-
-            // Calculator Hub
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Calculator Hub', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-                TextButton(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CalculatorHubScreen())),
-                  child: const Text('View All'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CalculatorHubScreen())),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-                  image: DecorationImage(
-                    image: const NetworkImage('https://www.transparenttextures.com/patterns/cubes.png'), // Subtle pattern
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(Theme.of(context).primaryColor.withValues(alpha: 0.05), BlendMode.dstATop),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: Theme.of(context).primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                          child: Icon(Icons.calculate_outlined, color: Theme.of(context).primaryColor, size: 28),
-                        ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Financial Tools', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                              Text('Splits, Loans, Trips & Fuel', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right, color: Colors.grey),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _CalcChip(emoji: '⛽', label: 'Fuel', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelScreen(initialTab: 0)))),
-                        _CalcChip(emoji: '🚗', label: 'Mileage', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelScreen(initialTab: 1)))),
-                        _CalcChip(emoji: '✈️', label: 'Trips', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelScreen(initialTab: 2)))),
-                        _CalcChip(emoji: '💸', label: 'Splits', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelScreen(initialTab: 3)))),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-
 
             // Unified Recent Activity
             Row(
@@ -387,34 +322,3 @@ class _CardContent extends StatelessWidget {
     );
   }
 }
-
-class _CalcChip extends StatelessWidget {
-  final String emoji;
-  final String label;
-  final VoidCallback? onTap;
-
-  const _CalcChip({required this.emoji, required this.label, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-            ),
-            child: Text(emoji, style: const TextStyle(fontSize: 20)),
-          ),
-          const SizedBox(height: 6),
-          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-}
-

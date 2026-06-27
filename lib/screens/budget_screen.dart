@@ -69,36 +69,82 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                   Padding(
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Text('Budget & Goals', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                        Row(
                           children: [
-                            Text('Budget & Goals', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                            TextButton.icon(
+                              onPressed: () => _showAddLimitSheet(context, budgetProvider),
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text('Limit', style: TextStyle(fontWeight: FontWeight.bold)),
+                              style: TextButton.styleFrom(foregroundColor: Theme.of(context).primaryColor),
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).cardColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.analytics_outlined),
+                                color: Theme.of(context).primaryColor,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const BudgetAnalyticsScreen()),
+                                  );
+                                },
+                              ),
+                            ),
                           ],
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.analytics_outlined),
-                            color: Theme.of(context).primaryColor,
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const BudgetAnalyticsScreen()),
-                              );
-                            },
-                          ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
 
-                  // Tab Bar
+                  // Savings Goals Section
+                  if (budget.savingsGoals.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Text('Savings Goals', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
+                              const SizedBox(width: 8),
+                              Text('Total: ₹${totalSavings.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          TextButton(
+                            onPressed: () => _showAddSavingsGoalSheet(context, budgetProvider), 
+                            child: Text('+ Add', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold))
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 160,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: budget.savingsGoals.length,
+                        itemBuilder: (context, index) => _buildSavingsGoalCard(budget.savingsGoals[index]),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Category Limits Header
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text('Spending Limits', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
+                  ),
+
+                  // Tab Bar for Limits
                   CustomTabBar(
                     controller: _tabController,
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -110,95 +156,45 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                     ],
                   ),
 
-
-
                   // Dashboard Summary Section
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
                     child: _buildDashboardSummary(totalBudget, totalSpent, remainingBudget),
                   ),
 
-                        // Over Budget Alert Banner
-                        if (overBudgetCount > 0)
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                            child: GestureDetector(
-                              onTap: () => _showOverBudgetSheet(context, budget),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.redAccent.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 20),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        '$overBudgetCount categor${overBudgetCount == 1 ? 'y' : 'ies'} over budget this month',
-                                        style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600, fontSize: 13),
-                                      ),
-                                    ),
-                                    const Icon(Icons.chevron_right, color: Colors.redAccent, size: 18),
-                                  ],
-                                ),
-                              ),
-                            ),
+                  // Over Budget Alert Banner
+                  if (overBudgetCount > 0)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                      child: GestureDetector(
+                        onTap: () => _showOverBudgetSheet(context, budget),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
                           ),
-
-                        // Savings Goals Section
-                        if (budget.savingsGoals.isNotEmpty) ...[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text('Savings Goals', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-                                    const SizedBox(width: 8),
-                                    Text('Total: ₹${totalSavings.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 12, fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
-                                TextButton(
-                                  onPressed: () => _showAddSavingsGoalSheet(context, budgetProvider), 
-                                  child: Text('+ Add', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold))
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            height: 160,
-                            child: ListView.builder(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              scrollDirection: Axis.horizontal,
-                              itemCount: budget.savingsGoals.length,
-                              itemBuilder: (context, index) => _buildSavingsGoalCard(budget.savingsGoals[index]),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-
-                        // Category Limits Header
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Spending Limits', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-                              TextButton(
-                                onPressed: () => _showAddLimitSheet(context, budgetProvider), 
-                                child: Text('+ Add Limit', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold))
+                              const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 20),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  '$overBudgetCount categor${overBudgetCount == 1 ? 'y' : 'ies'} over budget this month',
+                                  style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600, fontSize: 13),
+                                ),
                               ),
+                              const Icon(Icons.chevron_right, color: Colors.redAccent, size: 18),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 12),
+                      ),
+                    ),
 
-                        _buildCategoryLimitsList(_selectedPeriod, budget),
+                  const SizedBox(height: 12),
+
+                  _buildCategoryLimitsList(_selectedPeriod, budget),
                       ],
                     ),
                   ),

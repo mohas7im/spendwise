@@ -5,6 +5,7 @@ import '../providers/finance_provider.dart';
 import '../widgets/common/premium_gradient_card.dart';
 import '../widgets/debt/add_debt_modal.dart';
 import 'loan_calculator_screen.dart';
+import 'calculator_hub_screen.dart';
 
 class DebtScreen extends StatefulWidget {
   const DebtScreen({super.key});
@@ -13,20 +14,8 @@ class DebtScreen extends StatefulWidget {
   State<DebtScreen> createState() => _DebtScreenState();
 }
 
-class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+class _DebtScreenState extends State<DebtScreen> {
+  int _selectedDebtTab = 0;
 
   void _showAddDebtModal(FinanceProvider provider) {
     showModalBottomSheet(
@@ -164,9 +153,9 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
     final debts = financeProvider.debts;
-
-    final simpleDebts = debts.where((d) => d.type == DebtType.iOwe || d.type == DebtType.theyOwe).toList();
-    final loansEmis = debts.where((d) => d.type == DebtType.loanGiven || d.type == DebtType.loanTaken || d.type == DebtType.emiLoan).toList();
+    
+    final simpleDebts = debts.where((d) => (d.type == DebtType.iOwe || d.type == DebtType.theyOwe) && !d.isPaid).toList();
+    final loansEmis = debts.where((d) => (d.type == DebtType.loanGiven || d.type == DebtType.loanTaken || d.type == DebtType.emiLoan) && !d.isPaid).toList();
 
     double totalIOwe = debts.where((d) => (d.type == DebtType.iOwe || d.type == DebtType.loanTaken || d.type == DebtType.emiLoan) && !d.isPaid).fold(0, (sum, d) => sum + d.remainingAmount);
     double totalTheyOwe = debts.where((d) => (d.type == DebtType.theyOwe || d.type == DebtType.loanGiven) && !d.isPaid).fold(0, (sum, d) => sum + d.remainingAmount);
@@ -177,118 +166,230 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
     
     int overdueCount = debts.where((d) => d.isOverdue).length;
 
+    // Fuel spent this month
+    double fuelSpent = financeProvider.transactions
+        .where((t) => t.category.toLowerCase().contains('fuel') && t.date.month == DateTime.now().month)
+        .fold(0, (sum, t) => sum + t.amount);
+
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-              child: Row(
-                children: [
-                  Text('Debt & EMI Tracker', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoanCalculatorScreen())),
-                    icon: Icon(Icons.calculate, color: Theme.of(context).primaryColor, size: 28),
-                  ),
-                  IconButton(
-                    onPressed: () => _showAddDebtModal(financeProvider),
-                    icon: Icon(Icons.add_circle, color: Theme.of(context).primaryColor, size: 28),
-                  ),
-                ],
-              ),
-            ),
-
-            // Dashboard Summary
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: PremiumGradientCard(
-                builder: (context, textColor, subTextColor) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                child: Row(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Net Balance (Debt)', style: TextStyle(color: subTextColor, fontSize: 13)),
-                        if (overdueCount > 0)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.circular(12)),
-                            child: Text('$overdueCount Overdue!', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                          )
-                      ],
+                    Text('Finance Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoanCalculatorScreen())),
+                      icon: Icon(Icons.calculate, color: Theme.of(context).primaryColor, size: 28),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '${netBalance >= 0 ? '+' : '-'} ₹${netBalance.abs().toStringAsFixed(0)}',
-                      style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: -1),
+                    IconButton(
+                      onPressed: () => _showAddDebtModal(financeProvider),
+                      icon: Icon(Icons.add_circle, color: Theme.of(context).primaryColor, size: 28),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('I Owe (Total)', style: TextStyle(color: subTextColor, fontSize: 11)),
-                            Text('₹${totalIOwe.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text('Others Owe Me', style: TextStyle(color: subTextColor, fontSize: 11)),
-                            Text('₹${totalTheyOwe.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Active EMIs', style: TextStyle(color: Colors.white60, fontSize: 11)),
-                            Text('₹${activeEmis.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            const Text('Active Loans', style: TextStyle(color: Colors.white60, fontSize: 11)),
-                            Text('₹${activeLoans.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                          ],
-                        ),
-                      ],
-                    )
                   ],
                 ),
               ),
-            ),
 
-            // Tab Bar
-            TabBar(
-              controller: _tabController,
-              tabs: const [
-                Tab(text: 'Debts (P2P)'),
-                Tab(text: 'Loans & EMIs'),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildList(simpleDebts, financeProvider),
-                  _buildList(loansEmis, financeProvider, isStructured: true),
-                ],
+              // Dashboard Summary
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: PremiumGradientCard(
+                  builder: (context, textColor, subTextColor) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Net Balance (Debt)', style: TextStyle(color: subTextColor, fontSize: 13)),
+                          if (overdueCount > 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.circular(12)),
+                              child: Text('$overdueCount Overdue!', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            )
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${netBalance >= 0 ? '+' : '-'} ₹${netBalance.abs().toStringAsFixed(0)}',
+                        style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: -1),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('I Owe (Total)', style: TextStyle(color: subTextColor, fontSize: 11)),
+                              Text('₹${totalIOwe.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text('Others Owe Me', style: TextStyle(color: subTextColor, fontSize: 11)),
+                              Text('₹${totalTheyOwe.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('Fuel Spent', style: TextStyle(color: subTextColor, fontSize: 11)),
+                              Text('₹${fuelSpent.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Active EMIs', style: TextStyle(color: subTextColor, fontSize: 11)),
+                              Text('₹${activeEmis.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('Active Loans', style: TextStyle(color: subTextColor, fontSize: 11)),
+                              Text('₹${activeLoans.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+
+              // Tools Grid Partition
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: Text('Calculators & Tools', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
+              ),
+              GridView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.7,
+                ),
+                itemCount: allCalculators.length,
+                itemBuilder: (context, index) {
+                  final tool = allCalculators[index];
+                  return GestureDetector(
+                    onTap: () {
+                      if (tool.destination != null) {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => tool.destination!));
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('${tool.title} is coming soon!')),
+                        );
+                      }
+                    },
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+                          ),
+                          child: Text(tool.iconEmoji, style: const TextStyle(fontSize: 20)),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          tool.title, 
+                          textAlign: TextAlign.center, 
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600), 
+                          maxLines: 2, 
+                          overflow: TextOverflow.ellipsis
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Active Debts Partition with Custom Tabs
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _selectedDebtTab = 0),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: _selectedDebtTab == 0 ? Theme.of(context).primaryColor : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Debts (P2P)', 
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: _selectedDebtTab == 0 ? Colors.white : Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _selectedDebtTab = 1),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: _selectedDebtTab == 1 ? Theme.of(context).primaryColor : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Loans & EMIs', 
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: _selectedDebtTab == 1 ? Colors.white : Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              if (_selectedDebtTab == 0)
+                _buildList(simpleDebts, financeProvider, isStructured: false)
+              else
+                _buildList(loansEmis, financeProvider, isStructured: true),
+            ],
+          ),
         ),
       ),
     );
@@ -309,6 +410,8 @@ class _DebtScreenState extends State<DebtScreen> with SingleTickerProviderStateM
     }
 
     return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
       itemCount: list.length,
       itemBuilder: (context, index) {
