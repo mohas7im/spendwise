@@ -6,6 +6,9 @@ class DebtItem {
   final double paidAmount;
   final String dueDate;
   final String notes;
+  final double interestRate;
+  final double emiAmount;
+  final int tenureMonths;
 
   DebtItem({
     required this.id,
@@ -15,6 +18,9 @@ class DebtItem {
     required this.paidAmount,
     required this.dueDate,
     this.notes = '',
+    this.interestRate = 0.0,
+    this.emiAmount = 0.0,
+    this.tenureMonths = 0,
   });
 
   DebtItem copyWith({
@@ -24,6 +30,9 @@ class DebtItem {
     double? paidAmount,
     String? dueDate,
     String? notes,
+    double? interestRate,
+    double? emiAmount,
+    int? tenureMonths,
   }) {
     return DebtItem(
       id: id,
@@ -33,6 +42,9 @@ class DebtItem {
       paidAmount: paidAmount ?? this.paidAmount,
       dueDate: dueDate ?? this.dueDate,
       notes: notes ?? this.notes,
+      interestRate: interestRate ?? this.interestRate,
+      emiAmount: emiAmount ?? this.emiAmount,
+      tenureMonths: tenureMonths ?? this.tenureMonths,
     );
   }
 }
