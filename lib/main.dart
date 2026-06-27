@@ -7,8 +7,12 @@ import 'providers/split_provider.dart';
 import 'providers/friends_provider.dart';
 import 'providers/budget_provider.dart';
 import 'providers/fuel_provider.dart';
+import 'services/notification_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().init();
+  
   runApp(
     MultiProvider(
       providers: [

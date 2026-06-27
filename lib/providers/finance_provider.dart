@@ -3,13 +3,16 @@ import '../models/debt.dart';
 import '../services/dummy_data_service.dart';
 import '../models/income_source.dart';
 import '../models/transaction.dart';
+import '../models/subscription.dart';
+import '../services/db_helper.dart';
+import '../services/notification_service.dart';
 
 class FinanceProvider extends ChangeNotifier {
   double _totalBalance = 24500.00;
   List<DebtModel> _debts = [];
   List<IncomeSource> _incomeSources = [];
   List<TransactionModel> _transactions = [];
-  List<Map<String, dynamic>> _subscriptions = [];
+  List<SubscriptionModel> _subscriptions = [];
 
   FinanceProvider() {
     _debts = DummyDataService.getDummyDebts();
@@ -18,19 +21,44 @@ class FinanceProvider extends ChangeNotifier {
       IncomeSource(id: 'inc2', name: 'Freelance Design', amount: 15000, type: IncomeType.freelance, frequency: IncomeFrequency.monthly, creditDate: 28),
     ];
     _transactions = DummyDataService.getDummyTransactions();
-    _subscriptions = [
-      {'name': 'Netflix', 'cost': 649.0, 'cycle': 'Monthly', 'nextBilling': DateTime.now().add(const Duration(days: 4)), 'color': Colors.redAccent, 'icon': Icons.movie},
-      {'name': 'Spotify', 'cost': 119.0, 'cycle': 'Monthly', 'nextBilling': DateTime.now().add(const Duration(days: 12)), 'color': Colors.green, 'icon': Icons.music_note},
-      {'name': 'Gym Membership', 'cost': 1500.0, 'cycle': 'Monthly', 'nextBilling': DateTime.now().add(const Duration(days: 2)), 'color': Colors.blueAccent, 'icon': Icons.fitness_center},
-      {'name': 'Amazon Prime', 'cost': 1499.0, 'cycle': 'Yearly', 'nextBilling': DateTime.now().add(const Duration(days: 110)), 'color': Colors.lightBlue, 'icon': Icons.shopping_cart},
-    ];
+    _initSubscriptions();
+  }
+
+  Future<void> _initSubscriptions() async {
+    _subscriptions = await DatabaseHelper().getSubscriptions();
+    final now = DateTime.now();
+    bool needsNotify = false;
+
+    for (var sub in _subscriptions) {
+      if (!sub.isPaused && sub.nextBilling.isBefore(now)) {
+        // Auto-deduct missed payments
+        while (sub.nextBilling.isBefore(now)) {
+          _totalBalance -= sub.cost;
+          sub.paymentHistory.add(SubscriptionPayment(date: sub.nextBilling, amount: sub.cost));
+          
+          if (sub.cycle == 'Monthly') {
+            sub.nextBilling = DateTime(sub.nextBilling.year, sub.nextBilling.month + 1, sub.nextBilling.day);
+          } else if (sub.cycle == 'Yearly') {
+            sub.nextBilling = DateTime(sub.nextBilling.year + 1, sub.nextBilling.month, sub.nextBilling.day);
+          } else {
+            sub.nextBilling = sub.nextBilling.add(Duration(days: sub.customDays ?? 30));
+          }
+        }
+        await DatabaseHelper().updateSubscription(sub);
+        needsNotify = true;
+      }
+      // Reschedule reminders
+      NotificationService().scheduleSubscriptionReminder(sub);
+    }
+    
+    if (needsNotify) notifyListeners();
   }
 
   double get totalBalance => _totalBalance;
   List<DebtModel> get debts => _debts;
   List<IncomeSource> get incomeSources => _incomeSources;
   List<TransactionModel> get transactions => _transactions;
-  List<Map<String, dynamic>> get subscriptions => _subscriptions;
+  List<SubscriptionModel> get subscriptions => _subscriptions;
 
   void recordDebtPayment(String debtId, double paymentAmount, {PaymentStatus status = PaymentStatus.paid, String? note}) {
     final debtIndex = _debts.indexWhere((d) => d.id == debtId);
@@ -76,23 +104,29 @@ class FinanceProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addSubscription(Map<String, dynamic> sub) {
+  Future<void> addSubscription(SubscriptionModel sub) async {
     _subscriptions.add(sub);
+    await DatabaseHelper().insertSubscription(sub);
+    NotificationService().scheduleSubscriptionReminder(sub);
     notifyListeners();
   }
 
-  void updateSubscription(int index, Map<String, dynamic> sub) {
-    if (index >= 0 && index < _subscriptions.length) {
+  Future<void> updateSubscription(String id, SubscriptionModel sub) async {
+    final index = _subscriptions.indexWhere((s) => s.id == id);
+    if (index != -1) {
       _subscriptions[index] = sub;
+      await DatabaseHelper().updateSubscription(sub);
+      NotificationService().cancelReminder(id);
+      NotificationService().scheduleSubscriptionReminder(sub);
       notifyListeners();
     }
   }
 
-  void deleteSubscription(int index) {
-    if (index >= 0 && index < _subscriptions.length) {
-      _subscriptions.removeAt(index);
-      notifyListeners();
-    }
+  Future<void> deleteSubscription(String id) async {
+    _subscriptions.removeWhere((s) => s.id == id);
+    await DatabaseHelper().deleteSubscription(id);
+    NotificationService().cancelReminder(id);
+    notifyListeners();
   }
 
   void addIncomeSource(IncomeSource source) {
