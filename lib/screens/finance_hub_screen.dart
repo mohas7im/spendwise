@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/calculators_menu_modal.dart';
+import '../widgets/common/premium_gradient_card.dart';
 import 'modules/debts_manager_modal.dart';
 import 'modules/savings_goals_modal.dart';
 import 'modules/savings_growth_modal.dart';
@@ -184,28 +185,14 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
   }
 
   Widget _buildSummaryDashboard(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Column(
+    return PremiumGradientCard(
+      builder: (context, textColor, subTextColor) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Net Balance', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 14)),
+              Text('Net Balance', style: TextStyle(color: subTextColor, fontSize: 14)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -217,14 +204,14 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          Text('₹1,45,000', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 32, fontWeight: FontWeight.bold)),
+          Text('₹1,45,000', style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.bold)),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildSummaryStat(context, 'I Owe', '₹12,500', Colors.red),
-              _buildSummaryStat(context, 'Owed to Me', '₹4,200', Colors.green),
-              _buildSummaryStat(context, 'EMIs Due', '₹8,500', Colors.orange),
+              _buildSummaryStat(context, 'I Owe', '₹12,500', Colors.red, textColor, subTextColor),
+              _buildSummaryStat(context, 'Owed to Me', '₹4,200', Colors.green, textColor, subTextColor),
+              _buildSummaryStat(context, 'EMIs Due', '₹8,500', Colors.orange, textColor, subTextColor),
             ],
           ),
         ],
@@ -232,17 +219,17 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
     );
   }
 
-  Widget _buildSummaryStat(BuildContext context, String label, String value, Color iconColor) {
+  Widget _buildSummaryStat(BuildContext context, String label, String value, Color iconColor, Color textColor, Color subTextColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 12)),
+        Text(label, style: TextStyle(color: subTextColor, fontSize: 12)),
         const SizedBox(height: 4),
         Row(
           children: [
             Container(width: 8, height: 8, decoration: BoxDecoration(color: iconColor, shape: BoxShape.circle)),
             const SizedBox(width: 6),
-            Text(value, style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 14, fontWeight: FontWeight.bold)),
+            Text(value, style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold)),
           ],
         ),
       ],

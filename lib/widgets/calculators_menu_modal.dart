@@ -155,10 +155,10 @@ class _CalculatorTile extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: color, size: 28),
+                  child: Icon(icon, color: Theme.of(context).primaryColor, size: 28),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
