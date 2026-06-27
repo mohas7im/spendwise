@@ -81,7 +81,7 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                           const SizedBox(width: 16),
                           Expanded(
                             child: DropdownButtonFormField<String>(
-                              value: accType,
+                              initialValue: accType,
                               decoration: const InputDecoration(labelText: 'Account Type', border: OutlineInputBorder()),
                               items: ['Savings', 'Current', 'Salary', 'Fixed Deposit'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                               onChanged: (val) => setModalState(() => accType = val!),
@@ -144,7 +144,7 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
     final cvvCtrl = TextEditingController(text: existingCard?.cvv ?? '');
     final holderCtrl = TextEditingController(text: existingCard?.holderName ?? '');
     final notesCtrl = TextEditingController(text: existingCard?.notes ?? '');
-    int selectedColor = existingCard?.colorValue ?? Colors.indigo.value;
+    int selectedColor = existingCard?.colorValue ?? Colors.indigo.toARGB32();
     String cardType = existingCard?.cardType.isNotEmpty == true ? existingCard!.cardType : 'Credit';
     String network = existingCard?.network.isNotEmpty == true ? existingCard!.network : 'Visa';
 
@@ -201,7 +201,7 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                         children: [
                           Expanded(
                             child: DropdownButtonFormField<String>(
-                              value: cardType,
+                              initialValue: cardType,
                               decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder()),
                               items: ['Credit', 'Debit', 'Prepaid'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                               onChanged: (val) => setModalState(() => cardType = val!),
@@ -210,7 +210,7 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                           const SizedBox(width: 16),
                           Expanded(
                             child: DropdownButtonFormField<String>(
-                              value: network,
+                              initialValue: network,
                               decoration: const InputDecoration(labelText: 'Network', border: OutlineInputBorder()),
                               items: ['Visa', 'Mastercard', 'RuPay', 'Amex'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                               onChanged: (val) => setModalState(() => network = val!),
@@ -224,11 +224,11 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                       Wrap(
                         spacing: 12,
                         children: [Colors.deepPurple, Colors.black87, Colors.indigo, Colors.redAccent, Colors.teal, Colors.orange].map((c) => GestureDetector(
-                          onTap: () => setModalState(() => selectedColor = c.value),
+                          onTap: () => setModalState(() => selectedColor = c.toARGB32()),
                           child: CircleAvatar(
                             backgroundColor: c,
                             radius: 20,
-                            child: selectedColor == c.value ? const Icon(Icons.check, color: Colors.white) : null,
+                            child: selectedColor == c.toARGB32() ? const Icon(Icons.check, color: Colors.white) : null,
                           ),
                         )).toList(),
                       ),
@@ -637,12 +637,11 @@ class _StackedCardsView extends StatefulWidget {
   final Widget Function(PaymentCard) buildBack;
 
   const _StackedCardsView({
-    Key? key,
     required this.cards,
     required this.onCardLongPress,
     required this.buildFront,
     required this.buildBack,
-  }) : super(key: key);
+  });
 
   @override
   State<_StackedCardsView> createState() => _StackedCardsViewState();

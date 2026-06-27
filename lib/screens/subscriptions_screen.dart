@@ -27,7 +27,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     );
     DateTime nextBilling = existingSub?.nextBilling ?? DateTime.now().add(const Duration(days: 30));
     
-    int selectedColor = existingSub?.colorValue ?? Colors.deepPurpleAccent.value;
+    int selectedColor = existingSub?.colorValue ?? Colors.deepPurpleAccent.toARGB32();
     int selectedIcon = existingSub?.iconCodePoint ?? Icons.subscriptions.codePoint;
     String currency = existingSub?.currency ?? '₹';
     
@@ -66,7 +66,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     Expanded(
                       flex: 2,
                       child: DropdownButtonFormField<String>(
-                        value: currency,
+                        initialValue: currency,
                         decoration: const InputDecoration(labelText: 'Currency', border: OutlineInputBorder()),
                         items: currencies.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                         onChanged: (val) => setModalState(() => currency = val!),
@@ -92,7 +92,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 const SizedBox(height: 16),
                 
                 DropdownButtonFormField<String>(
-                  value: cycle,
+                  initialValue: cycle,
                   decoration: const InputDecoration(labelText: 'Billing Cycle', border: OutlineInputBorder()),
                   items: ['Monthly', 'Yearly', 'Custom (Days)'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                   onChanged: (val) => setModalState(() => cycle = val!),
@@ -130,11 +130,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 Wrap(
                   spacing: 12,
                   children: colors.map((c) => GestureDetector(
-                    onTap: () => setModalState(() => selectedColor = c.value),
+                    onTap: () => setModalState(() => selectedColor = c.toARGB32()),
                     child: CircleAvatar(
                       backgroundColor: c,
                       radius: 20,
-                      child: selectedColor == c.value ? const Icon(Icons.check, color: Colors.white) : null,
+                      child: selectedColor == c.toARGB32() ? const Icon(Icons.check, color: Colors.white) : null,
                     ),
                   )).toList(),
                 ),

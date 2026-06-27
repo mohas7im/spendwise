@@ -99,5 +99,6 @@ class SubscriptionModel {
   }
 
   Color get color => Color(colorValue);
+  // ignore: non_const_argument_for_const_parameter
   IconData get icon => IconData(iconCodePoint, fontFamily: iconFontFamily);
 }

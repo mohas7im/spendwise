@@ -34,7 +34,7 @@ class FinanceHubScreen extends StatefulWidget {
 class _FinanceHubScreenState extends State<FinanceHubScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   ToolCategory _selectedCategory = ToolCategory.favorite;
-  Set<String> _favorites = {}; // We will load this from SharedPreferences later
+  final Set<String> _favorites = {}; // We will load this from SharedPreferences later
 
   @override
   Widget build(BuildContext context) {
@@ -280,7 +280,7 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: filtered.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 16),
+        separatorBuilder: (ctx, idx) => const SizedBox(height: 16),
         itemBuilder: (ctx, i) => _buildToolCard(filtered[i]),
       ),
     );
@@ -338,8 +338,11 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
                           GestureDetector(
                             onTap: () {
                               setState(() {
-                                if (isFavorite) _favorites.remove(tool.id);
-                                else _favorites.add(tool.id);
+                                if (isFavorite) {
+                                  _favorites.remove(tool.id);
+                                } else {
+                                  _favorites.add(tool.id);
+                                }
                               });
                             },
                             child: Icon(

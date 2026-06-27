@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../widgets/add_transaction_modal.dart';
 
 class QuickActionsModal extends StatelessWidget {
@@ -7,7 +6,6 @@ class QuickActionsModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final primary = Theme.of(context).primaryColor;
 
     return Padding(

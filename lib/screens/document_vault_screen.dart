@@ -68,7 +68,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                   child: Column(
                     children: [
                       DropdownButtonFormField<String>(
-                        value: cat,
+                        initialValue: cat,
                         decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
                         items: _categories.where((c) => c != 'All').map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                         onChanged: (val) => setModalState(() => cat = val!),
