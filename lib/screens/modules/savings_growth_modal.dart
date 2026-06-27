@@ -170,84 +170,106 @@ class SavingsGrowthModal extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(existingItem == null ? 'Add Investment' : 'Edit Investment', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: type,
-                  decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder()),
-                  items: ['Fixed Deposit', 'Mutual Fund', 'Stock', 'Other'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                  onChanged: (val) => setModalState(() => type = val!),
-                ),
-                const SizedBox(height: 16),
-                TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Investment Name', border: OutlineInputBorder())),
-                const SizedBox(height: 16),
-                TextField(controller: prinCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Principal Amount', border: OutlineInputBorder())),
-                const SizedBox(height: 16),
-                TextField(controller: curCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Current Value', border: OutlineInputBorder())),
-                const SizedBox(height: 16),
-                TextField(controller: rateCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Expected Return Rate (%)', border: OutlineInputBorder())),
-                const SizedBox(height: 16),
-                const Text('Color', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 12,
-                  children: [Colors.teal, Colors.green, Colors.blue, Colors.orange, Colors.purple, Colors.pink].map((c) => GestureDetector(
-                    onTap: () => setModalState(() => selectedColor = c.toARGB32()),
-                    child: CircleAvatar(
-                      backgroundColor: c,
-                      radius: 20,
-                      child: selectedColor == c.toARGB32() ? const Icon(Icons.check, color: Colors.white) : null,
-                    ),
-                  )).toList(),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    onPressed: () {
-                      if (nameCtrl.text.isNotEmpty && prinCtrl.text.isNotEmpty) {
-                        final provider = Provider.of<FinanceHubProvider>(context, listen: false);
-                        final item = SavingsGrowthItem(
-                          id: existingItem?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-                          name: nameCtrl.text,
-                          type: type,
-                          principal: double.tryParse(prinCtrl.text) ?? 0,
-                          currentAmount: double.tryParse(curCtrl.text) ?? 0,
-                          returnRate: double.tryParse(rateCtrl.text) ?? 0,
-                          colorValue: selectedColor,
-                        );
-                        if (existingItem == null) {
-                          provider.addGrowthItem(item);
-                        } else {
-                          provider.updateGrowthItem(item);
-                        }
-                        Navigator.pop(ctx);
-                      }
-                    },
-                    child: Text(existingItem == null ? 'Add Investment' : 'Save Changes'),
+        builder: (context, setModalState) {
+          final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+          return AnimatedPadding(
+            padding: EdgeInsets.only(bottom: bottomInset),
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.fastOutSlowIn,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.fastOutSlowIn,
+              height: (MediaQuery.of(context).size.height * 0.92 - bottomInset).clamp(300.0, double.infinity),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 12),
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
                   ),
-                ),
-                const SizedBox(height: 24),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+                        Text(existingItem == null ? 'Add Investment' : 'Edit Investment',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
+                        TextButton(
+                          onPressed: () {
+                            if (nameCtrl.text.isNotEmpty && prinCtrl.text.isNotEmpty) {
+                              final provider = Provider.of<FinanceHubProvider>(context, listen: false);
+                              final item = SavingsGrowthItem(
+                                id: existingItem?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                                name: nameCtrl.text,
+                                type: type,
+                                principal: double.tryParse(prinCtrl.text) ?? 0,
+                                currentAmount: double.tryParse(curCtrl.text) ?? 0,
+                                returnRate: double.tryParse(rateCtrl.text) ?? 0,
+                                colorValue: selectedColor,
+                              );
+                              if (existingItem == null) {
+                                provider.addGrowthItem(item);
+                              } else {
+                                provider.updateGrowthItem(item);
+                              }
+                              Navigator.pop(ctx);
+                            }
+                          },
+                          child: Text(existingItem == null ? 'Save' : 'Update', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<String>(
+                            initialValue: type,
+                            decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder()),
+                            items: ['Fixed Deposit', 'Mutual Fund', 'Stock', 'Other'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                            onChanged: (val) => setModalState(() => type = val!),
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Investment Name', border: OutlineInputBorder())),
+                          const SizedBox(height: 16),
+                          TextField(controller: prinCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Principal Amount', border: OutlineInputBorder())),
+                          const SizedBox(height: 16),
+                          TextField(controller: curCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Current Value', border: OutlineInputBorder())),
+                          const SizedBox(height: 16),
+                          TextField(controller: rateCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Expected Return Rate (%)', border: OutlineInputBorder())),
+                          const SizedBox(height: 16),
+                          const Text('Color', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 12,
+                            children: [Colors.teal, Colors.green, Colors.blue, Colors.orange, Colors.purple, Colors.pink].map((c) => GestureDetector(
+                              onTap: () => setModalState(() => selectedColor = c.toARGB32()),
+                              child: CircleAvatar(
+                                backgroundColor: c,
+                                radius: 20,
+                                child: selectedColor == c.toARGB32() ? const Icon(Icons.check, color: Colors.white) : null,
+                              ),
+                            )).toList(),
+                          ),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

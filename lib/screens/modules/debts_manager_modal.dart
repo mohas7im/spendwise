@@ -172,69 +172,91 @@ class DebtsManagerModal extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(existingDebt == null ? 'Add Debt / Loan' : 'Edit Debt / Loan', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: type,
-                  decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder()),
-                  items: ['I Owe', 'They Owe Me', 'EMI'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                  onChanged: (val) => setModalState(() => type = val!),
-                ),
-                const SizedBox(height: 16),
-                TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Name (e.g. John, Car Loan)', border: OutlineInputBorder())),
-                const SizedBox(height: 16),
-                TextField(controller: totalCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Total Amount', border: OutlineInputBorder())),
-                const SizedBox(height: 16),
-                TextField(controller: paidCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Paid Amount', border: OutlineInputBorder())),
-                const SizedBox(height: 16),
-                TextField(controller: dueCtrl, decoration: const InputDecoration(labelText: 'Due Date / Schedule', border: OutlineInputBorder())),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    onPressed: () {
-                      if (nameCtrl.text.isNotEmpty && totalCtrl.text.isNotEmpty) {
-                        final provider = Provider.of<FinanceHubProvider>(context, listen: false);
-                        final item = DebtItem(
-                          id: existingDebt?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-                          name: nameCtrl.text,
-                          type: type,
-                          totalAmount: double.tryParse(totalCtrl.text) ?? 0,
-                          paidAmount: double.tryParse(paidCtrl.text) ?? 0,
-                          dueDate: dueCtrl.text,
-                        );
-                        if (existingDebt == null) {
-                          provider.addDebt(item);
-                        } else {
-                          provider.updateDebt(item);
-                        }
-                        Navigator.pop(ctx);
-                      }
-                    },
-                    child: Text(existingDebt == null ? 'Add' : 'Save Changes'),
+        builder: (context, setModalState) {
+          final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+          return AnimatedPadding(
+            padding: EdgeInsets.only(bottom: bottomInset),
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.fastOutSlowIn,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.fastOutSlowIn,
+              height: (MediaQuery.of(context).size.height * 0.92 - bottomInset).clamp(300.0, double.infinity),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 12),
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
                   ),
-                ),
-                const SizedBox(height: 24),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+                        Text(existingDebt == null ? 'Add Debt / Loan' : 'Edit Debt / Loan',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
+                        TextButton(
+                          onPressed: () {
+                            if (nameCtrl.text.isNotEmpty && totalCtrl.text.isNotEmpty) {
+                              final provider = Provider.of<FinanceHubProvider>(context, listen: false);
+                              final item = DebtItem(
+                                id: existingDebt?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                                name: nameCtrl.text,
+                                type: type,
+                                totalAmount: double.tryParse(totalCtrl.text) ?? 0,
+                                paidAmount: double.tryParse(paidCtrl.text) ?? 0,
+                                dueDate: dueCtrl.text,
+                              );
+                              if (existingDebt == null) {
+                                provider.addDebt(item);
+                              } else {
+                                provider.updateDebt(item);
+                              }
+                              Navigator.pop(ctx);
+                            }
+                          },
+                          child: Text(existingDebt == null ? 'Save' : 'Update', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<String>(
+                            initialValue: type,
+                            decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder()),
+                            items: ['I Owe', 'They Owe Me', 'EMI'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                            onChanged: (val) => setModalState(() => type = val!),
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Name (e.g. John, Car Loan)', border: OutlineInputBorder())),
+                          const SizedBox(height: 16),
+                          TextField(controller: totalCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Total Amount', border: OutlineInputBorder())),
+                          const SizedBox(height: 16),
+                          TextField(controller: paidCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Paid Amount', border: OutlineInputBorder())),
+                          const SizedBox(height: 16),
+                          TextField(controller: dueCtrl, decoration: const InputDecoration(labelText: 'Due Date / Schedule', border: OutlineInputBorder())),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
