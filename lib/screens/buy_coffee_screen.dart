@@ -117,21 +117,24 @@ class _BuyCoffeeScreenState extends State<BuyCoffeeScreen> {
 
             const SizedBox(height: 48),
             
-            PremiumGradientCard(
-              builder: (context, textColor, subTextColor) {
-                return InkWell(
-                  onTap: _processPayment,
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    height: 50,
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Pay Now',
-                      style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold),
+            SizedBox(
+              width: 200,
+              child: PremiumGradientCard(
+                builder: (context, textColor, subTextColor) {
+                  return InkWell(
+                    onTap: _processPayment,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      height: 48,
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Pay Now',
+                        style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ],
         ),
