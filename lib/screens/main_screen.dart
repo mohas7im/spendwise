@@ -4,7 +4,7 @@ import 'budget_screen.dart';
 import 'debt_screen.dart';
 import 'stats_screen.dart';
 import 'subscriptions_screen.dart';
-import 'calculator_hub_screen.dart';
+import 'finance_hub_screen.dart';
 import '../widgets/add_transaction_modal.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
@@ -105,15 +105,24 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  final List<Widget> _screens = [
-    const DashboardScreen(),
-    const BudgetScreen(),
-    const CalculatorHubScreen(),
-    Container(), // '+' add action
-    const DebtScreen(),
-    const StatsScreen(),
-    const SubscriptionsScreen(),
-  ];
+  Widget _getCurrentScreen() {
+    switch (_currentIndex) {
+      case 0:
+        return const DashboardScreen();
+      case 1:
+        return const BudgetScreen();
+      case 2:
+        return const FinanceHubScreen(); // Replaced CalculatorHubScreen
+      case 4:
+        return const DebtScreen();
+      case 5:
+        return const StatsScreen();
+      case 6:
+        return const SubscriptionsScreen();
+      default:
+        return const DashboardScreen();
+    }
+  }
 
   void _onItemTapped(int index) {
     if (index == 3) {
@@ -143,7 +152,7 @@ class _MainScreenState extends State<MainScreen> {
       extendBody: true,
       body: Stack(
         children: [
-          _screens[_currentIndex],
+          _getCurrentScreen(),
 
           // Floating Bottom Navigation Bar
           Positioned(
