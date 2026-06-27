@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/calculators_menu_modal.dart';
+import 'modules/debts_manager_modal.dart';
+import 'modules/savings_goals_modal.dart';
+import 'modules/savings_growth_modal.dart';
 
 class FinanceHubScreen extends StatefulWidget {
   const FinanceHubScreen({super.key});
@@ -9,7 +12,6 @@ class FinanceHubScreen extends StatefulWidget {
 }
 
 class _FinanceHubScreenState extends State<FinanceHubScreen> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,7 +52,7 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
           children: [
             _buildSummaryDashboard(context),
             const SizedBox(height: 24),
-            _buildActiveLoansAndDebts(),
+            _buildModuleCards(context),
             const SizedBox(height: 100), // padding for FAB
           ],
         ),
@@ -58,61 +60,57 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
     );
   }
 
-  Widget _buildActiveLoansAndDebts() {
+  Widget _buildModuleCards(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Active Debts & Loans', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Finance Modules', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
-        _DebtCard(
-          name: 'Sarah Connor',
-          type: 'They Owe Me',
-          totalAmount: 5000,
-          paidAmount: 2500,
-          dueDate: '15 Aug 2026',
-          status: 'Active',
-          onTap: () => _showDebtDetailsModal(),
+        _ModuleCard(
+          title: 'Debts & Loans',
+          description: 'Track people who owe you, EMIs, and active debts.',
+          icon: Icons.account_balance_wallet,
+          color: Colors.blue,
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (ctx) => const DebtsManagerModal(),
+            );
+          },
         ),
         const SizedBox(height: 16),
-        _DebtCard(
-          name: 'HDFC Car Loan',
-          type: 'I Owe',
-          totalAmount: 500000,
-          paidAmount: 120000,
-          dueDate: '5th of Every Month',
-          status: 'Active',
-          onTap: () => _showDebtDetailsModal(),
+        _ModuleCard(
+          title: 'Savings Goals',
+          description: 'Set and track your goals for a car, vacation, or home.',
+          icon: Icons.track_changes,
+          color: Colors.green,
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (ctx) => const SavingsGoalsModal(),
+            );
+          },
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        _ModuleCard(
+          title: 'Growth & Investments',
+          description: 'Track your Mutual Funds, FDs, and compound returns.',
+          icon: Icons.trending_up,
+          color: Colors.teal,
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (ctx) => const SavingsGrowthModal(),
+            );
+          },
+        ),
       ],
-    );
-  }
-
-  void _showDebtDetailsModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 24),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
-              const SizedBox(height: 24),
-              const Text('Debt Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const Spacer(),
-              const Center(child: Text('Detailed Payment History & EMI Schedule Here')),
-              const Spacer(),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -183,31 +181,23 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
   }
 }
 
-class _DebtCard extends StatelessWidget {
-  final String name;
-  final String type;
-  final double totalAmount;
-  final double paidAmount;
-  final String dueDate;
-  final String status;
+class _ModuleCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color color;
   final VoidCallback onTap;
 
-  const _DebtCard({
-    required this.name,
-    required this.type,
-    required this.totalAmount,
-    required this.paidAmount,
-    required this.dueDate,
-    required this.status,
+  const _ModuleCard({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.color,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final progress = paidAmount / totalAmount;
-    final isOwedToMe = type == 'They Owe Me';
-    final primaryColor = isOwedToMe ? Colors.green : Colors.redAccent;
-
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -226,65 +216,29 @@ class _DebtCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(20),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: primaryColor.withValues(alpha: 0.1),
-                      child: Text(name[0], style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          Text(type, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(status, style: TextStyle(color: primaryColor, fontSize: 10, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color, size: 32),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Total Amount', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        Text('₹${totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        const Text('Paid Amount', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        Text('₹${paidAmount.toStringAsFixed(0)}', style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 16)),
-                      ],
-                    ),
-                  ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      const SizedBox(height: 4),
+                      Text(description, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: Colors.grey.withValues(alpha: 0.2),
-                  valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                const SizedBox(height: 12),
-                Text('Next Due: $dueDate', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Icon(Icons.chevron_right, color: Colors.grey[400]),
               ],
             ),
           ),

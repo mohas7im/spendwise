@@ -8,6 +8,7 @@ import 'providers/friends_provider.dart';
 import 'providers/budget_provider.dart';
 import 'providers/fuel_provider.dart';
 import 'providers/vault_provider.dart';
+import 'providers/finance_hub_provider.dart';
 import 'services/notification_service.dart';
 
 void main() async {
@@ -24,6 +25,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => FuelProvider()),
         ChangeNotifierProvider(create: (_) => FriendsProvider()),
         ChangeNotifierProvider(create: (_) => VaultProvider()),
+        ChangeNotifierProvider(create: (_) => FinanceHubProvider()),
       ],
       child: const ExpenseTrackerApp(),
     ),
