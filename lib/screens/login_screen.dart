@@ -163,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
 
                     // Bottom spacing
-                    const Spacer(),
+                    const SizedBox(height: 32),
                     
                     // Toggle Auth Mode
                     Row(
