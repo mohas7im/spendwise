@@ -12,11 +12,11 @@ class SubscriptionsScreen extends StatefulWidget {
 
 class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
-  void _showAddSubscriptionModal(BuildContext context, FinanceProvider provider) {
-    final nameCtrl = TextEditingController();
-    final costCtrl = TextEditingController();
-    String cycle = 'Monthly';
-    DateTime nextBilling = DateTime.now().add(const Duration(days: 30));
+  void _showSubscriptionModal(BuildContext context, FinanceProvider provider, {int? editIndex, Map<String, dynamic>? existingSub}) {
+    final nameCtrl = TextEditingController(text: existingSub?['name'] ?? '');
+    final costCtrl = TextEditingController(text: existingSub?['cost']?.toString() ?? '');
+    String cycle = existingSub?['cycle'] ?? 'Monthly';
+    DateTime nextBilling = existingSub?['nextBilling'] ?? DateTime.now().add(const Duration(days: 30));
 
     showModalBottomSheet(
       context: context,
@@ -33,7 +33,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Add Subscription', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              Text(editIndex == null ? 'Add Subscription' : 'Edit Subscription', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               TextField(
                 controller: nameCtrl,
@@ -81,18 +81,23 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   ),
                   onPressed: () {
                     if (nameCtrl.text.isNotEmpty && costCtrl.text.isNotEmpty) {
-                      provider.addSubscription({
+                      final subData = {
                         'name': nameCtrl.text,
                         'cost': double.parse(costCtrl.text),
                         'cycle': cycle,
                         'nextBilling': nextBilling,
-                        'color': Colors.deepPurpleAccent,
-                        'icon': Icons.subscriptions,
-                      });
+                        'color': existingSub?['color'] ?? Colors.deepPurpleAccent,
+                        'icon': existingSub?['icon'] ?? Icons.subscriptions,
+                      };
+                      if (editIndex != null) {
+                        provider.updateSubscription(editIndex, subData);
+                      } else {
+                        provider.addSubscription(subData);
+                      }
                       Navigator.pop(ctx);
                     }
                   },
-                  child: const Text('Add Subscription'),
+                  child: Text(editIndex == null ? 'Add Subscription' : 'Update Subscription'),
                 ),
               ),
               const SizedBox(height: 24),
@@ -127,7 +132,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     Text('Subscriptions', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                     const Spacer(),
                     IconButton(
-                      onPressed: () => _showAddSubscriptionModal(context, financeProvider),
+                      onPressed: () => _showSubscriptionModal(context, financeProvider),
                       icon: Icon(Icons.add_circle, color: Theme.of(context).primaryColor, size: 28),
                     ),
                   ],
@@ -218,13 +223,27 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                               Text('₹${sub['cost'].toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                               const SizedBox(height: 4),
                               Text(
-                                daysLeft == 0 ? 'Today' : 'In $daysLeft days',
+                                daysLeft == 0 ? 'Today' : (daysLeft < 0 ? 'Overdue' : 'In $daysLeft days'),
                                 style: TextStyle(
                                   color: daysLeft <= 3 ? Colors.redAccent : Colors.grey,
                                   fontWeight: daysLeft <= 3 ? FontWeight.bold : FontWeight.normal,
                                   fontSize: 12,
                                 ),
                               ),
+                            ],
+                          ),
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert, color: Colors.grey),
+                            onSelected: (val) {
+                              if (val == 'edit') {
+                                _showSubscriptionModal(context, financeProvider, editIndex: index, existingSub: sub);
+                              } else if (val == 'delete') {
+                                financeProvider.deleteSubscription(index);
+                              }
+                            },
+                            itemBuilder: (ctx) => [
+                              const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                              const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
                             ],
                           ),
                         ],

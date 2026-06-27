@@ -81,6 +81,20 @@ class FinanceProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateSubscription(int index, Map<String, dynamic> sub) {
+    if (index >= 0 && index < _subscriptions.length) {
+      _subscriptions[index] = sub;
+      notifyListeners();
+    }
+  }
+
+  void deleteSubscription(int index) {
+    if (index >= 0 && index < _subscriptions.length) {
+      _subscriptions.removeAt(index);
+      notifyListeners();
+    }
+  }
+
   void addIncomeSource(IncomeSource source) {
     _incomeSources.add(source);
     notifyListeners();
