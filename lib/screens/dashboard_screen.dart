@@ -9,6 +9,7 @@ import '../widgets/spending_breakdown_sheet.dart';
 import '../widgets/add_transaction_modal.dart';
 import 'profile_screen.dart';
 import 'accounts_screen.dart';
+import 'all_activity_screen.dart';
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -161,7 +162,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text('Recent Activity', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
                 TextButton(
-                  onPressed: () => showSpendingBreakdownSheet(context, 'All Time'),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AllActivityScreen())),
                   child: const Text('See all'),
                 ),
               ],
