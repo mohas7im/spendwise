@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flip_card/flip_card.dart';
+import 'dart:io';
 import '../providers/vault_provider.dart';
 import '../models/vault_models.dart';
 
@@ -300,17 +302,53 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
             ],
             
             // Attachments summary
-            if (doc.frontImagePath != null || doc.backImagePath != null || doc.pdfPath != null) ...[
+            if (doc.frontImagePath != null || doc.backImagePath != null) ...[
               const Divider(height: 32),
-              const Text('Attachments', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              if (doc.frontImagePath != null) const ListTile(leading: Icon(Icons.image), title: Text('Front Image attached'), contentPadding: EdgeInsets.zero),
-              if (doc.backImagePath != null) const ListTile(leading: Icon(Icons.image), title: Text('Back Image attached'), contentPadding: EdgeInsets.zero),
-              if (doc.pdfPath != null) const ListTile(leading: Icon(Icons.picture_as_pdf), title: Text('PDF attached'), contentPadding: EdgeInsets.zero),
+              const Text('Document Images (Tap to flip)', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              if (doc.frontImagePath != null && doc.backImagePath != null)
+                FlipCard(
+                  direction: FlipDirection.HORIZONTAL,
+                  front: _buildImageCard(doc.frontImagePath!, 'Front'),
+                  back: _buildImageCard(doc.backImagePath!, 'Back'),
+                )
+              else if (doc.frontImagePath != null)
+                _buildImageCard(doc.frontImagePath!, 'Front')
+              else if (doc.backImagePath != null)
+                _buildImageCard(doc.backImagePath!, 'Back'),
+            ],
+            if (doc.pdfPath != null) ...[
+              const Divider(height: 16),
+              const ListTile(leading: Icon(Icons.picture_as_pdf), title: Text('PDF attached'), contentPadding: EdgeInsets.zero),
             ],
             const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildImageCard(String imagePath, String label) {
+    return Container(
+      width: double.infinity,
+      height: 220,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+        image: DecorationImage(
+          image: FileImage(File(imagePath)),
+          fit: BoxFit.cover,
+        ),
+      ),
+      alignment: Alignment.bottomRight,
+      child: Container(
+        margin: const EdgeInsets.all(8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -327,7 +365,7 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Document Vault', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 22)),
+        title: Text('Documents', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 22)),
         centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,

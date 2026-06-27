@@ -52,7 +52,7 @@ class PersonalVaultScreen extends StatelessWidget {
                   children: [
                     _buildVaultTile(
                       context: context,
-                      title: 'Document Vault',
+                      title: 'Documents',
                       subtitle: 'Aadhaar, PAN, Passports',
                       icon: Icons.folder_special,
                       onTap: () =>
