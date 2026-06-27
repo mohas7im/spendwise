@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'fuel_screen.dart'; // We will link Fuel tools here
 import 'expense_group_screen.dart';
+import 'loan_calculator_screen.dart';
+import 'calculators/emi_calculator_screen.dart';
+import 'calculators/savings_growth_screen.dart';
+import 'calculators/loan_affordability_screen.dart';
 enum CalcCategory {
   expense,
   loan,
@@ -53,12 +57,10 @@ final List<CalculatorItem> allCalculators = [
   CalculatorItem(id: 'exp_savings', title: 'Savings Goal', iconEmoji: '🎯', category: CalcCategory.expense),
   
   // Loan & Finance
-  CalculatorItem(id: 'fin_emi', title: 'EMI', iconEmoji: '🏦', category: CalcCategory.loan),
-  CalculatorItem(id: 'fin_loan_int', title: 'Loan Interest', iconEmoji: '📉', category: CalcCategory.loan),
-  CalculatorItem(id: 'fin_comp_int', title: 'Compound Interest', iconEmoji: '📈', category: CalcCategory.loan),
-  CalculatorItem(id: 'fin_simp_int', title: 'Simple Interest', iconEmoji: '₹', category: CalcCategory.loan),
-  CalculatorItem(id: 'fin_afford', title: 'Loan Affordability', iconEmoji: '🏠', category: CalcCategory.loan),
-  CalculatorItem(id: 'fin_sav_grwth', title: 'Savings Growth', iconEmoji: '🌱', category: CalcCategory.loan),
+  CalculatorItem(id: 'fin_emi', title: 'EMI', iconEmoji: '🏦', category: CalcCategory.loan, destination: const EmiCalculatorScreen()),
+  CalculatorItem(id: 'fin_loan_int', title: 'Loan Interest', iconEmoji: '📉', category: CalcCategory.loan, destination: const LoanCalculatorScreen()),
+  CalculatorItem(id: 'fin_afford', title: 'Loan Affordability', iconEmoji: '🏠', category: CalcCategory.loan, destination: const LoanAffordabilityScreen()),
+  CalculatorItem(id: 'fin_sav_grwth', title: 'Savings Growth', iconEmoji: '🌱', category: CalcCategory.loan, destination: const SavingsGrowthScreen()),
   
   // Fuel & Vehicle
   CalculatorItem(id: 'fuel_qty', title: 'Fuel Quantity', iconEmoji: '⛽', category: CalcCategory.fuel, destination: const FuelScreen(initialTab: 0)),
@@ -122,7 +124,20 @@ class _CalculatorHubScreenState extends State<CalculatorHubScreen> {
     });
 
     if (item.destination != null) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => item.destination!));
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => Container(
+          height: MediaQuery.of(context).size.height * 0.92,
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: item.destination!,
+        ),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

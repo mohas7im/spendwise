@@ -185,7 +185,22 @@ class _DebtScreenState extends State<DebtScreen> {
                     Text('Finance Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                     const Spacer(),
                     IconButton(
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoanCalculatorScreen())),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => Container(
+                            height: MediaQuery.of(context).size.height * 0.92,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: const LoanCalculatorScreen(),
+                          ),
+                        );
+                      },
                       icon: Icon(Icons.calculate, color: Theme.of(context).primaryColor, size: 28),
                     ),
                     IconButton(
