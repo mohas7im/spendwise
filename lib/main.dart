@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
-import 'screens/main_screen.dart';
+import 'screens/login_screen.dart';
 import 'providers/finance_provider.dart';
 import 'providers/split_provider.dart';
 import 'providers/friends_provider.dart';
@@ -58,7 +58,7 @@ class ExpenseTrackerApp extends StatelessWidget {
       scrollBehavior: const MaterialScrollBehavior().copyWith(
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       ),
-      home: const MainScreen(),
+      home: const LoginScreen(),
     );
   }
 }

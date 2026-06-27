@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../widgets/common/custom_tab_bar.dart';
 import '../providers/finance_provider.dart';
+import '../providers/budget_provider.dart';
 import '../models/transaction.dart';
+import '../models/budget.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -108,7 +110,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     };
   }
 
-  List<Map<String, dynamic>> _getTopCategories(List<TransactionModel> txs) {
+  List<Map<String, dynamic>> _getTopCategories(List<TransactionModel> txs, BuildContext context) {
     final Map<String, double> catSums = {};
     for (var t in txs) {
       catSums[t.category] = (catSums[t.category] ?? 0) + t.amount;
@@ -117,14 +119,25 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     final sorted = catSums.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     final top = sorted.take(4).toList();
     
-    final totalSpent = txs.fold(0.0, (sum, t) => sum + t.amount);
+    final budgetProvider = Provider.of<BudgetProvider>(context, listen: false);
+    LimitPeriod period = _tabController.index == 0 
+        ? LimitPeriod.weekly 
+        : (_tabController.index == 1 ? LimitPeriod.monthly : LimitPeriod.yearly);
     
     return top.map((e) {
+      final catLimit = budgetProvider.budget.categoryLimits.cast<CategoryLimit?>().firstWhere(
+        (l) => l?.category == e.key && l?.period == period,
+        orElse: () => null,
+      );
+      final limitAmount = catLimit?.limitAmount ?? 0.0;
+      final progressPercentage = limitAmount > 0 ? (e.value / limitAmount).clamp(0.0, 1.0) : 0.0;
+
       return {
         'name': e.key,
         'emoji': _getCategoryEmoji(e.key),
         'amount': e.value,
-        'percentage': totalSpent > 0 ? (e.value / totalSpent) : 0.0,
+        'limit': limitAmount,
+        'percentage': progressPercentage,
         'transactions': txs.where((t) => t.category == e.key).toList(),
       };
     }).toList();
@@ -173,7 +186,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     final filteredTxs = _getFilteredTransactions(provider.transactions);
     final totalSpent = filteredTxs.fold(0.0, (sum, t) => sum + t.amount);
     final chartData = _getChartData(filteredTxs);
-    final topCategories = _getTopCategories(filteredTxs);
+    final topCategories = _getTopCategories(filteredTxs, context);
     
     return Scaffold(
       body: SafeArea(
@@ -231,6 +244,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                         c['name'] as String, 
                         c['emoji'] as String, 
                         c['amount'] as double, 
+                        c['limit'] as double,
                         c['percentage'] as double,
                         c['transactions'] as List<TransactionModel>,
                         context
@@ -338,7 +352,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildCategoryRow(String name, String emoji, double amount, double percentage, List<TransactionModel> txs, BuildContext context) {
+  Widget _buildCategoryRow(String name, String emoji, double amount, double limit, double percentage, List<TransactionModel> txs, BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: () => _showTransactionsModal(context, '$emoji $name', amount, txs),
@@ -361,7 +375,14 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      if (limit > 0)
+                        Text('${(percentage * 100).toStringAsFixed(0)}%', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+                    ],
+                  ),
                   const SizedBox(height: 4),
                   Stack(
                     children: [
@@ -387,7 +408,14 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
               ),
             ),
             const SizedBox(width: 16),
-            Text('₹${amount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text('₹${amount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                if (limit > 0)
+                  Text('/ ₹${limit.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              ],
+            ),
           ],
         ),
       ),
