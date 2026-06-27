@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'main_screen.dart';
 import '../widgets/common/premium_gradient_card.dart';
+import 'buy_coffee_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -41,12 +42,12 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Logo/Header area
-              const SizedBox(height: 60),
+              const SizedBox(height: 24),
               Center(
                 child: Container(
                   width: 80,
@@ -64,13 +65,31 @@ class _LoginScreenState extends State<LoginScreen> {
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, letterSpacing: -0.5),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               Text(
                 _isLogin ? 'Sign in to access your dashboard' : 'Join us to track your expenses smarter',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey, fontSize: 15),
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 32),
+
+              // Social Logins (Dummy)
+              _buildSocialButton(context, icon: Icons.g_mobiledata, label: 'Continue with Google', color: Colors.red),
+              const SizedBox(height: 12),
+              _buildSocialButton(context, icon: Icons.apple, label: 'Continue with Apple', color: isDark ? Colors.white : Colors.black, isDark: isDark),
+              
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text('or sign in with email', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
+              ),
+              const SizedBox(height: 24),
 
               // Form fields
               TextField(
@@ -111,27 +130,25 @@ class _LoginScreenState extends State<LoginScreen> {
               else
                 const SizedBox(height: 24),
 
-              const SizedBox(height: 32),
-
-              // Sign In Button
+              const SizedBox(height: 16),
               PremiumGradientCard(
                 builder: (context, textColor, subTextColor) {
                   return InkWell(
                     onTap: _submit,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(16),
                     child: Container(
-                      height: 60,
+                      height: 55,
                       alignment: Alignment.center,
                       child: Text(
                         _isLogin ? 'Sign In' : 'Sign Up',
-                        style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
                   );
                 },
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Toggle Auth Mode
               Row(
@@ -153,6 +170,75 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 32),
+
+              // Developer Footer
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1A1A1A) : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+                ),
+                child: Column(
+                  children: [
+                    const Text('Developed by Hashim', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(height: 4),
+                    const Text('GitHub: mohas7im', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    const Text('mohammedhashim530@gmail.com', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (ctx) => const BuyCoffeeScreen()));
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('☕', style: TextStyle(fontSize: 16)),
+                          SizedBox(width: 8),
+                          Text('Buy me a coffee', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialButton(BuildContext context, {required IconData icon, required String label, required Color color, bool isDark = false}) {
+    return Container(
+      height: 55,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            // Dummy auth
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MainScreen()),
+            );
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 28),
+              const SizedBox(width: 12),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             ],
           ),
         ),
