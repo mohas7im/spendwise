@@ -9,6 +9,7 @@ class FinanceProvider extends ChangeNotifier {
   List<DebtModel> _debts = [];
   List<IncomeSource> _incomeSources = [];
   List<TransactionModel> _transactions = [];
+  List<Map<String, dynamic>> _subscriptions = [];
 
   FinanceProvider() {
     _debts = DummyDataService.getDummyDebts();
@@ -17,12 +18,19 @@ class FinanceProvider extends ChangeNotifier {
       IncomeSource(id: 'inc2', name: 'Freelance Design', amount: 15000, type: IncomeType.freelance, frequency: IncomeFrequency.monthly, creditDate: 28),
     ];
     _transactions = DummyDataService.getDummyTransactions();
+    _subscriptions = [
+      {'name': 'Netflix', 'cost': 649.0, 'cycle': 'Monthly', 'nextBilling': DateTime.now().add(const Duration(days: 4)), 'color': Colors.redAccent, 'icon': Icons.movie},
+      {'name': 'Spotify', 'cost': 119.0, 'cycle': 'Monthly', 'nextBilling': DateTime.now().add(const Duration(days: 12)), 'color': Colors.green, 'icon': Icons.music_note},
+      {'name': 'Gym Membership', 'cost': 1500.0, 'cycle': 'Monthly', 'nextBilling': DateTime.now().add(const Duration(days: 2)), 'color': Colors.blueAccent, 'icon': Icons.fitness_center},
+      {'name': 'Amazon Prime', 'cost': 1499.0, 'cycle': 'Yearly', 'nextBilling': DateTime.now().add(const Duration(days: 110)), 'color': Colors.lightBlue, 'icon': Icons.shopping_cart},
+    ];
   }
 
   double get totalBalance => _totalBalance;
   List<DebtModel> get debts => _debts;
   List<IncomeSource> get incomeSources => _incomeSources;
   List<TransactionModel> get transactions => _transactions;
+  List<Map<String, dynamic>> get subscriptions => _subscriptions;
 
   void recordDebtPayment(String debtId, double paymentAmount, {PaymentStatus status = PaymentStatus.paid, String? note}) {
     final debtIndex = _debts.indexWhere((d) => d.id == debtId);
@@ -65,6 +73,11 @@ class FinanceProvider extends ChangeNotifier {
 
   void addDebt(DebtModel debt) {
     _debts.add(debt);
+    notifyListeners();
+  }
+
+  void addSubscription(Map<String, dynamic> sub) {
+    _subscriptions.add(sub);
     notifyListeners();
   }
 

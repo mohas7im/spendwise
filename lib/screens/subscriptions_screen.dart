@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/finance_provider.dart';
 import '../widgets/common/premium_gradient_card.dart';
 
 class SubscriptionsScreen extends StatefulWidget {
@@ -9,15 +11,103 @@ class SubscriptionsScreen extends StatefulWidget {
 }
 
 class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
-  final List<Map<String, dynamic>> _subscriptions = [
-    {'name': 'Netflix', 'cost': 649.0, 'cycle': 'Monthly', 'nextBilling': DateTime.now().add(const Duration(days: 4)), 'color': Colors.redAccent, 'icon': Icons.movie},
-    {'name': 'Spotify', 'cost': 119.0, 'cycle': 'Monthly', 'nextBilling': DateTime.now().add(const Duration(days: 12)), 'color': Colors.green, 'icon': Icons.music_note},
-    {'name': 'Gym Membership', 'cost': 1500.0, 'cycle': 'Monthly', 'nextBilling': DateTime.now().add(const Duration(days: 2)), 'color': Colors.blueAccent, 'icon': Icons.fitness_center},
-    {'name': 'Amazon Prime', 'cost': 1499.0, 'cycle': 'Yearly', 'nextBilling': DateTime.now().add(const Duration(days: 110)), 'color': Colors.lightBlue, 'icon': Icons.shopping_cart},
-  ];
+
+  void _showAddSubscriptionModal(BuildContext context, FinanceProvider provider) {
+    final nameCtrl = TextEditingController();
+    final costCtrl = TextEditingController();
+    String cycle = 'Monthly';
+    DateTime nextBilling = DateTime.now().add(const Duration(days: 30));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Add Subscription', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Subscription Name (e.g. Netflix)', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: costCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Cost (₹)', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: cycle,
+                decoration: const InputDecoration(labelText: 'Billing Cycle', border: OutlineInputBorder()),
+                items: ['Monthly', 'Yearly'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                onChanged: (val) => setModalState(() => cycle = val!),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Next Billing Date'),
+                subtitle: Text('${nextBilling.day}/${nextBilling.month}/${nextBilling.year}'),
+                trailing: const Icon(Icons.calendar_month),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: nextBilling,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 3650)),
+                  );
+                  if (picked != null) {
+                    setModalState(() => nextBilling = picked);
+                  }
+                },
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  onPressed: () {
+                    if (nameCtrl.text.isNotEmpty && costCtrl.text.isNotEmpty) {
+                      provider.addSubscription({
+                        'name': nameCtrl.text,
+                        'cost': double.parse(costCtrl.text),
+                        'cycle': cycle,
+                        'nextBilling': nextBilling,
+                        'color': Colors.deepPurpleAccent,
+                        'icon': Icons.subscriptions,
+                      });
+                      Navigator.pop(ctx);
+                    }
+                  },
+                  child: const Text('Add Subscription'),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final financeProvider = Provider.of<FinanceProvider>(context);
+    final _subscriptions = financeProvider.subscriptions;
+
     double totalMonthly = _subscriptions.where((s) => s['cycle'] == 'Monthly').fold(0, (sum, s) => sum + s['cost']);
     double totalYearly = _subscriptions.where((s) => s['cycle'] == 'Yearly').fold(0, (sum, s) => sum + s['cost']);
 
@@ -37,7 +127,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     Text('Subscriptions', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                     const Spacer(),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: () => _showAddSubscriptionModal(context, financeProvider),
                       icon: Icon(Icons.add_circle, color: Theme.of(context).primaryColor, size: 28),
                     ),
                   ],
