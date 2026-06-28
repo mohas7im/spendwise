@@ -4,7 +4,6 @@ import 'package:fl_chart/fl_chart.dart';
 import '../widgets/common/premium_gradient_card.dart';
 import 'modules/debts_manager_modal.dart';
 import 'modules/savings_goals_modal.dart';
-import 'spending_analytics_screen.dart';
 import 'transaction_history_screen.dart';
 import 'income_salary_screen.dart';
 
@@ -105,15 +104,6 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
           icon: Icons.account_balance_wallet,
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (ctx) => const DebtsManagerModal()));
-          },
-        ),
-        _buildVaultTile(
-          context: context,
-          title: 'Spending Analytics',
-          subtitle: 'Deep dive into your expenses and categories.',
-          icon: Icons.pie_chart_outline_rounded,
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (ctx) => const SpendingAnalyticsScreen(showBackButton: true)));
           },
         ),
         _buildVaultTile(
