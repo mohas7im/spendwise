@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../widgets/calculators_menu_modal.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../widgets/common/premium_gradient_card.dart';
 import 'modules/debts_manager_modal.dart';
 import 'modules/savings_goals_modal.dart';
-import 'modules/savings_growth_modal.dart';
+import 'spending_analytics_screen.dart';
 import 'transaction_history_screen.dart';
+import 'income_salary_screen.dart';
 
 class FinanceHubScreen extends StatefulWidget {
   const FinanceHubScreen({super.key});
@@ -57,7 +59,7 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: _buildSummaryDashboard(context),
+                child: _buildNetWorthTrend(context),
               ),
               const SizedBox(height: 24),
               
@@ -80,8 +82,17 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
         const SizedBox(height: 16),
         _buildVaultTile(
           context: context,
+          title: 'Income & Salary',
+          subtitle: 'Manage salary and income',
+          icon: Icons.account_balance_wallet_outlined,
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (ctx) => const IncomeSalaryScreen()));
+          },
+        ),
+        _buildVaultTile(
+          context: context,
           title: 'Master Transaction Ledger',
-          subtitle: 'Search and export all transactions across apps.',
+          subtitle: 'Manage all transactions',
           icon: Icons.receipt_long,
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (ctx) => const TransactionHistoryScreen()));
@@ -98,6 +109,15 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
         ),
         _buildVaultTile(
           context: context,
+          title: 'Spending Analytics',
+          subtitle: 'Deep dive into your expenses and categories.',
+          icon: Icons.pie_chart_outline_rounded,
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (ctx) => const SpendingAnalyticsScreen(showBackButton: true)));
+          },
+        ),
+        _buildVaultTile(
+          context: context,
           title: 'Savings Goals',
           subtitle: 'Set and track your savings targets.',
           icon: Icons.track_changes,
@@ -105,15 +125,7 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
             Navigator.push(context, MaterialPageRoute(builder: (ctx) => const SavingsGoalsModal()));
           },
         ),
-        _buildVaultTile(
-          context: context,
-          title: 'Growth & Investments',
-          subtitle: 'Track your Mutual Funds and FDs.',
-          icon: Icons.trending_up,
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (ctx) => const SavingsGrowthModal()));
-          },
-        ),
+
       ],
     );
   }
@@ -171,7 +183,7 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
     );
   }
 
-  Widget _buildSummaryDashboard(BuildContext context) {
+  Widget _buildNetWorthTrend(BuildContext context) {
     return PremiumGradientCard(
       builder: (context, textColor, subTextColor) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,26 +191,60 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Net Balance', style: TextStyle(color: subTextColor, fontSize: 14)),
+              Text('Net Worth Trend', style: TextStyle(color: subTextColor, fontSize: 14)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.1), 
+                  color: Colors.green.withValues(alpha: 0.2), 
                   borderRadius: BorderRadius.circular(12)
                 ),
-                child: const Text('+12%', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                child: const Text('+12.5%', style: TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text('₹1,45,000', style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.bold)),
+          Text('₹2,45,000', style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 100,
+            child: LineChart(
+              LineChartData(
+                gridData: FlGridData(show: false),
+                titlesData: FlTitlesData(show: false),
+                borderData: FlBorderData(show: false),
+                lineTouchData: LineTouchData(enabled: false),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: const [
+                      FlSpot(0, 1.5),
+                      FlSpot(1, 1.7),
+                      FlSpot(2, 1.6),
+                      FlSpot(3, 2.0),
+                      FlSpot(4, 2.2),
+                      FlSpot(5, 2.45),
+                    ],
+                    isCurved: true,
+                    color: Colors.white,
+                    barWidth: 3,
+                    isStrokeCapRound: true,
+                    dotData: const FlDotData(show: false),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildSummaryStat(context, 'I Owe', '₹12,500', Colors.red.shade900, textColor, subTextColor),
-              _buildSummaryStat(context, 'Owed to Me', '₹4,200', Colors.green, textColor, subTextColor),
-              _buildSummaryStat(context, 'EMIs Due', '₹8,500', Colors.orange, textColor, subTextColor),
+              _buildSummaryStat(context, 'Income', '₹1.2L', Colors.greenAccent, textColor, subTextColor),
+              _buildSummaryStat(context, 'Savings', '₹45K', Colors.blueAccent, textColor, subTextColor),
+              _buildSummaryStat(context, 'Debt', '₹12K', Colors.redAccent, textColor, subTextColor),
+              _buildSummaryStat(context, 'Loans', '₹8K', Colors.orangeAccent, textColor, subTextColor),
             ],
           ),
         ],

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/global_transaction.dart';
+import 'package:share_plus/share_plus.dart';
+import '../widgets/add_transaction_modal.dart';
+import '../models/transaction.dart';
 
 class TransactionDetailScreen extends StatelessWidget {
   final GlobalTransaction transaction;
@@ -19,20 +22,30 @@ class TransactionDetailScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          IconButton(icon: const Icon(Icons.share), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.share), onPressed: () {
+            final typeStr = isIncome ? 'Income' : 'Expense';
+            final sign = isIncome ? '+' : '-';
+            SharePlus.instance.share(ShareParams(text:
+              'Transaction Details:\n'
+              'Title: ${t.title}\n'
+              'Amount: $sign₹${t.amount.toStringAsFixed(2)}\n'
+              'Date: ${DateFormat('MMMM d, y - h:mm a').format(t.date)}\n'
+              'Category: ${t.category}\n'
+              'Type: $typeStr\n'
+              'Payment Method: ${t.paymentMethod}\n'
+              'Status: ${t.status.name.toUpperCase()}'
+            ));
+          }),
           PopupMenuButton<String>(
             onSelected: (val) {
               if (val == 'edit') {
-                // handle edit
+                _editTransaction(context, t);
               } else if (val == 'delete') {
-                // handle delete
-              } else if (val == 'duplicate') {
-                // handle duplicate
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Delete will be implemented with bulk actions')));
               }
             },
             itemBuilder: (ctx) => [
               const PopupMenuItem(value: 'edit', child: Text('Edit')),
-              const PopupMenuItem(value: 'duplicate', child: Text('Duplicate')),
               const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
             ],
           ),
@@ -151,12 +164,12 @@ class TransactionDetailScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Edit action navigates to source module in future')));
-                },
+                onPressed: () => _editTransaction(context, t),
                 icon: const Icon(Icons.edit),
                 label: const Text('Edit Original Entry'),
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.onSurface,
+                  foregroundColor: Theme.of(context).colorScheme.surface,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -166,6 +179,30 @@ class TransactionDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _editTransaction(BuildContext context, GlobalTransaction t) {
+    if (t.sourceModule == 'Transactions' && t.id.startsWith('fin_')) {
+       final originalId = t.id.substring(4);
+       final tm = TransactionModel(
+         id: originalId,
+         title: t.title,
+         amount: t.amount,
+         date: t.date,
+         category: t.category,
+         type: t.type == GlobalTransactionType.income ? TransactionType.income : TransactionType.expense,
+         paymentMethod: t.paymentMethod,
+       );
+       showModalBottomSheet(
+         context: context,
+         isScrollControlled: true,
+         backgroundColor: Colors.transparent,
+         useSafeArea: true,
+         builder: (ctx) => AddTransactionModal(editingTransaction: tm),
+       );
+    } else {
+       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please edit this entry directly in the ${t.sourceModule} module.')));
+    }
   }
 }
 

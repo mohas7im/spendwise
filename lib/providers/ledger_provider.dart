@@ -77,6 +77,7 @@ class LedgerProvider extends ChangeNotifier {
         type: t.amount > 0 ? GlobalTransactionType.income : GlobalTransactionType.expense,
         date: t.date,
         paymentMethod: t.paymentMethod,
+        attachments: t.attachments,
         sourceModule: 'Transactions',
       ));
     }

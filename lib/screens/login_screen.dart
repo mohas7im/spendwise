@@ -147,6 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
                               width: 24,
                               height: 24,
+                              fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, color: Colors.white, size: 28),
                             ),
                           ),
@@ -189,35 +190,40 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     // Developer Footer
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                       ),
-                      child: Column(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Developed by Hashim', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
-                          const SizedBox(height: 4),
-                          Text('GitHub: mohas7im', style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12)),
-                          Text('mohammedhashim530@gmail.com', style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12)),
-                          const SizedBox(height: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('Developed by Hashim', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+                              const SizedBox(height: 2),
+                              Text('v1.0.0 · github.com/mohas7im', style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11)),
+                            ],
+                          ),
                           TextButton(
                             onPressed: () {
                               Navigator.push(context, MaterialPageRoute(builder: (ctx) => const BuyCoffeeScreen()));
                             },
                             style: TextButton.styleFrom(
                               backgroundColor: Colors.white.withValues(alpha: 0.1),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              minimumSize: const Size(0, 36),
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              minimumSize: Size.zero,
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text('☕', style: TextStyle(fontSize: 16)),
-                                SizedBox(width: 8),
-                                Text('Buy me a coffee', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                                const Text('☕', style: TextStyle(fontSize: 15)),
+                                const SizedBox(width: 6),
+                                const Text('Buy me a coffee', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12)),
                               ],
                             ),
                           ),

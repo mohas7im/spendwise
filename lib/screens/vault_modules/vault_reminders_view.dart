@@ -58,20 +58,20 @@ class _VaultRemindersViewState extends State<VaultRemindersView> {
             children: [
               TextField(
                 controller: titleCtrl,
-                decoration: InputDecoration(labelText: 'Title', filled: true, fillColor: Colors.black12, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                decoration: InputDecoration(labelText: 'Title', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: descCtrl,
                 maxLines: 2,
-                decoration: InputDecoration(labelText: 'Description', filled: true, fillColor: Colors.black12, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                decoration: InputDecoration(labelText: 'Description', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
               ),
               const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.black12, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16)),
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       icon: const Icon(Icons.calendar_today),
                       label: Text('${selectedDate.day}/${selectedDate.month}/${selectedDate.year}'),
                       onPressed: () async {
@@ -82,8 +82,8 @@ class _VaultRemindersViewState extends State<VaultRemindersView> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.black12, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16)),
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       icon: const Icon(Icons.access_time),
                       label: Text(selectedTime.format(context)),
                       onPressed: () async {
@@ -97,7 +97,7 @@ class _VaultRemindersViewState extends State<VaultRemindersView> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 initialValue: category,
-                decoration: InputDecoration(labelText: 'Category', filled: true, fillColor: Colors.black12, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                decoration: InputDecoration(labelText: 'Category', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
                 items: _categories.where((c) => c != 'All').map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                 onChanged: (v) => setModalState(() => category = v!),
               ),
@@ -107,7 +107,7 @@ class _VaultRemindersViewState extends State<VaultRemindersView> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       initialValue: priority,
-                      decoration: InputDecoration(labelText: 'Priority', filled: true, fillColor: Colors.black12, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                      decoration: InputDecoration(labelText: 'Priority', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
                       items: ['Low', 'Medium', 'High'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                       onChanged: (v) => setModalState(() => priority = v!),
                     ),
@@ -116,7 +116,7 @@ class _VaultRemindersViewState extends State<VaultRemindersView> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       initialValue: repeat,
-                      decoration: InputDecoration(labelText: 'Repeat', filled: true, fillColor: Colors.black12, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                      decoration: InputDecoration(labelText: 'Repeat', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
                       items: ['None', 'Daily', 'Weekly', 'Monthly', 'Yearly'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                       onChanged: (v) => setModalState(() => repeat = v!),
                     ),
@@ -191,11 +191,22 @@ class _VaultRemindersViewState extends State<VaultRemindersView> {
                       if (rem.priority == 'Medium') priorityColor = Colors.orange;
                       if (rem.priority == 'High') priorityColor = Colors.red;
 
-                      return Card(
+                      return Container(
                         margin: const EdgeInsets.only(bottom: 12),
-                        color: Colors.black12,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        child: ListTile(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            )
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           leading: Checkbox(
                             value: rem.isCompleted,
@@ -236,6 +247,7 @@ class _VaultRemindersViewState extends State<VaultRemindersView> {
                             ],
                           ),
                           onTap: () => _showReminderModal(existingReminder: rem),
+                        ),
                         ),
                       );
                     },

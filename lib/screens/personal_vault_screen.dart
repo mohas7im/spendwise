@@ -4,7 +4,6 @@ import 'bank_card_manager_screen.dart';
 import 'certificates_screen.dart';
 import 'vault_modules/vault_notes_view.dart';
 import 'vault_modules/vault_reminders_view.dart';
-import 'vault_modules/vault_dates_expiry_view.dart';
 
 class PersonalVaultScreen extends StatelessWidget {
   const PersonalVaultScreen({super.key});
@@ -112,13 +111,6 @@ class PersonalVaultScreen extends StatelessWidget {
             subtitle: 'Educational and professional certs.',
             icon: Icons.workspace_premium,
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CertificatesScreen())),
-          ),
-          _buildVaultTile(
-            context: context,
-            title: 'Expiry & Dates',
-            subtitle: 'Track upcoming expirations & birthdays.',
-            icon: Icons.event_available,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VaultDatesExpiryView())),
           ),
         ],
       ),

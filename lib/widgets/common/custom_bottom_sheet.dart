@@ -24,7 +24,10 @@ class CustomBottomSheet extends StatelessWidget {
     this.backgroundColor,
     this.headerActions,
     this.headerTextColor,
+    this.saveIcon = Icons.add,
   });
+
+  final IconData saveIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -37,12 +40,15 @@ class CustomBottomSheet extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.fastOutSlowIn,
-        height: (MediaQuery.of(context).size.height * 0.92 - bottomInset).clamp(300.0, double.infinity),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.92 - bottomInset,
+        ),
         decoration: BoxDecoration(
           color: backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               margin: const EdgeInsets.only(top: 12),
@@ -77,17 +83,12 @@ class CustomBottomSheet extends StatelessWidget {
                   ),
                   if (headerActions != null)
                     ...headerActions!
-                  else if (onSave != null)
-                    TextButton(
-                      onPressed: onSave,
-                      child: Text(saveText, style: TextStyle(color: headerTextColor ?? const Color(0xFF10B981), fontWeight: FontWeight.bold)),
-                    )
                   else
                     const SizedBox(width: 64), // Balance the title centering
                 ],
               ),
             ),
-            Expanded(
+            Flexible(
               child: isScrollable
                   ? SingleChildScrollView(
                       padding: padding,
@@ -98,6 +99,27 @@ class CustomBottomSheet extends StatelessWidget {
                       child: child,
                     ),
             ),
+            if (onSave != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton.icon(
+                    onPressed: onSave,
+                    icon: Icon(saveIcon, size: 20),
+                    label: Text(saveText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+              )
+            else
+              const SizedBox(height: 24),
           ],
         ),
       ),

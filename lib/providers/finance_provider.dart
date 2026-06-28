@@ -213,7 +213,16 @@ class FinanceProvider extends ChangeNotifier {
     final index = _incomeSources.indexWhere((s) => s.id == id);
     if (index != -1) {
       final inc = _incomeSources[index];
-      _incomeSources[index] = inc.copyWith(lastCredited: DateTime.now());
+      final record = IncomeCreditRecord(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        creditedAt: DateTime.now(),
+        amount: actualAmount,
+        note: 'Credited via salary arrival',
+      );
+      _incomeSources[index] = inc.copyWith(
+        lastCredited: DateTime.now(),
+        creditHistory: [...inc.creditHistory, record],
+      );
       _totalBalance += actualAmount;
       _transactions.add(TransactionModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -226,6 +235,7 @@ class FinanceProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
 
   // ─── TRANSACTION CRUD ────────────────────────────────────────────────────────
   void addTransaction(TransactionModel tx) {

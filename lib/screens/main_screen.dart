@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'budget_screen.dart';
-import 'stats_screen.dart';
+import 'spending_analytics_screen.dart';
 import 'subscriptions_screen.dart';
 import 'personal_vault_screen.dart';
 import 'finance_hub_screen.dart';
@@ -116,7 +116,7 @@ class _MainScreenState extends State<MainScreen> {
       case 4:
         return const FinanceHubScreen();
       case 5:
-        return const StatsScreen();
+        return const SpendingAnalyticsScreen();
       case 6:
         return const SubscriptionsScreen();
       default:

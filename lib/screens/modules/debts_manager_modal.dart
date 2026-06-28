@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/finance_hub_provider.dart';
 import '../../models/finance_module_models.dart';
+import '../../widgets/common/custom_bottom_sheet.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class DebtsManagerModal extends StatefulWidget {
   const DebtsManagerModal({super.key});
@@ -14,11 +16,17 @@ class DebtsManagerModal extends StatefulWidget {
 class _DebtsManagerModalState extends State<DebtsManagerModal> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final List<String> _tabs = ['I Owe', 'They Owe Me', 'EMI'];
+  bool _showPaid = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() {}); // Update summary box when tab changes
+      }
+    });
   }
 
   @override
@@ -43,41 +51,141 @@ class _DebtsManagerModalState extends State<DebtsManagerModal> with SingleTicker
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-          TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            indicatorColor: Theme.of(context).primaryColor,
-            labelColor: Theme.of(context).primaryColor,
-            unselectedLabelColor: Colors.grey,
-            tabs: _tabs.map((t) => Tab(text: t)).toList(),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Consumer<FinanceHubProvider>(
-              builder: (context, provider, child) {
-                return TabBarView(
+        child: Consumer<FinanceHubProvider>(
+          builder: (context, provider, child) {
+            final activeTab = _tabs[_tabController.index];
+            final activeDebts = provider.debts.where((d) => d.type == activeTab).toList();
+            
+            double totalPrincipal = 0;
+            double totalPaid = 0;
+            for (var d in activeDebts) {
+              totalPrincipal += d.totalAmount;
+              totalPaid += d.paidAmount;
+            }
+            final totalPending = totalPrincipal - totalPaid;
+
+            return Column(
+              children: [
+                TabBar(
                   controller: _tabController,
-                  children: _tabs.map((tabType) {
-                    final tabDebts = provider.debts.where((d) => d.type == tabType).toList();
-                    if (tabDebts.isEmpty) {
-                      return Center(child: Text('No active records for $tabType.', style: const TextStyle(color: Colors.grey)));
-                    }
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      itemCount: tabDebts.length,
-                      itemBuilder: (ctx, i) => _buildDebtCard(context, tabDebts[i], provider),
-                    );
-                  }).toList(),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  indicatorColor: Theme.of(context).primaryColor,
+                  labelColor: Theme.of(context).primaryColor,
+                  unselectedLabelColor: Colors.grey,
+                  tabs: _tabs.map((t) => Tab(text: t)).toList(),
+                ),
+                if (activeDebts.isNotEmpty)
+                  GestureDetector(
+                    onTap: () => setState(() => _showPaid = !_showPaid),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: double.infinity,
+                      margin: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2C2C2E),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              AnimatedCrossFade(
+                                duration: const Duration(milliseconds: 300),
+                                crossFadeState: _showPaid ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                                firstChild: Text('Total Pending ($activeTab)', style: TextStyle(color: Colors.grey.shade400, fontSize: 13, fontWeight: FontWeight.w500, letterSpacing: 0.2)),
+                                secondChild: Text('Total Paid ($activeTab)', style: TextStyle(color: Colors.grey.shade400, fontSize: 13, fontWeight: FontWeight.w500, letterSpacing: 0.2)),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.swap_horiz, size: 12, color: Colors.white70),
+                                    const SizedBox(width: 4),
+                                    const Text('Tap', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          AnimatedCrossFade(
+                            duration: const Duration(milliseconds: 300),
+                            crossFadeState: _showPaid ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                            firstChild: Text(
+                              '₹${totalPending.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontSize: 32, 
+                                fontWeight: FontWeight.w800, 
+                                letterSpacing: -1.0,
+                                color: Colors.white,
+                              ),
+                            ),
+                            secondChild: Text(
+                              '₹${totalPaid.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontSize: 32, 
+                                fontWeight: FontWeight.w800, 
+                                letterSpacing: -1.0,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Your Records', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      IconButton(
+                        icon: Icon(Icons.trending_up, color: Theme.of(context).primaryColor, size: 22),
+                        onPressed: () => _showDebtTrendModal(context),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: _tabs.map((tabType) {
+                      final tabDebts = provider.debts.where((d) => d.type == tabType).toList();
+                      if (tabDebts.isEmpty) {
+                        return Center(child: Text('No active records for $tabType.', style: const TextStyle(color: Colors.grey)));
+                      }
+                      return ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        itemCount: tabDebts.length,
+                        itemBuilder: (ctx, i) => _buildDebtCard(context, tabDebts[i], provider),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -86,6 +194,7 @@ class _DebtsManagerModalState extends State<DebtsManagerModal> with SingleTicker
     final progress = debt.totalAmount > 0 ? debt.paidAmount / debt.totalAmount : 0.0;
     final isOwedToMe = debt.type == 'They Owe Me';
     final primaryColor = debt.type == 'EMI' ? Colors.orange : (isOwedToMe ? Colors.green : Colors.redAccent);
+    final pendingAmount = debt.totalAmount - debt.paidAmount;
 
     return Dismissible(
       key: Key(debt.id),
@@ -107,138 +216,159 @@ class _DebtsManagerModalState extends State<DebtsManagerModal> with SingleTicker
         );
       },
       background: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.circular(16)),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
       ),
       onDismissed: (_) => provider.deleteDebt(debt.id),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 4))],
         ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => _showAddEditDebtModal(context, debt),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
+        child: Column(
+          children: [
+            ListTile(
+              contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              title: Text(debt.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: primaryColor.withValues(alpha: 0.1),
-                        child: Text(debt.name.isNotEmpty ? debt.name[0] : '?', style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(debt.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                            Text(debt.type, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                        child: Text(progress >= 1 ? 'Paid Off' : 'Active', style: TextStyle(color: primaryColor, fontSize: 10, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
+                  const SizedBox(height: 4),
+                  Text(
+                    'Pending: ₹${pendingAmount.toStringAsFixed(0)}',
+                    style: TextStyle(color: primaryColor, fontWeight: FontWeight.w600, fontSize: 14),
                   ),
-                  if (debt.type == 'EMI' && debt.emiAmount > 0) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor, borderRadius: BorderRadius.circular(12)),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Monthly EMI', style: TextStyle(color: Colors.grey, fontSize: 11)),
-                              Text('₹${debt.emiAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              const Text('Interest Rate', style: TextStyle(color: Colors.grey, fontSize: 11)),
-                              Text('${debt.interestRate}% p.a.', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                            ],
-                          ),
-                        ],
-                      ),
+                  if (debt.dueDate.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text('Due: ${debt.dueDate}', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                     ),
-                  ],
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Total Amount', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                          Text('₹${debt.totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text('Paid Amount', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                          Text('₹${debt.paidAmount.toStringAsFixed(0)}', style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 16)),
-                        ],
-                      ),
+                      Text('Paid: ₹${debt.paidAmount.toStringAsFixed(0)}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                      Text('Total: ₹${debt.totalAmount.toStringAsFixed(0)}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 4),
                   LinearProgressIndicator(
                     value: progress.clamp(0.0, 1.0),
                     backgroundColor: Colors.grey.withValues(alpha: 0.2),
                     valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text(debt.dueDate.isEmpty ? 'No Due Date' : 'Due: ${debt.dueDate}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                        ],
-                      ),
-                      if (progress < 1.0)
-                        SizedBox(
-                          height: 30,
-                          child: OutlinedButton.icon(
-                            onPressed: () => _showLogPaymentModal(context, debt, provider),
-                            icon: const Icon(Icons.payment, size: 14),
-                            label: const Text('Log Payment', style: TextStyle(fontSize: 11)),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: primaryColor,
-                              side: BorderSide(color: primaryColor.withValues(alpha: 0.5)),
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
                 ],
               ),
+              trailing: IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                onPressed: () => _showAddEditDebtModal(context, debt),
+              ),
             ),
-          ),
+            if (debt.type == 'EMI' && debt.emiAmount > 0) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('EMI: ₹${debt.emiAmount.toStringAsFixed(0)}', style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+                    Text('${debt.interestRate}% p.a.', style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+                  ],
+                ),
+              ),
+            ],
+            const Divider(height: 1),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.payment, size: 16),
+                    label: const Text('Log Payment'),
+                    onPressed: () => _showLogPaymentModal(context, debt, provider),
+                    style: TextButton.styleFrom(foregroundColor: primaryColor),
+                  ),
+                ),
+                Container(width: 1, height: 36, color: Colors.grey.withValues(alpha: 0.15)),
+                Expanded(
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.history, size: 16),
+                    label: const Text('History'),
+                    onPressed: () => _showHistoryModal(context, debt),
+                    style: TextButton.styleFrom(foregroundColor: Colors.grey.shade700),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showHistoryModal(BuildContext context, DebtItem debt) {
+    final fmt = NumberFormat.decimalPattern('en_IN');
+    final history = List<Map<String, dynamic>>.from(debt.paymentHistory);
+    history.sort((a, b) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => CustomBottomSheet(
+        title: 'Payment History',
+        isScrollable: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (history.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 48),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.history, size: 64, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text('No history yet', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    ],
+                  ),
+                ),
+              )
+            else
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.only(bottom: 24),
+                  itemCount: history.length,
+                  itemBuilder: (_, i) {
+                    final item = history[i];
+                    final date = DateTime.parse(item['date']);
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.arrow_downward, color: Colors.green, size: 20),
+                      ),
+                      title: Text(DateFormat('MMM d, y').format(date)),
+                      subtitle: Text(DateFormat('h:mm a').format(date)),
+                      trailing: Text(
+                        '₹${fmt.format(item['amount'])}',
+                        style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -246,46 +376,49 @@ class _DebtsManagerModalState extends State<DebtsManagerModal> with SingleTicker
 
   void _showLogPaymentModal(BuildContext context, DebtItem debt, FinanceHubProvider provider) {
     final amountCtrl = TextEditingController();
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Log Payment'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => CustomBottomSheet(
+        title: 'Log Payment',
+        saveText: 'Log Payment',
+        onSave: () {
+          final val = double.tryParse(amountCtrl.text) ?? 0;
+          if (val > 0) {
+            double newPaid = debt.paidAmount + val;
+            if (newPaid > debt.totalAmount) newPaid = debt.totalAmount;
+            
+            final newHistory = List<Map<String, dynamic>>.from(debt.paymentHistory)
+              ..add({
+                'date': DateTime.now().toIso8601String(),
+                'amount': val,
+              });
+
+            provider.updateDebt(debt.copyWith(paidAmount: newPaid, paymentHistory: newHistory));
+            Navigator.pop(ctx);
+          }
+        },
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Logging payment for ${debt.name}', style: const TextStyle(fontSize: 14)),
+            Text('Logging payment for ${debt.name}', style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 16),
             TextField(
               controller: amountCtrl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Amount Paid',
                 prefixText: '₹ ',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
               ),
             ),
+            const SizedBox(height: 16),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              final val = double.tryParse(amountCtrl.text) ?? 0;
-              if (val > 0) {
-                double newPaid = debt.paidAmount + val;
-                if (newPaid > debt.totalAmount) newPaid = debt.totalAmount;
-                provider.updateDebt(debt.copyWith(paidAmount: newPaid));
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
       ),
     );
   }
-
   void _showAddEditDebtModal(BuildContext context, DebtItem? existingDebt) {
     final nameCtrl = TextEditingController(text: existingDebt?.name ?? '');
     final totalCtrl = TextEditingController(text: existingDebt?.totalAmount.toString() ?? '');
@@ -457,5 +590,311 @@ class _DebtsManagerModalState extends State<DebtsManagerModal> with SingleTicker
     } catch (e) {
       return null;
     }
+  }
+
+  void _showDebtTrendModal(BuildContext context) {
+    bool isEmiTab = _tabController.index == 2;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => CustomBottomSheet(
+        title: isEmiTab ? 'Monthly EMI Payments' : 'Debt & Loan Trend',
+        isScrollable: false,
+        child: Consumer<FinanceHubProvider>(
+          builder: (context, provider, child) {
+            if (isEmiTab) {
+              final emiDebts = provider.debts.where((d) => d.type == 'EMI').toList();
+              return _buildEmiTrendChart(emiDebts, context);
+            } else {
+              return _buildDebtTrendChart(provider.debts, context);
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmiTrendChart(List<DebtItem> emiDebts, BuildContext context) {
+    final now = DateTime.now();
+    List<String> labels = [];
+    List<double> emiSums = List.filled(6, 0.0);
+
+    for (int i = 5; i >= 0; i--) {
+      final targetDate = DateTime(now.year, now.month - i, 1);
+      labels.add(DateFormat('MMM').format(targetDate));
+
+      double monthSum = 0;
+      for (final debt in emiDebts) {
+        for (final payment in debt.paymentHistory) {
+          final pDate = DateTime.parse(payment['date']);
+          if (pDate.year == targetDate.year && pDate.month == targetDate.month) {
+            monthSum += payment['amount'];
+          }
+        }
+      }
+      emiSums[5 - i] = monthSum;
+    }
+
+    double maxY = emiSums.isEmpty ? 1000 : emiSums.reduce((a, b) => a > b ? a : b);
+    if (maxY == 0) maxY = 1000;
+    
+    final bool hasData = emiDebts.isNotEmpty;
+    if (!hasData) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Center(
+          child: Text('Add an EMI to see your payment trend!', style: TextStyle(color: Colors.grey)),
+        ),
+      );
+    }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          child: Row(
+            children: [
+               Container(width: 10, height: 10, decoration: const BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle)),
+               const SizedBox(width: 6),
+               const Text('EMI Paid', style: TextStyle(fontSize: 12)),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 180,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: maxY * 1.2,
+                minY: 0,
+                barTouchData: BarTouchData(
+                  enabled: true,
+                  touchTooltipData: BarTouchTooltipData(
+                    getTooltipColor: (group) => isDark ? Colors.white : Colors.black87,
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      return BarTooltipItem(
+                        'EMI Paid\n₹${rod.toY.round()}',
+                        TextStyle(color: isDark ? Colors.black : Colors.white, fontWeight: FontWeight.bold),
+                      );
+                    },
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  show: true,
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        final index = value.toInt();
+                        if (index < 0 || index >= labels.length) return const SizedBox();
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(labels[index], style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold)),
+                        );
+                      },
+                    ),
+                  ),
+                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: maxY / 4 > 0 ? maxY / 4 : 1,
+                  getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.withValues(alpha: 0.1), strokeWidth: 1),
+                ),
+                borderData: FlBorderData(show: false),
+                barGroups: List.generate(6, (i) {
+                  return BarChartGroupData(
+                    x: i,
+                    barRods: [
+                      BarChartRodData(toY: emiSums[i], color: Colors.blueAccent, width: 12, borderRadius: BorderRadius.circular(4)),
+                    ],
+                  );
+                }),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildDebtTrendChart(List<DebtItem> debts, BuildContext context) {
+    final now = DateTime.now();
+    List<FlSpot> principalSpots = [];
+    List<FlSpot> paidSpots = [];
+    List<String> labels = [];
+    
+    List<double> principalSums = List.filled(6, 0.0);
+    List<double> paidSums = List.filled(6, 0.0);
+    
+    for (int i = 5; i >= 0; i--) {
+      final targetDate = DateTime(now.year, now.month - i, 1);
+      labels.add(DateFormat('MMM').format(targetDate));
+      
+      double paidSum = 0;
+      
+      for (final debt in debts) {
+        for (final payment in debt.paymentHistory) {
+          final pDate = DateTime.parse(payment['date']);
+          if (pDate.year == targetDate.year && pDate.month == targetDate.month) {
+            paidSum += payment['amount'];
+          }
+        }
+      }
+      
+      double historicalBalance = 0;
+      for (final debt in debts) {
+          double debtPaidAfter = 0;
+          for (final payment in debt.paymentHistory) {
+              final pDate = DateTime.parse(payment['date']);
+              if (pDate.isAfter(DateTime(targetDate.year, targetDate.month + 1, 0))) {
+                  debtPaidAfter += payment['amount'];
+              }
+          }
+          double currentPending = debt.totalAmount - debt.paidAmount;
+          historicalBalance += currentPending + debtPaidAfter;
+      }
+      
+      principalSums[5 - i] = historicalBalance;
+      paidSums[5 - i] = paidSum;
+      
+      principalSpots.add(FlSpot((5 - i).toDouble(), historicalBalance));
+      paidSpots.add(FlSpot((5 - i).toDouble(), paidSum));
+    }
+
+    double maxPrincipal = principalSums.isEmpty ? 1000 : principalSums.reduce((a, b) => a > b ? a : b);
+    double maxPaid = paidSums.isEmpty ? 1000 : paidSums.reduce((a, b) => a > b ? a : b);
+    double maxY = maxPrincipal > maxPaid ? maxPrincipal : maxPaid;
+    if (maxY == 0) maxY = 1000;
+    
+    final bool hasData = debts.isNotEmpty;
+
+    if (!hasData) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Center(
+          child: Text('Add a loan or debt to see your trend!', style: TextStyle(color: Colors.grey)),
+        ),
+      );
+    }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          child: Row(
+            children: [
+               Container(width: 10, height: 10, decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle)),
+               const SizedBox(width: 6),
+               const Text('Outstanding Balance', style: TextStyle(fontSize: 12)),
+               const SizedBox(width: 16),
+               Container(width: 10, height: 10, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
+               const SizedBox(width: 6),
+               const Text('Amount Paid', style: TextStyle(fontSize: 12)),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 180,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: LineChart(
+              LineChartData(
+                minY: 0,
+                maxY: maxY * 1.2,
+                minX: 0,
+                maxX: 5,
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  handleBuiltInTouches: true,
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (spot) => isDark ? Colors.white : Colors.black87,
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        return LineTooltipItem(
+                          '₹${spot.y.round()}',
+                          TextStyle(color: isDark ? Colors.black : Colors.white, fontWeight: FontWeight.bold),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: maxY / 4 > 0 ? maxY / 4 : 1,
+                  getDrawingHorizontalLine: (value) => FlLine(
+                    color: Colors.grey.withValues(alpha: 0.1),
+                    strokeWidth: 1,
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  show: true,
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        final index = value.toInt();
+                        if (index < 0 || index >= labels.length || value != index.toDouble()) return const SizedBox();
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(labels[index], style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold)),
+                        );
+                      },
+                    ),
+                  ),
+                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                borderData: FlBorderData(show: false),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: principalSpots,
+                    isCurved: true,
+                    color: Colors.redAccent,
+                    barWidth: 3,
+                    isStrokeCapRound: true,
+                    dotData: const FlDotData(show: false),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: Colors.redAccent.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  LineChartBarData(
+                    spots: paidSpots,
+                    isCurved: true,
+                    color: Colors.green,
+                    barWidth: 3,
+                    isStrokeCapRound: true,
+                    dotData: const FlDotData(show: false),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: Colors.green.withValues(alpha: 0.1),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
   }
 }

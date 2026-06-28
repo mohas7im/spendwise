@@ -15,6 +15,7 @@ class GlobalTransaction {
   final TransactionStatus status;
   final String notes;
   final bool hasAttachment;
+  final List<String>? attachments;
   final List<String> tags;
   final String sourceModule;
 
@@ -30,6 +31,7 @@ class GlobalTransaction {
     this.status = TransactionStatus.completed,
     this.notes = '',
     this.hasAttachment = false,
+    this.attachments,
     this.tags = const [],
     required this.sourceModule,
   });

@@ -12,6 +12,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  bool _disclaimerAccepted = false;
 
   final List<Map<String, dynamic>> _pages = [
     {
@@ -163,7 +164,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 32),
+                      
+                      // Disclaimer Checkbox on the last page
+                      if (_currentPage == _pages.length - 1)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 24),
+                          child: Theme(
+                            data: Theme.of(context).copyWith(
+                              checkboxTheme: CheckboxThemeData(
+                                side: const BorderSide(color: Colors.white70, width: 2),
+                              ),
+                            ),
+                            child: CheckboxListTile(
+                              value: _disclaimerAccepted,
+                              onChanged: (val) => setState(() => _disclaimerAccepted = val ?? false),
+                              activeColor: _pages[_currentPage]['color'],
+                              checkColor: Colors.black,
+                              contentPadding: EdgeInsets.zero,
+                              controlAffinity: ListTileControlAffinity.leading,
+                              title: const Text(
+                                'I understand this is a Beta version and we are not responsible for any financial loss.',
+                                style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                              ),
+                            ),
+                          ),
+                        ),
+                      
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         width: double.infinity,
@@ -189,6 +216,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             if (_currentPage < _pages.length - 1) {
                               _pageController.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.fastOutSlowIn);
                             } else {
+                              if (!_disclaimerAccepted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('Please accept the disclaimer to get started.'),
+                                    backgroundColor: _pages[_currentPage]['color'],
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                                return;
+                              }
                               Navigator.pushReplacement(context, MaterialPageRoute(builder: (ctx) => const LoginScreen()));
                             }
                           },

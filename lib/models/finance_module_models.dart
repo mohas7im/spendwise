@@ -9,6 +9,7 @@ class DebtItem {
   final double interestRate;
   final double emiAmount;
   final int tenureMonths;
+  final List<Map<String, dynamic>> paymentHistory;
 
   DebtItem({
     required this.id,
@@ -21,6 +22,7 @@ class DebtItem {
     this.interestRate = 0.0,
     this.emiAmount = 0.0,
     this.tenureMonths = 0,
+    this.paymentHistory = const [],
   });
 
   DebtItem copyWith({
@@ -33,6 +35,7 @@ class DebtItem {
     double? interestRate,
     double? emiAmount,
     int? tenureMonths,
+    List<Map<String, dynamic>>? paymentHistory,
   }) {
     return DebtItem(
       id: id,
@@ -45,6 +48,7 @@ class DebtItem {
       interestRate: interestRate ?? this.interestRate,
       emiAmount: emiAmount ?? this.emiAmount,
       tenureMonths: tenureMonths ?? this.tenureMonths,
+      paymentHistory: paymentHistory ?? this.paymentHistory,
     );
   }
 }
@@ -57,6 +61,7 @@ class SavingsGoalItem {
   final String deadline;
   final String notes;
   final int colorValue;
+  final List<Map<String, dynamic>> depositHistory;
 
   SavingsGoalItem({
     required this.id,
@@ -66,6 +71,7 @@ class SavingsGoalItem {
     required this.deadline,
     this.notes = '',
     required this.colorValue,
+    this.depositHistory = const [],
   });
 
   SavingsGoalItem copyWith({
@@ -75,6 +81,7 @@ class SavingsGoalItem {
     String? deadline,
     String? notes,
     int? colorValue,
+    List<Map<String, dynamic>>? depositHistory,
   }) {
     return SavingsGoalItem(
       id: id,
@@ -84,49 +91,7 @@ class SavingsGoalItem {
       deadline: deadline ?? this.deadline,
       notes: notes ?? this.notes,
       colorValue: colorValue ?? this.colorValue,
-    );
-  }
-}
-
-class SavingsGrowthItem {
-  final String id;
-  final String name;
-  final String type; // 'Fixed Deposit', 'Mutual Fund', 'Stock', 'Other'
-  final double principal;
-  final double currentAmount;
-  final double returnRate; // Percentage
-  final String notes;
-  final int colorValue;
-
-  SavingsGrowthItem({
-    required this.id,
-    required this.name,
-    required this.type,
-    required this.principal,
-    required this.currentAmount,
-    required this.returnRate,
-    this.notes = '',
-    required this.colorValue,
-  });
-
-  SavingsGrowthItem copyWith({
-    String? name,
-    String? type,
-    double? principal,
-    double? currentAmount,
-    double? returnRate,
-    String? notes,
-    int? colorValue,
-  }) {
-    return SavingsGrowthItem(
-      id: id,
-      name: name ?? this.name,
-      type: type ?? this.type,
-      principal: principal ?? this.principal,
-      currentAmount: currentAmount ?? this.currentAmount,
-      returnRate: returnRate ?? this.returnRate,
-      notes: notes ?? this.notes,
-      colorValue: colorValue ?? this.colorValue,
+      depositHistory: depositHistory ?? this.depositHistory,
     );
   }
 }

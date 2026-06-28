@@ -32,21 +32,10 @@ class FinanceHubProvider extends ChangeNotifier {
     ),
   ];
 
-  final List<SavingsGrowthItem> _growthItems = [
-    SavingsGrowthItem(
-      id: 'gr1',
-      name: 'HDFC Fixed Deposit',
-      type: 'Fixed Deposit',
-      principal: 100000,
-      currentAmount: 112000,
-      returnRate: 7.1,
-      colorValue: Colors.green.toARGB32(),
-    ),
-  ];
+
 
   List<DebtItem> get debts => [..._debts];
   List<SavingsGoalItem> get savingsGoals => [..._savingsGoals];
-  List<SavingsGrowthItem> get growthItems => [..._growthItems];
 
   // --- Debts ---
   void addDebt(DebtItem debt) {
@@ -82,20 +71,5 @@ class FinanceHubProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Savings Growth ---
-  void addGrowthItem(SavingsGrowthItem item) {
-    _growthItems.add(item);
-    notifyListeners();
-  }
-  void updateGrowthItem(SavingsGrowthItem item) {
-    final idx = _growthItems.indexWhere((i) => i.id == item.id);
-    if (idx >= 0) {
-      _growthItems[idx] = item;
-      notifyListeners();
-    }
-  }
-  void deleteGrowthItem(String id) {
-    _growthItems.removeWhere((i) => i.id == id);
-    notifyListeners();
-  }
+
 }

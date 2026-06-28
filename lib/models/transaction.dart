@@ -8,6 +8,7 @@ class TransactionModel {
   final String category;
   final TransactionType type;
   final String paymentMethod;
+  final List<String>? attachments;
 
   TransactionModel({
     required this.id,
@@ -17,6 +18,7 @@ class TransactionModel {
     required this.category,
     required this.type,
     this.paymentMethod = 'Cash',
+    this.attachments,
   });
 }
 

@@ -33,7 +33,7 @@ class DatabaseHelper {
       },
       onCreate: (db, version) async {
         await db.execute('''
-          CREATE TABLE subscriptions (
+          CREATE TABLE IF NOT EXISTS subscriptions (
             id TEXT PRIMARY KEY,
             name TEXT,
             cost REAL,
@@ -56,7 +56,7 @@ class DatabaseHelper {
 
   Future<void> _createVaultV3Tables(Database db) async {
     await db.execute('''
-      CREATE TABLE vault_notes (
+      CREATE TABLE IF NOT EXISTS vault_notes (
         id TEXT PRIMARY KEY,
         title TEXT,
         description TEXT,
@@ -74,7 +74,7 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE vault_reminders (
+      CREATE TABLE IF NOT EXISTS vault_reminders (
         id TEXT PRIMARY KEY,
         title TEXT,
         description TEXT,
@@ -90,7 +90,7 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE important_dates (
+      CREATE TABLE IF NOT EXISTS important_dates (
         id TEXT PRIMARY KEY,
         title TEXT,
         date TEXT,
@@ -102,7 +102,7 @@ class DatabaseHelper {
 
   Future<void> _createVaultTables(Database db) async {
     await db.execute('''
-      CREATE TABLE documents (
+      CREATE TABLE IF NOT EXISTS documents (
         id TEXT PRIMARY KEY,
         name TEXT,
         category TEXT,
@@ -120,7 +120,7 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE bank_accounts (
+      CREATE TABLE IF NOT EXISTS bank_accounts (
         id TEXT PRIMARY KEY,
         bankName TEXT,
         holderName TEXT,
@@ -136,7 +136,7 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE payment_cards (
+      CREATE TABLE IF NOT EXISTS payment_cards (
         id TEXT PRIMARY KEY,
         cardName TEXT,
         bank TEXT,
@@ -154,7 +154,7 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE certificates (
+      CREATE TABLE IF NOT EXISTS certificates (
         id TEXT PRIMARY KEY,
         name TEXT,
         organization TEXT,
