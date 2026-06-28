@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../providers/finance_provider.dart';
 import '../providers/budget_provider.dart';
 import '../models/transaction.dart';
+import 'common/custom_bottom_sheet.dart';
 
 class AddTransactionModal extends StatefulWidget {
   final TransactionModel? editingTransaction;
@@ -167,49 +168,18 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final bool isEditing = widget.editingTransaction != null;
 
-    return AnimatedPadding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.fastOutSlowIn,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.fastOutSlowIn,
-        height: (MediaQuery.of(context).size.height * 0.92 - bottomInset).clamp(300.0, double.infinity),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40, height: 4,
-              decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
-                  Text(isEditing ? 'Edit Transaction' : 'Add Transaction',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-                  TextButton(
-                    onPressed: _save,
-                    child: Text(isEditing ? 'Update' : 'Save', style: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+    return CustomBottomSheet(
+      title: isEditing ? 'Edit Transaction' : 'Add Transaction',
+      onSave: _save,
+      saveText: isEditing ? 'Update Transaction' : 'Save Transaction',
+      saveIcon: isEditing ? Icons.check : Icons.add,
+      saveButtonColor: Theme.of(context).primaryColor,
+      saveTextColor: Theme.of(context).colorScheme.onPrimary,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
                     // Type Toggle
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 12),
@@ -223,7 +193,7 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
-                                color: isExpense ? const Color(0xFFB71C1C) : Colors.transparent,
+                                color: isExpense ? Colors.redAccent : Colors.transparent,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Center(child: Text('Expense', style: TextStyle(fontWeight: FontWeight.bold, color: isExpense ? Colors.white : null))),
@@ -421,11 +391,6 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
                     ),
                     const SizedBox(height: 32),
                   ],
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

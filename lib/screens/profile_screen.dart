@@ -1,10 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import 'friends_screen.dart';
 import 'categories_screen.dart';
 import 'buy_coffee_screen.dart';
 import 'contact_us_screen.dart';
+import '../widgets/common/custom_bottom_sheet.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,32 +18,89 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _name = 'Alex Morgan';
-  String _email = 'alex.morgan@example.com';
-  String _avatarUrl = 'https://i.pravatar.cc/300?img=11';
+  String _name = 'Guest';
+  String _email = '';
+  String _avatarPath = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _name = prefs.getString('profile_name') ?? 'Guest';
+      if (_name.isEmpty) _name = 'Guest';
+      _email = prefs.getString('profile_email') ?? '';
+      _avatarPath = prefs.getString('profile_avatar') ?? '';
+    });
+  }
+
+  Future<void> _saveProfile(String name, String email, String avatarPath) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('profile_name', name);
+    await prefs.setString('profile_email', email);
+    await prefs.setString('profile_avatar', avatarPath);
+    setState(() {
+      _name = name.isEmpty ? 'Guest' : name;
+      _email = email;
+      _avatarPath = avatarPath;
+    });
+  }
 
   void _showEditProfileSheet() {
-    final nameController = TextEditingController(text: _name);
+    final nameController = TextEditingController(text: _name == 'Guest' ? '' : _name);
     final emailController = TextEditingController(text: _email);
-    final avatarController = TextEditingController(text: _avatarUrl);
+    String currentAvatarPath = _avatarPath;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          padding: const EdgeInsets.all(24),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => CustomBottomSheet(
+          title: 'Edit Profile',
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Edit Profile', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              Center(
+                child: GestureDetector(
+                  onTap: () async {
+                    final picker = ImagePicker();
+                    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+                    if (pickedFile != null) {
+                      setModalState(() {
+                        currentAvatarPath = pickedFile.path;
+                      });
+                    }
+                  },
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundColor: Colors.grey.withValues(alpha: 0.2),
+                        backgroundImage: currentAvatarPath.isNotEmpty
+                            ? FileImage(File(currentAvatarPath))
+                            : null,
+                        child: currentAvatarPath.isEmpty ? Icon(Icons.person, size: 40, color: Theme.of(context).primaryColor) : null,
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 2),
+                        ),
+                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 24),
               TextField(
                 controller: nameController,
@@ -49,11 +110,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               TextField(
                 controller: emailController,
                 decoration: InputDecoration(labelText: 'Email Address', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: avatarController,
-                decoration: InputDecoration(labelText: 'Avatar Image URL', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -65,14 +121,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () {
-                    setState(() {
-                      _name = nameController.text;
-                      _email = emailController.text;
-                      _avatarUrl = avatarController.text;
-                    });
+                    _saveProfile(nameController.text, emailController.text, currentAvatarPath);
                     Navigator.pop(ctx);
                   },
-                  child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  child: Text('Save Changes', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
               ),
             ],
@@ -155,11 +207,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           height: 90,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            image: DecorationImage(
-                              image: NetworkImage(_avatarUrl),
-                              fit: BoxFit.cover,
-                            ),
+                            color: Colors.grey.withValues(alpha: 0.2),
                             border: Border.all(color: Theme.of(context).primaryColor, width: 3),
+                          ),
+                          child: ClipOval(
+                            child: _avatarPath.isNotEmpty
+                                ? Image.file(File(_avatarPath), fit: BoxFit.cover)
+                                : Icon(Icons.person, size: 50, color: Theme.of(context).primaryColor),
                           ),
                         ),
                         Container(
@@ -180,7 +234,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       children: [
                         Text(_name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                        Text(_email, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                        if (_email.isNotEmpty)
+                          Text(_email, style: const TextStyle(color: Colors.grey, fontSize: 13)),
                       ],
                     ),
                   ),

@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/finance_provider.dart';
 import '../providers/ledger_provider.dart';
 import '../providers/split_provider.dart';
@@ -11,6 +13,9 @@ import '../widgets/common/premium_gradient_card.dart';
 import '../widgets/ledger/global_transaction_card.dart';
 import '../widgets/spending_breakdown_sheet.dart';
 import '../widgets/add_transaction_modal.dart';
+import '../widgets/common/custom_bottom_sheet.dart';
+
+
 import 'profile_screen.dart';
 import 'transaction_history_screen.dart';
 
@@ -22,11 +27,24 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  String _profileName = 'Guest';
+  String _profileAvatar = '';
+
   @override
   void initState() {
     super.initState();
+    _loadProfile();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadLedger();
+    });
+  }
+
+  Future<void> _loadProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _profileName = prefs.getString('profile_name') ?? 'Guest';
+      if (_profileName.isEmpty) _profileName = 'Guest';
+      _profileAvatar = prefs.getString('profile_avatar') ?? '';
     });
   }
 
@@ -39,6 +57,109 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final vault = Provider.of<VaultProvider>(context, listen: false);
     
     ledger.buildLedger(finance, split, fuel, vault);
+  }
+
+  void _showNotificationsModal() {
+    final finance = Provider.of<FinanceProvider>(context, listen: false);
+    final now = DateTime.now();
+    
+    List<Map<String, dynamic>> alerts = [];
+    
+    // Check subscriptions
+    for (var sub in finance.subscriptions) {
+      if (!sub.isPaused) {
+        final days = sub.nextBilling.difference(now).inDays;
+        if (days >= 0 && days <= 3) {
+          alerts.add({
+            'title': 'Upcoming Subscription',
+            'desc': '${sub.name} is due in ${days == 0 ? 'today' : '$days days'}',
+            'icon': Icons.autorenew,
+            'color': Colors.blue
+          });
+        }
+      }
+    }
+    
+    // Check debts
+    for (var debt in finance.debts) {
+      if (!debt.isPaid && debt.remainingAmount > 0) {
+        if (debt.nextDueDate != null) {
+          final days = debt.nextDueDate!.difference(now).inDays;
+          if (days < 0) {
+            alerts.add({
+              'title': 'Overdue Debt',
+              'desc': '${debt.personName} is overdue by ${days.abs()} days',
+              'icon': Icons.warning,
+              'color': Colors.red
+            });
+          } else if (days <= 3) {
+            alerts.add({
+              'title': 'Upcoming Debt',
+              'desc': '${debt.personName} is due in ${days == 0 ? 'today' : '$days days'}',
+              'icon': Icons.account_balance_wallet,
+              'color': Colors.orange
+            });
+          }
+        }
+      }
+    }
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, anim1, anim2) {
+        return Align(
+          alignment: Alignment.topCenter,
+          child: Material(
+            color: Colors.transparent,
+            child: CustomBottomSheet(
+              title: 'Notifications',
+              isTopSheet: true,
+              child: alerts.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.notifications_off_outlined, size: 40, color: Colors.grey[400]),
+                            const SizedBox(height: 12),
+                            Text('No new notifications', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                          ],
+                        ),
+                      ),
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: alerts.map((alert) => ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: CircleAvatar(
+                              backgroundColor: (alert['color'] as Color).withValues(alpha: 0.2),
+                              child: Icon(alert['icon'] as IconData, color: alert['color'] as Color),
+                            ),
+                            title: Text(alert['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                            subtitle: Text(alert['desc'] as String, style: const TextStyle(fontSize: 12)),
+                          )).toList(),
+                    ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, anim1, anim2, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, -1),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: anim1,
+            curve: Curves.easeOutQuart,
+          )),
+          child: child,
+        );
+      },
+    );
   }
 
   @override
@@ -59,18 +180,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
-                      child: const CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
-                      ),
+                      onTap: () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+                        _loadProfile();
+                      },
+                      child: _profileAvatar.isNotEmpty
+                          ? CircleAvatar(
+                              radius: 20,
+                              backgroundImage: FileImage(File(_profileAvatar)),
+                            )
+                          : const CircleAvatar(
+                              radius: 20,
+                              child: Icon(Icons.person),
+                            ),
                     ),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Welcome Back,', style: Theme.of(context).textTheme.bodyMedium),
-                        Text('Jacob Simmons', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
+                        Text(_profileName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16)),
                       ],
                     )
                   ],
@@ -90,7 +219,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.notifications_none, size: 20),
-                        onPressed: () {},
+                        onPressed: _showNotificationsModal,
                       ),
                     )
                   ],

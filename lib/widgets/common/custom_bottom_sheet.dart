@@ -25,9 +25,15 @@ class CustomBottomSheet extends StatelessWidget {
     this.headerActions,
     this.headerTextColor,
     this.saveIcon = Icons.add,
+    this.isTopSheet = false,
+    this.saveButtonColor,
+    this.saveTextColor,
   });
 
   final IconData saveIcon;
+  final bool isTopSheet;
+  final Color? saveButtonColor;
+  final Color? saveTextColor;
 
   @override
   Widget build(BuildContext context) {
@@ -45,20 +51,26 @@ class CustomBottomSheet extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          borderRadius: BorderRadius.vertical(
+            top: isTopSheet ? Radius.zero : const Radius.circular(32),
+            bottom: isTopSheet ? const Radius.circular(32) : Radius.zero,
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
+            if (isTopSheet)
+              SizedBox(height: MediaQuery.of(context).padding.top),
+            if (!isTopSheet)
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Row(
@@ -110,8 +122,8 @@ class CustomBottomSheet extends StatelessWidget {
                     icon: Icon(saveIcon, size: 20),
                     label: Text(saveText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF10B981),
-                      foregroundColor: Colors.white,
+                      backgroundColor: saveButtonColor ?? const Color(0xFF10B981),
+                      foregroundColor: saveTextColor ?? Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       elevation: 0,
                     ),
