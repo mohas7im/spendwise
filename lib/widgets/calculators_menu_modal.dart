@@ -12,15 +12,18 @@ class CalculatorsMenuModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    return Padding(
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 24),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
+    return DraggableScrollableSheet(
+      initialChildSize: 0.75,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      builder: (_, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
             const SizedBox(height: 12),
             Container(
               width: 40,
@@ -38,6 +41,7 @@ class CalculatorsMenuModal extends StatelessWidget {
             const SizedBox(height: 24),
             Expanded(
               child: ListView(
+                controller: scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 children: [
                   _buildSectionHeader('Savings & Investments'),
@@ -87,8 +91,8 @@ class CalculatorsMenuModal extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 

@@ -5,12 +5,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flip_card/flip_card.dart';
 import 'dart:io';
+import '../widgets/common/custom_bottom_sheet.dart';
 import '../providers/vault_provider.dart';
 import '../models/vault_models.dart';
 
 class DocumentVaultScreen extends StatefulWidget {
   final String? initialCategory;
-  const DocumentVaultScreen({super.key, this.initialCategory});
+  final bool embedded;
+  const DocumentVaultScreen({super.key, this.initialCategory, this.embedded = false});
 
   @override
   State<DocumentVaultScreen> createState() => _DocumentVaultScreenState();
@@ -46,29 +48,37 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      useSafeArea: true,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          height: MediaQuery.of(context).size.height * 0.9,
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
+        builder: (context, setModalState) => CustomBottomSheet(
+          title: existingDoc == null ? 'Add Document' : 'Edit Document',
+          saveText: existingDoc == null ? 'Save' : 'Update',
+          onSave: () {
+            if (nameCtrl.text.isNotEmpty) {
+              final doc = VaultDocument(
+                id: existingDoc?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                name: nameCtrl.text,
+                category: cat,
+                documentNumber: numCtrl.text,
+                issuingAuthority: authCtrl.text,
+                notes: notesCtrl.text,
+                issueDate: issueDate,
+                expiryDate: expiryDate,
+                frontImagePath: frontImagePath,
+                backImagePath: backImagePath,
+                pdfPath: pdfPath,
+                isFavorite: existingDoc?.isFavorite ?? false,
+              );
+              if (existingDoc == null) {
+                provider.addDocument(doc);
+              } else {
+                provider.updateDocument(doc);
+              }
+              Navigator.pop(ctx);
+            }
+          },
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(existingDoc == null ? 'Add Document' : 'Edit Document', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
                       DropdownButtonFormField<String>(
                         initialValue: cat,
                         decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
@@ -168,45 +178,6 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
                       ),
                       const SizedBox(height: 24),
                     ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: () {
-                    if (nameCtrl.text.isNotEmpty) {
-                      final doc = VaultDocument(
-                        id: existingDoc?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-                        name: nameCtrl.text,
-                        category: cat,
-                        documentNumber: numCtrl.text,
-                        issuingAuthority: authCtrl.text,
-                        notes: notesCtrl.text,
-                        issueDate: issueDate,
-                        expiryDate: expiryDate,
-                        frontImagePath: frontImagePath,
-                        backImagePath: backImagePath,
-                        pdfPath: pdfPath,
-                        isFavorite: existingDoc?.isFavorite ?? false,
-                      );
-                      if (existingDoc == null) {
-                        provider.addDocument(doc);
-                      } else {
-                        provider.updateDocument(doc);
-                      }
-                      Navigator.pop(ctx);
-                    }
-                  },
-                  child: Text(existingDoc == null ? 'Save Document' : 'Update Document'),
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -376,8 +347,8 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
+      backgroundColor: widget.embedded ? Colors.transparent : Theme.of(context).scaffoldBackgroundColor,
+      appBar: widget.embedded ? null : AppBar(
         title: Text('Documents', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 22)),
         centerTitle: false,
         backgroundColor: Colors.transparent,

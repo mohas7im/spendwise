@@ -282,7 +282,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold, 
                           fontSize: 16,
-                          color: sub.isPaused ? Colors.grey : (daysLeft <= 3 ? Colors.redAccent : Theme.of(context).primaryColor),
+                          color: sub.isPaused ? Colors.grey : (daysLeft <= 3 ? Colors.red.shade900 : Theme.of(context).primaryColor),
                         ),
                       ),
                     ],
@@ -473,7 +473,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                                   Text(
                                     sub.isPaused ? 'Paused' : (daysLeft == 0 ? 'Today' : (daysLeft < 0 ? 'Overdue' : 'In $daysLeft days')),
                                     style: TextStyle(
-                                      color: sub.isPaused ? Colors.grey : (daysLeft <= 3 ? Colors.redAccent : Colors.grey),
+                                      color: sub.isPaused ? Colors.grey : (daysLeft <= 3 ? Colors.red.shade900 : Colors.grey),
                                       fontWeight: (!sub.isPaused && daysLeft <= 3) ? FontWeight.bold : FontWeight.normal,
                                       fontSize: 12,
                                     ),

@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../models/subscription.dart';
+import '../models/vault_models.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -78,6 +79,34 @@ class NotificationService {
           'vault_channel',
           'Vault Reminders',
           channelDescription: 'Reminders for document and card expiries',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+
+  Future<void> scheduleVaultReminder(VaultReminder reminder) async {
+    if (reminder.isCompleted) return;
+
+    DateTime reminderTime = reminder.date;
+    
+    // If it's already past, don't schedule
+    if (reminderTime.isBefore(DateTime.now())) {
+      return;
+    }
+
+    await _notificationsPlugin.zonedSchedule(
+      id: reminder.id.hashCode,
+      title: reminder.title,
+      body: reminder.description.isNotEmpty ? reminder.description : 'You have a scheduled reminder!',
+      scheduledDate: tz.TZDateTime.from(reminderTime, tz.local),
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'vault_reminder_channel',
+          'General Reminders',
+          channelDescription: 'Reminders for your custom vault notes and tasks',
           importance: Importance.max,
           priority: Priority.high,
         ),

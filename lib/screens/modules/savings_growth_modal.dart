@@ -8,31 +8,24 @@ class SavingsGrowthModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.92,
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 12),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Savings Growth', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                IconButton(
-                  icon: const Icon(Icons.add_circle, color: Colors.teal, size: 32),
-                  onPressed: () => _showAddEditGrowthModal(context, null),
-                ),
-              ],
-            ),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text('Savings Growth', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 22)),
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_circle, color: Colors.teal, size: 28),
+            onPressed: () => _showAddEditGrowthModal(context, null),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
           Expanded(
             child: Consumer<FinanceHubProvider>(
               builder: (context, provider, child) {
@@ -52,6 +45,7 @@ class SavingsGrowthModal extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

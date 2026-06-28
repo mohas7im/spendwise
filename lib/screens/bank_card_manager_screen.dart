@@ -4,9 +4,11 @@ import 'package:flip_card/flip_card.dart';
 import 'package:flutter/services.dart';
 import '../providers/vault_provider.dart';
 import '../models/vault_models.dart';
+import '../widgets/common/custom_bottom_sheet.dart';
 
 class BankCardManagerScreen extends StatefulWidget {
-  const BankCardManagerScreen({super.key});
+  final bool embedded;
+  const BankCardManagerScreen({super.key, this.embedded = false});
 
   @override
   State<BankCardManagerScreen> createState() => _BankCardManagerScreenState();
@@ -39,36 +41,40 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          height: MediaQuery.of(context).size.height * 0.9,
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(existingAcc == null ? 'Add Bank Account' : 'Edit Bank Account', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  if (existingAcc != null)
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        provider.deleteBankAccount(existingAcc.id);
-                        Navigator.pop(ctx);
-                        Navigator.pop(context); // Close details sheet too
-                      },
-                    ),
-                ],
+        builder: (context, setModalState) => CustomBottomSheet(
+          title: existingAcc == null ? 'Add Bank Account' : 'Edit Bank Account',
+          saveText: existingAcc == null ? 'Save' : 'Update',
+          headerActions: [
+            if (existingAcc != null)
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () {
+                  provider.deleteBankAccount(existingAcc.id);
+                  Navigator.pop(ctx);
+                  Navigator.pop(context); // Close details sheet too
+                },
               ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
+          ],
+          onSave: () {
+            if (bankCtrl.text.isNotEmpty && accCtrl.text.isNotEmpty) {
+              final acc = BankAccount(
+                id: existingAcc?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                bankName: bankCtrl.text,
+                accountNumber: accCtrl.text,
+                holderName: holderCtrl.text,
+                ifscCode: ifscCtrl.text,
+                branch: branchCtrl.text,
+                accountType: accType,
+                upiId: upiCtrl.text,
+                notes: notesCtrl.text,
+              );
+              existingAcc == null ? provider.addBankAccount(acc) : provider.updateBankAccount(acc);
+              Navigator.pop(ctx);
+              if (existingAcc != null) Navigator.pop(context);
+            }
+          },
+          child: Column(
+            children: [
                       TextField(controller: bankCtrl, decoration: const InputDecoration(labelText: 'Bank Name', border: OutlineInputBorder())),
                       const SizedBox(height: 16),
                       TextField(controller: accCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Account Number', border: OutlineInputBorder())),
@@ -96,40 +102,6 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                       const SizedBox(height: 16),
                       TextField(controller: notesCtrl, decoration: const InputDecoration(labelText: 'Notes', border: OutlineInputBorder())),
                       const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: () {
-                    if (bankCtrl.text.isNotEmpty && accCtrl.text.isNotEmpty) {
-                      final acc = BankAccount(
-                        id: existingAcc?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-                        bankName: bankCtrl.text,
-                        accountNumber: accCtrl.text,
-                        holderName: holderCtrl.text,
-                        ifscCode: ifscCtrl.text,
-                        branch: branchCtrl.text,
-                        accountType: accType,
-                        upiId: upiCtrl.text,
-                        notes: notesCtrl.text,
-                      );
-                      existingAcc == null ? provider.addBankAccount(acc) : provider.updateBankAccount(acc);
-                      Navigator.pop(ctx);
-                      if (existingAcc != null) Navigator.pop(context);
-                    }
-                  },
-                  child: Text(existingAcc == null ? 'Save Account' : 'Update Account'),
-                ),
-              ),
-              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -153,36 +125,42 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          height: MediaQuery.of(context).size.height * 0.9,
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(existingCard == null ? 'Add Payment Card' : 'Edit Payment Card', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  if (existingCard != null)
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        provider.deletePaymentCard(existingCard.id);
-                        Navigator.pop(ctx);
-                        Navigator.pop(context);
-                      },
-                    ),
-                ],
+        builder: (context, setModalState) => CustomBottomSheet(
+          title: existingCard == null ? 'Add Payment Card' : 'Edit Payment Card',
+          saveText: existingCard == null ? 'Save' : 'Update',
+          headerActions: [
+            if (existingCard != null)
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () {
+                  provider.deletePaymentCard(existingCard.id);
+                  Navigator.pop(ctx);
+                  Navigator.pop(context);
+                },
               ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
+          ],
+          onSave: () {
+            if (nameCtrl.text.isNotEmpty) {
+              final card = PaymentCard(
+                id: existingCard?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                cardName: nameCtrl.text,
+                bank: nameCtrl.text,
+                cardType: cardType,
+                cardNumber: numCtrl.text,
+                holderName: holderCtrl.text,
+                expiryDate: expCtrl.text,
+                network: network,
+                colorValue: selectedColor,
+                cvv: cvvCtrl.text,
+                notes: notesCtrl.text,
+              );
+              existingCard == null ? provider.addPaymentCard(card) : provider.updatePaymentCard(card);
+              Navigator.pop(ctx);
+              if (existingCard != null) Navigator.pop(context);
+            }
+          },
+          child: Column(
+            children: [
                       TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Bank / Card Name', border: OutlineInputBorder())),
                       const SizedBox(height: 16),
                       TextField(controller: numCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Card Number', border: OutlineInputBorder())),
@@ -233,42 +211,6 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                         )).toList(),
                       ),
                       const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: () {
-                    if (nameCtrl.text.isNotEmpty) {
-                      final card = PaymentCard(
-                        id: existingCard?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-                        cardName: nameCtrl.text,
-                        bank: nameCtrl.text,
-                        cardType: cardType,
-                        cardNumber: numCtrl.text,
-                        holderName: holderCtrl.text,
-                        expiryDate: expCtrl.text,
-                        network: network,
-                        colorValue: selectedColor,
-                        cvv: cvvCtrl.text,
-                        notes: notesCtrl.text,
-                      );
-                      existingCard == null ? provider.addPaymentCard(card) : provider.updatePaymentCard(card);
-                      Navigator.pop(ctx);
-                      if (existingCard != null) Navigator.pop(context);
-                    }
-                  },
-                  child: Text(existingCard == null ? 'Save Card' : 'Update Card'),
-                ),
-              ),
-              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -292,7 +234,22 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(child: Text(acc.bankName, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold))),
-                IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAddBankModal(context, provider, existingAcc: acc)),
+                PopupMenuButton<String>(
+                  onSelected: (val) {
+                    if (val == 'edit') {
+                      Navigator.pop(ctx);
+                      _showAddBankModal(context, provider, existingAcc: acc);
+                    }
+                    if (val == 'delete') {
+                      provider.deleteBankAccount(acc.id);
+                      Navigator.pop(ctx);
+                    }
+                  },
+                  itemBuilder: (c) => [
+                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -331,7 +288,22 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(child: Text(card.cardName, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold))),
-                IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAddCardModal(context, provider, existingCard: card)),
+                PopupMenuButton<String>(
+                  onSelected: (val) {
+                    if (val == 'edit') {
+                      Navigator.pop(ctx);
+                      _showAddCardModal(context, provider, existingCard: card);
+                    }
+                    if (val == 'delete') {
+                      provider.deletePaymentCard(card.id);
+                      Navigator.pop(ctx);
+                    }
+                  },
+                  itemBuilder: (c) => [
+                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -399,8 +371,8 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
+      backgroundColor: widget.embedded ? Colors.transparent : Theme.of(context).scaffoldBackgroundColor,
+      appBar: widget.embedded ? null : AppBar(
         title: Text('Banks & Cards', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 22)),
         centerTitle: false,
         backgroundColor: Colors.transparent,
@@ -425,6 +397,17 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
       ),
       body: Column(
         children: [
+          if (widget.embedded)
+            TabBar(
+              controller: _tabController,
+              labelColor: Theme.of(context).primaryColor,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Theme.of(context).primaryColor,
+              tabs: const [
+                Tab(text: 'Payment Cards'),
+                Tab(text: 'Bank Accounts'),
+              ],
+            ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: TextField(

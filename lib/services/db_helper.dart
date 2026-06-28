@@ -22,10 +22,13 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2, // Upgraded version for new tables
+      version: 3, // Upgraded version for new tables
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await _createVaultTables(db);
+        }
+        if (oldVersion < 3) {
+          await _createVaultV3Tables(db);
         }
       },
       onCreate: (db, version) async {
@@ -46,8 +49,55 @@ class DatabaseHelper {
           )
         ''');
         await _createVaultTables(db);
+        await _createVaultV3Tables(db);
       },
     );
+  }
+
+  Future<void> _createVaultV3Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE vault_notes (
+        id TEXT PRIMARY KEY,
+        title TEXT,
+        description TEXT,
+        checklist TEXT,
+        colorValue INTEGER,
+        tags TEXT,
+        imagePaths TEXT,
+        pdfPath TEXT,
+        createdDate TEXT,
+        updatedDate TEXT,
+        isPinned INTEGER,
+        isFavorite INTEGER,
+        isArchived INTEGER
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE vault_reminders (
+        id TEXT PRIMARY KEY,
+        title TEXT,
+        description TEXT,
+        date TEXT,
+        repeat TEXT,
+        priority TEXT,
+        category TEXT,
+        notes TEXT,
+        attachments TEXT,
+        isCompleted INTEGER,
+        isSnoozed INTEGER
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE important_dates (
+        id TEXT PRIMARY KEY,
+        title TEXT,
+        date TEXT,
+        recurringType TEXT,
+        notes TEXT
+      )
+    ''');
   }
 
   Future<void> _createVaultTables(Database db) async {
@@ -212,4 +262,62 @@ class DatabaseHelper {
     final db = await database;
     return await db.delete('certificates', where: 'id = ?', whereArgs: [id]);
   }
+
+  // --- Notes ---
+  Future<int> insertVaultNote(VaultNote note) async {
+    final db = await database;
+    return await db.insert('vault_notes', note.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+  Future<List<VaultNote>> getVaultNotes() async {
+    final db = await database;
+    final maps = await db.query('vault_notes');
+    return List.generate(maps.length, (i) => VaultNote.fromMap(maps[i]));
+  }
+  Future<int> updateVaultNote(VaultNote note) async {
+    final db = await database;
+    return await db.update('vault_notes', note.toMap(), where: 'id = ?', whereArgs: [note.id]);
+  }
+  Future<int> deleteVaultNote(String id) async {
+    final db = await database;
+    return await db.delete('vault_notes', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // --- Reminders ---
+  Future<int> insertVaultReminder(VaultReminder reminder) async {
+    final db = await database;
+    return await db.insert('vault_reminders', reminder.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+  Future<List<VaultReminder>> getVaultReminders() async {
+    final db = await database;
+    final maps = await db.query('vault_reminders');
+    return List.generate(maps.length, (i) => VaultReminder.fromMap(maps[i]));
+  }
+  Future<int> updateVaultReminder(VaultReminder reminder) async {
+    final db = await database;
+    return await db.update('vault_reminders', reminder.toMap(), where: 'id = ?', whereArgs: [reminder.id]);
+  }
+  Future<int> deleteVaultReminder(String id) async {
+    final db = await database;
+    return await db.delete('vault_reminders', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // --- Important Dates ---
+  Future<int> insertImportantDate(ImportantDate date) async {
+    final db = await database;
+    return await db.insert('important_dates', date.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+  Future<List<ImportantDate>> getImportantDates() async {
+    final db = await database;
+    final maps = await db.query('important_dates');
+    return List.generate(maps.length, (i) => ImportantDate.fromMap(maps[i]));
+  }
+  Future<int> updateImportantDate(ImportantDate date) async {
+    final db = await database;
+    return await db.update('important_dates', date.toMap(), where: 'id = ?', whereArgs: [date.id]);
+  }
+  Future<int> deleteImportantDate(String id) async {
+    final db = await database;
+    return await db.delete('important_dates', where: 'id = ?', whereArgs: [id]);
+  }
 }
+

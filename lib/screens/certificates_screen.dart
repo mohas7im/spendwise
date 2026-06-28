@@ -4,9 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import '../providers/vault_provider.dart';
 import '../models/vault_models.dart';
+import '../widgets/common/custom_bottom_sheet.dart';
 
 class CertificatesScreen extends StatefulWidget {
-  const CertificatesScreen({super.key});
+  final bool embedded;
+  const CertificatesScreen({super.key, this.embedded = false});
 
   @override
   State<CertificatesScreen> createState() => _CertificatesScreenState();
@@ -29,29 +31,30 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      useSafeArea: true,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          height: MediaQuery.of(context).size.height * 0.9,
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
+        builder: (context, setModalState) => CustomBottomSheet(
+          title: existingCert == null ? 'Add Certificate' : 'Edit Certificate',
+          saveText: existingCert == null ? 'Save' : 'Update',
+          onSave: () {
+            if (nameCtrl.text.isNotEmpty) {
+              final cert = VaultCertificate(
+                id: existingCert?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                name: nameCtrl.text,
+                organization: orgCtrl.text,
+                certNumber: numCtrl.text,
+                issueDate: issueDate,
+                expiryDate: expiryDate,
+                filePath: filePath,
+                notes: notesCtrl.text,
+                isFavorite: existingCert?.isFavorite ?? false,
+              );
+              existingCert == null ? provider.addCertificate(cert) : provider.updateCertificate(cert);
+              Navigator.pop(ctx);
+            }
+          },
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(existingCert == null ? 'Add Certificate' : 'Edit Certificate', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
                       TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Certificate Name (e.g. B.Tech)', border: OutlineInputBorder())),
                       const SizedBox(height: 16),
                       TextField(controller: orgCtrl, decoration: const InputDecoration(labelText: 'Organization / University', border: OutlineInputBorder())),
@@ -101,39 +104,6 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
                       const Divider(),
                       TextField(controller: notesCtrl, maxLines: 2, decoration: const InputDecoration(labelText: 'Notes', border: OutlineInputBorder())),
                       const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: () {
-                    if (nameCtrl.text.isNotEmpty) {
-                      final cert = VaultCertificate(
-                        id: existingCert?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-                        name: nameCtrl.text,
-                        organization: orgCtrl.text,
-                        certNumber: numCtrl.text,
-                        issueDate: issueDate,
-                        expiryDate: expiryDate,
-                        filePath: filePath,
-                        notes: notesCtrl.text,
-                        isFavorite: existingCert?.isFavorite ?? false,
-                      );
-                      existingCert == null ? provider.addCertificate(cert) : provider.updateCertificate(cert);
-                      Navigator.pop(ctx);
-                    }
-                  },
-                  child: Text(existingCert == null ? 'Save Certificate' : 'Update Certificate'),
-                ),
-              ),
-              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -248,8 +218,8 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
+      backgroundColor: widget.embedded ? Colors.transparent : Theme.of(context).scaffoldBackgroundColor,
+      appBar: widget.embedded ? null : AppBar(
         title: Text('Certificates', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 22)),
         centerTitle: false,
         backgroundColor: Colors.transparent,

@@ -67,17 +67,15 @@ class DummyDataService {
         const IncomeEntry(source: 'Freelance', amount: 3000, frequency: IncomeFrequency.monthly),
       ],
       categoryLimits: [
-        CategoryLimit(category: 'Food & Drink', emoji: '🍔', limitAmount: 3000, period: LimitPeriod.monthly, spentAmount: 1840),
-        CategoryLimit(category: 'Groceries', emoji: '🛒', limitAmount: 2000, period: LimitPeriod.monthly, spentAmount: 1200),
-        CategoryLimit(category: 'Entertainment', emoji: '🎬', limitAmount: 1000, period: LimitPeriod.monthly, spentAmount: 499),
-        CategoryLimit(category: 'Transport', emoji: '🚕', limitAmount: 1500, period: LimitPeriod.monthly, spentAmount: 600),
-        CategoryLimit(category: 'Bills', emoji: '📄', limitAmount: 3000, period: LimitPeriod.monthly, spentAmount: 1200),
-        CategoryLimit(category: 'Shopping', emoji: '🛍️', limitAmount: 2000, period: LimitPeriod.monthly, spentAmount: 2150), // Intentionally overbudget
+        CategoryLimit(id: 'cl1', category: 'Food', emoji: '🍔', limitAmount: 15000, period: LimitPeriod.monthly, spentAmount: 12000, allowRollover: false),
+        CategoryLimit(id: 'cl2', category: 'Transport', emoji: '🚗', limitAmount: 5000, period: LimitPeriod.monthly, spentAmount: 4800, allowRollover: false),
+        CategoryLimit(id: 'cl3', category: 'Shopping', emoji: '🛍️', limitAmount: 10000, period: LimitPeriod.monthly, spentAmount: 11500, allowRollover: false),
+        CategoryLimit(id: 'cl4', category: 'Entertainment', emoji: '🍿', limitAmount: 4000, period: LimitPeriod.monthly, spentAmount: 2000, allowRollover: true), // Intentionally overbudget
         // Weekly Limits
-        CategoryLimit(category: 'Food & Drink', emoji: '🍔', limitAmount: 750, period: LimitPeriod.weekly, spentAmount: 450),
-        CategoryLimit(category: 'Transport', emoji: '🚕', limitAmount: 350, period: LimitPeriod.weekly, spentAmount: 150),
+        CategoryLimit(id: 'cl5', category: 'Food & Drink', emoji: '🍔', limitAmount: 750, period: LimitPeriod.weekly, spentAmount: 450, allowRollover: false),
+        CategoryLimit(id: 'cl6', category: 'Transport', emoji: '🚕', limitAmount: 350, period: LimitPeriod.weekly, spentAmount: 150, allowRollover: false),
         // Daily Limits
-        CategoryLimit(category: 'Food & Drink', emoji: '🍔', limitAmount: 100, period: LimitPeriod.daily, spentAmount: 40),
+        CategoryLimit(id: 'cl7', category: 'Food & Drink', emoji: '🍔', limitAmount: 100, period: LimitPeriod.daily, spentAmount: 40, allowRollover: false),
       ],
       savingsGoals: [
         SavingsGoal(id: 'sg1', name: 'Vacation Fund', targetAmount: 50000, currentAmount: 15000, startDate: DateTime.now().subtract(const Duration(days: 60)), targetDate: DateTime.now().add(const Duration(days: 120))),
@@ -85,8 +83,8 @@ class DummyDataService {
         SavingsGoal(id: 'sg3', name: 'New Laptop', targetAmount: 80000, currentAmount: 20000, startDate: DateTime.now().subtract(const Duration(days: 30)), targetDate: DateTime.now().add(const Duration(days: 90))),
       ],
       globalLimits: [
-        GlobalBudgetLimit(limitAmount: 40000, period: LimitPeriod.monthly, spentAmount: 25000),
-        GlobalBudgetLimit(limitAmount: 10000, period: LimitPeriod.weekly, spentAmount: 7500),
+        GlobalBudgetLimit(id: 'gl1', limitAmount: 40000, period: LimitPeriod.monthly, spentAmount: 25000),
+        GlobalBudgetLimit(id: 'gl2', limitAmount: 10000, period: LimitPeriod.weekly, spentAmount: 7500),
       ],
     );
   }

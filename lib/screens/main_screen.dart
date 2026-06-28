@@ -139,6 +139,7 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      useSafeArea: true,
       builder: (context) => const AddTransactionModal(),
     );
   }

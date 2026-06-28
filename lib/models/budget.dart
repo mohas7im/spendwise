@@ -73,27 +73,35 @@ class SavingsGoal {
 }
 
 class GlobalBudgetLimit {
+  final String id;
   final double limitAmount;
   final LimitPeriod period;
   final DateTime? customStartDate;
   final DateTime? customEndDate;
   double spentAmount;
+  final bool allowRollover;
+  double rolloverAmount;
 
   GlobalBudgetLimit({
+    required this.id,
     required this.limitAmount,
     required this.period,
     this.customStartDate,
     this.customEndDate,
     this.spentAmount = 0.0,
+    this.allowRollover = false,
+    this.rolloverAmount = 0.0,
   });
 
-  double get remainingAmount => limitAmount - spentAmount;
-  double get percentUsed => limitAmount > 0 ? (spentAmount / limitAmount) : 0.0;
-  bool get isOverBudget => spentAmount > limitAmount;
-  double get overspentAmount => isOverBudget ? spentAmount - limitAmount : 0.0;
+  double get effectiveLimit => limitAmount + rolloverAmount;
+  double get remainingAmount => effectiveLimit - spentAmount;
+  double get percentUsed => effectiveLimit > 0 ? (spentAmount / effectiveLimit) : 0.0;
+  bool get isOverBudget => spentAmount > effectiveLimit;
+  double get overspentAmount => isOverBudget ? spentAmount - effectiveLimit : 0.0;
 }
 
 class CategoryLimit {
+  final String id;
   final String category;
   final String emoji;
   final double limitAmount;
@@ -101,8 +109,11 @@ class CategoryLimit {
   final DateTime? customStartDate;
   final DateTime? customEndDate;
   double spentAmount;
+  final bool allowRollover;
+  double rolloverAmount;
 
   CategoryLimit({
+    required this.id,
     required this.category,
     required this.emoji,
     required this.limitAmount,
@@ -110,10 +121,13 @@ class CategoryLimit {
     this.customStartDate,
     this.customEndDate,
     this.spentAmount = 0.0,
+    this.allowRollover = false,
+    this.rolloverAmount = 0.0,
   });
 
-  double get remainingAmount => limitAmount - spentAmount;
-  double get percentUsed => limitAmount > 0 ? (spentAmount / limitAmount) : 0.0;
-  bool get isOverBudget => spentAmount > limitAmount;
-  double get overspentAmount => isOverBudget ? spentAmount - limitAmount : 0.0;
+  double get effectiveLimit => limitAmount + rolloverAmount;
+  double get remainingAmount => effectiveLimit - spentAmount;
+  double get percentUsed => effectiveLimit > 0 ? (spentAmount / effectiveLimit) : 0.0;
+  bool get isOverBudget => spentAmount > effectiveLimit;
+  double get overspentAmount => isOverBudget ? spentAmount - effectiveLimit : 0.0;
 }

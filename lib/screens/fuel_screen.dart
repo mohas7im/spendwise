@@ -470,7 +470,7 @@ class _FuelConsumptionTrackerTabState extends State<_FuelConsumptionTrackerTab> 
                       if (l * p == 0) return const SizedBox();
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16),
-                        child: Text('Total Cost: ₹${(l * p).toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.redAccent)),
+                        child: Text('Total Cost: ₹${(l * p).toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red.shade900)),
                       );
                     },
                   ),
@@ -587,7 +587,7 @@ class _FuelConsumptionTrackerTabState extends State<_FuelConsumptionTrackerTab> 
                               children: [
                                 const Text('Est. Monthly', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 8),
-                                Text('₹${avgMonthlyCost.toStringAsFixed(0)}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.redAccent)),
+                                Text('₹${avgMonthlyCost.toStringAsFixed(0)}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.red.shade900)),
                                 const Text('spending', style: TextStyle(color: Colors.grey, fontSize: 10)),
                               ],
                             ),
@@ -630,7 +630,7 @@ class _FuelConsumptionTrackerTabState extends State<_FuelConsumptionTrackerTab> 
                   return Dismissible(
                     key: Key(entry.id),
                     direction: DismissDirection.endToStart,
-                    background: Container(alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 24), color: Colors.red.withValues(alpha: 0.2), child: const Icon(Icons.delete_outline, color: Colors.redAccent)),
+                    background: Container(alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 24), color: Colors.red.shade900.withValues(alpha: 0.2), child: Icon(Icons.delete_outline, color: Colors.red.shade900)),
                     onDismissed: (_) => Provider.of<FuelProvider>(ctx, listen: false).deleteEntry(entry.id),
                     child: Container(
                       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),

@@ -4,6 +4,7 @@ import '../widgets/common/premium_gradient_card.dart';
 import 'modules/debts_manager_modal.dart';
 import 'modules/savings_goals_modal.dart';
 import 'modules/savings_growth_modal.dart';
+import 'transaction_history_screen.dart';
 
 class FinanceHubScreen extends StatefulWidget {
   const FinanceHubScreen({super.key});
@@ -53,15 +54,7 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
                   ],
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                child: Text(
-                  'Your financial overview, debts, and growth.',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-              const SizedBox(height: 16),
-              
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: _buildSummaryDashboard(context),
@@ -87,16 +80,20 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
         const SizedBox(height: 16),
         _buildVaultTile(
           context: context,
+          title: 'Master Transaction Ledger',
+          subtitle: 'Search and export all transactions across apps.',
+          icon: Icons.receipt_long,
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (ctx) => const TransactionHistoryScreen()));
+          },
+        ),
+        _buildVaultTile(
+          context: context,
           title: 'Debts & Loans',
           subtitle: 'Track people who owe you, and EMIs.',
           icon: Icons.account_balance_wallet,
           onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (ctx) => const DebtsManagerModal(),
-            );
+            Navigator.push(context, MaterialPageRoute(builder: (ctx) => const DebtsManagerModal()));
           },
         ),
         _buildVaultTile(
@@ -105,12 +102,7 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
           subtitle: 'Set and track your savings targets.',
           icon: Icons.track_changes,
           onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (ctx) => const SavingsGoalsModal(),
-            );
+            Navigator.push(context, MaterialPageRoute(builder: (ctx) => const SavingsGoalsModal()));
           },
         ),
         _buildVaultTile(
@@ -119,12 +111,7 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
           subtitle: 'Track your Mutual Funds and FDs.',
           icon: Icons.trending_up,
           onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (ctx) => const SavingsGrowthModal(),
-            );
+            Navigator.push(context, MaterialPageRoute(builder: (ctx) => const SavingsGrowthModal()));
           },
         ),
       ],
@@ -209,7 +196,7 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildSummaryStat(context, 'I Owe', '₹12,500', Colors.red, textColor, subTextColor),
+              _buildSummaryStat(context, 'I Owe', '₹12,500', Colors.red.shade900, textColor, subTextColor),
               _buildSummaryStat(context, 'Owed to Me', '₹4,200', Colors.green, textColor, subTextColor),
               _buildSummaryStat(context, 'EMIs Due', '₹8,500', Colors.orange, textColor, subTextColor),
             ],

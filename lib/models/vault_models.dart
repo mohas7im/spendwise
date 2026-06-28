@@ -250,3 +250,167 @@ class VaultCertificate {
     );
   }
 }
+
+class VaultNote {
+  String id;
+  String title;
+  String description;
+  List<String> checklist;
+  int colorValue;
+  List<String> tags;
+  List<String> imagePaths;
+  String? pdfPath;
+  DateTime createdDate;
+  DateTime updatedDate;
+  bool isPinned;
+  bool isFavorite;
+  bool isArchived;
+
+  VaultNote({
+    required this.id,
+    required this.title,
+    this.description = '',
+    this.checklist = const [],
+    this.colorValue = 0xFFFFFFFF,
+    this.tags = const [],
+    this.imagePaths = const [],
+    this.pdfPath,
+    required this.createdDate,
+    required this.updatedDate,
+    this.isPinned = false,
+    this.isFavorite = false,
+    this.isArchived = false,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'checklist': jsonEncode(checklist),
+      'colorValue': colorValue,
+      'tags': jsonEncode(tags),
+      'imagePaths': jsonEncode(imagePaths),
+      'pdfPath': pdfPath,
+      'createdDate': createdDate.toIso8601String(),
+      'updatedDate': updatedDate.toIso8601String(),
+      'isPinned': isPinned ? 1 : 0,
+      'isFavorite': isFavorite ? 1 : 0,
+      'isArchived': isArchived ? 1 : 0,
+    };
+  }
+
+  factory VaultNote.fromMap(Map<String, dynamic> map) {
+    return VaultNote(
+      id: map['id'],
+      title: map['title'],
+      description: map['description'],
+      checklist: List<String>.from(jsonDecode(map['checklist'] ?? '[]')),
+      colorValue: map['colorValue'],
+      tags: List<String>.from(jsonDecode(map['tags'] ?? '[]')),
+      imagePaths: List<String>.from(jsonDecode(map['imagePaths'] ?? '[]')),
+      pdfPath: map['pdfPath'],
+      createdDate: DateTime.parse(map['createdDate']),
+      updatedDate: DateTime.parse(map['updatedDate']),
+      isPinned: map['isPinned'] == 1,
+      isFavorite: map['isFavorite'] == 1,
+      isArchived: map['isArchived'] == 1,
+    );
+  }
+}
+
+class VaultReminder {
+  String id;
+  String title;
+  String description;
+  DateTime date;
+  String repeat;
+  String priority;
+  String category;
+  String notes;
+  List<String> attachments;
+  bool isCompleted;
+  bool isSnoozed;
+
+  VaultReminder({
+    required this.id,
+    required this.title,
+    this.description = '',
+    required this.date,
+    this.repeat = 'None',
+    this.priority = 'Medium',
+    required this.category,
+    this.notes = '',
+    this.attachments = const [],
+    this.isCompleted = false,
+    this.isSnoozed = false,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'date': date.toIso8601String(),
+      'repeat': repeat,
+      'priority': priority,
+      'category': category,
+      'notes': notes,
+      'attachments': jsonEncode(attachments),
+      'isCompleted': isCompleted ? 1 : 0,
+      'isSnoozed': isSnoozed ? 1 : 0,
+    };
+  }
+
+  factory VaultReminder.fromMap(Map<String, dynamic> map) {
+    return VaultReminder(
+      id: map['id'],
+      title: map['title'],
+      description: map['description'],
+      date: DateTime.parse(map['date']),
+      repeat: map['repeat'],
+      priority: map['priority'],
+      category: map['category'],
+      notes: map['notes'],
+      attachments: List<String>.from(jsonDecode(map['attachments'] ?? '[]')),
+      isCompleted: map['isCompleted'] == 1,
+      isSnoozed: map['isSnoozed'] == 1,
+    );
+  }
+}
+
+class ImportantDate {
+  String id;
+  String title;
+  DateTime date;
+  String recurringType;
+  String notes;
+
+  ImportantDate({
+    required this.id,
+    required this.title,
+    required this.date,
+    this.recurringType = 'Yearly',
+    this.notes = '',
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'date': date.toIso8601String(),
+      'recurringType': recurringType,
+      'notes': notes,
+    };
+  }
+
+  factory ImportantDate.fromMap(Map<String, dynamic> map) {
+    return ImportantDate(
+      id: map['id'],
+      title: map['title'],
+      date: DateTime.parse(map['date']),
+      recurringType: map['recurringType'],
+      notes: map['notes'],
+    );
+  }
+}

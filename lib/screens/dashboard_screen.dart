@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/finance_provider.dart';
+import '../providers/ledger_provider.dart';
+import '../providers/split_provider.dart';
+import '../providers/fuel_provider.dart';
+import '../providers/vault_provider.dart';
 import '../main.dart'; // for ThemeProvider
 import '../widgets/common/premium_gradient_card.dart';
-import '../widgets/unified_activity_card.dart';
+import '../widgets/ledger/global_transaction_card.dart';
 import '../widgets/spending_breakdown_sheet.dart';
 import '../widgets/add_transaction_modal.dart';
 import 'profile_screen.dart';
-import 'accounts_screen.dart';
-import 'all_activity_screen.dart';
+import 'transaction_history_screen.dart';
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -19,10 +23,30 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadLedger();
+    });
+  }
+
+  void _loadLedger() {
+    if (!mounted) return;
+    final ledger = Provider.of<LedgerProvider>(context, listen: false);
+    final finance = Provider.of<FinanceProvider>(context, listen: false);
+    final split = Provider.of<SplitProvider>(context, listen: false);
+    final fuel = Provider.of<FuelProvider>(context, listen: false);
+    final vault = Provider.of<VaultProvider>(context, listen: false);
+    
+    ledger.buildLedger(finance, split, fuel, vault);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final financeProvider = Provider.of<FinanceProvider>(context);
+    final ledger = Provider.of<LedgerProvider>(context);
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -78,49 +102,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 24),
             
             // Financial Summary Section
-            GestureDetector(
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountsScreen())),
-              child: PremiumGradientCard(
-                builder: (context, textColor, subTextColor) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Total Net Balance', style: TextStyle(color: subTextColor, fontSize: 13)),
-                  const SizedBox(height: 6),
-                  Text(
-                    '₹${financeProvider.totalBalance.toStringAsFixed(0)}',
-                    style: TextStyle(color: textColor, fontSize: 36, fontWeight: FontWeight.bold, letterSpacing: -1),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Total Income', style: TextStyle(color: subTextColor, fontSize: 11)),
-                          Text('₹${financeProvider.totalIncome.toStringAsFixed(0)}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15)),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text('Total Expenses', style: TextStyle(color: subTextColor, fontSize: 11)),
-                          Text('₹${financeProvider.totalExpenses.toStringAsFixed(0)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 15)),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('Net Savings', style: TextStyle(color: subTextColor, fontSize: 11)),
-                          Text('₹${financeProvider.totalSavings.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            ),
+            PremiumGradientCard(
+              builder: (context, textColor, subTextColor) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Total Net Balance', style: TextStyle(color: subTextColor, fontSize: 13)),
+                const SizedBox(height: 6),
+                Text(
+                  '₹${ledger.netBalance.toStringAsFixed(0)}',
+                  style: TextStyle(color: textColor, fontSize: 36, fontWeight: FontWeight.bold, letterSpacing: -1),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Total Income', style: TextStyle(color: subTextColor, fontSize: 11)),
+                        Text('₹${ledger.totalIncome.toStringAsFixed(0)}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15)),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text('Total Expenses', style: TextStyle(color: subTextColor, fontSize: 11)),
+                        Text('₹${ledger.totalExpense.toStringAsFixed(0)}', style: TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.bold, fontSize: 15)),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('Net Savings', style: TextStyle(color: subTextColor, fontSize: 11)),
+                        Text('₹${ledger.netBalance.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            )),
             const SizedBox(height: 24),
 
             // ── Spending Summary ──
@@ -133,6 +153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
+                    useSafeArea: true,
                     builder: (_) => const AddTransactionModal(),
                   ),
                   child: Container(
@@ -162,7 +183,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text('Recent Activity', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
                 TextButton(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AllActivityScreen())),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TransactionHistoryScreen())),
                   child: const Text('See all'),
                 ),
               ],
@@ -171,13 +192,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             
             Builder(
               builder: (ctx) {
-                final activities = financeProvider.recentActivity;
+                final activities = ledger.transactions;
                 if (activities.isEmpty) {
                   return const Center(child: Text('No recent activity.', style: TextStyle(color: Colors.grey)));
                 }
                 
                 return Column(
-                  children: activities.take(10).map((act) => UnifiedActivityCard(activity: act)).toList(),
+                  children: activities.take(10).map((act) => GlobalTransactionCard(
+                    transaction: act,
+                    onTap: () {},
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                  )).toList(),
                 );
               },
             ),

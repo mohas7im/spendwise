@@ -410,7 +410,7 @@ class _OverviewBody extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('₹${fmt.format(catTotal)}', style: TextStyle(color: isOver ? Colors.red : textColor, fontWeight: FontWeight.bold, fontSize: 15)),
+                          Text('₹${fmt.format(catTotal)}', style: TextStyle(color: isOver ? Colors.red.shade900 : textColor, fontWeight: FontWeight.bold, fontSize: 15)),
                           if (hasLimit)
                             Text('of ₹${fmt.format(limitAmt)} limit', style: TextStyle(color: subTextColor, fontSize: 11))
                           else
@@ -428,7 +428,7 @@ class _OverviewBody extends StatelessWidget {
                       value: pct,
                       minHeight: 6,
                       backgroundColor: _CatMeta.color(cat).withValues(alpha: 0.12),
-                      valueColor: AlwaysStoppedAnimation<Color>(isOver ? Colors.red : _CatMeta.color(cat)),
+                      valueColor: AlwaysStoppedAnimation<Color>(isOver ? Colors.red.shade900 : _CatMeta.color(cat)),
                     ),
                   ),
                 ],
