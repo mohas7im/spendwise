@@ -441,142 +441,102 @@ class _DebtsManagerModalState extends State<DebtsManagerModal> with SingleTicker
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) {
-          final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-          return AnimatedPadding(
-            padding: EdgeInsets.only(bottom: bottomInset),
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.fastOutSlowIn,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.fastOutSlowIn,
-              height: (MediaQuery.of(context).size.height * 0.92 - bottomInset).clamp(400.0, double.infinity),
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 12),
-                    width: 40, height: 4,
-                    decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
-                        Text(existingDebt == null ? 'Add Debt / Loan' : 'Edit Debt / Loan',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-                        TextButton(
-                          onPressed: () {
-                            if (nameCtrl.text.isNotEmpty && totalCtrl.text.isNotEmpty) {
-                              final provider = Provider.of<FinanceHubProvider>(context, listen: false);
-                              double total = double.tryParse(totalCtrl.text) ?? 0;
-                              double paid = double.tryParse(paidCtrl.text) ?? 0;
-                              if (paid > total) paid = total;
+          return CustomBottomSheet(
+            title: existingDebt == null ? 'Add Debt / Loan' : 'Edit Debt / Loan',
+            saveText: existingDebt == null ? 'Save' : 'Update',
+            onSave: () {
+              if (nameCtrl.text.isNotEmpty && totalCtrl.text.isNotEmpty) {
+                final provider = Provider.of<FinanceHubProvider>(context, listen: false);
+                double total = double.tryParse(totalCtrl.text) ?? 0;
+                double paid = double.tryParse(paidCtrl.text) ?? 0;
+                if (paid > total) paid = total;
 
-                              final item = DebtItem(
-                                id: existingDebt?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-                                name: nameCtrl.text,
-                                type: type,
-                                totalAmount: total,
-                                paidAmount: paid,
-                                dueDate: dueCtrl.text,
-                                emiAmount: double.tryParse(emiAmountCtrl.text) ?? 0,
-                                interestRate: double.tryParse(interestCtrl.text) ?? 0,
-                                tenureMonths: int.tryParse(tenureCtrl.text) ?? 0,
-                              );
-                              if (existingDebt == null) {
-                                provider.addDebt(item);
-                              } else {
-                                provider.updateDebt(item);
-                              }
-                              Navigator.pop(ctx);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter name and total amount')));
-                            }
-                          },
-                          child: Text(existingDebt == null ? 'Save' : 'Update', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
-                        ),
-                      ],
-                    ),
+                final item = DebtItem(
+                  id: existingDebt?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                  name: nameCtrl.text,
+                  type: type,
+                  totalAmount: total,
+                  paidAmount: paid,
+                  dueDate: dueCtrl.text,
+                  emiAmount: double.tryParse(emiAmountCtrl.text) ?? 0,
+                  interestRate: double.tryParse(interestCtrl.text) ?? 0,
+                  tenureMonths: int.tryParse(tenureCtrl.text) ?? 0,
+                );
+                if (existingDebt == null) {
+                  provider.addDebt(item);
+                } else {
+                  provider.updateDebt(item);
+                }
+                Navigator.pop(ctx);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter name and total amount')));
+              }
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: type,
+                  decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder(), prefixIcon: Icon(Icons.category)),
+                  items: ['I Owe', 'They Owe Me', 'EMI'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                  onChanged: (val) => setModalState(() => type = val!),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: nameCtrl, 
+                  decoration: const InputDecoration(labelText: 'Name (e.g. John, Car Loan)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person)),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(child: TextField(controller: totalCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Total Amount', prefixText: '₹ ', border: OutlineInputBorder()))),
+                    const SizedBox(width: 16),
+                    Expanded(child: TextField(controller: paidCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Paid Amount', prefixText: '₹ ', border: OutlineInputBorder()))),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                if (type == 'EMI') ...[
+                  Row(
+                    children: [
+                      Expanded(child: TextField(controller: emiAmountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Monthly EMI', prefixText: '₹ ', border: OutlineInputBorder()))),
+                      const SizedBox(width: 16),
+                      Expanded(child: TextField(controller: interestCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Interest Rate (%)', border: OutlineInputBorder()))),
+                    ],
                   ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<String>(
-                            initialValue: type,
-                            decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder(), prefixIcon: Icon(Icons.category)),
-                            items: ['I Owe', 'They Owe Me', 'EMI'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                            onChanged: (val) => setModalState(() => type = val!),
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: nameCtrl, 
-                            decoration: const InputDecoration(labelText: 'Name (e.g. John, Car Loan)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person)),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(child: TextField(controller: totalCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Total Amount', prefixText: '₹ ', border: OutlineInputBorder()))),
-                              const SizedBox(width: 16),
-                              Expanded(child: TextField(controller: paidCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Paid Amount', prefixText: '₹ ', border: OutlineInputBorder()))),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          
-                          if (type == 'EMI') ...[
-                            Row(
-                              children: [
-                                Expanded(child: TextField(controller: emiAmountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Monthly EMI', prefixText: '₹ ', border: OutlineInputBorder()))),
-                                const SizedBox(width: 16),
-                                Expanded(child: TextField(controller: interestCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Interest Rate (%)', border: OutlineInputBorder()))),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            TextField(controller: tenureCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Tenure (Months)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.schedule))),
-                            const SizedBox(height: 16),
-                          ],
-                          
-                          InkWell(
-                            onTap: () async {
-                              final date = await showDatePicker(
-                                context: context,
-                                initialDate: selectedDate ?? DateTime.now(),
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                              );
-                              if (date != null) {
-                                setModalState(() {
-                                  selectedDate = date;
-                                  dueCtrl.text = DateFormat('dd MMM yyyy').format(date);
-                                });
-                              }
-                            },
-                            child: IgnorePointer(
-                              child: TextField(
-                                controller: dueCtrl,
-                                decoration: const InputDecoration(
-                                  labelText: 'Due Date',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.calendar_today),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                        ],
+                  const SizedBox(height: 16),
+                  TextField(controller: tenureCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Tenure (Months)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.schedule))),
+                  const SizedBox(height: 16),
+                ],
+                
+                InkWell(
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate ?? DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+                    if (date != null) {
+                      setModalState(() {
+                        selectedDate = date;
+                        dueCtrl.text = DateFormat('dd MMM yyyy').format(date);
+                      });
+                    }
+                  },
+                  child: IgnorePointer(
+                    child: TextField(
+                      controller: dueCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Due Date',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.calendar_today),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 32),
+              ],
             ),
           );
         },

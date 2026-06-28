@@ -58,21 +58,25 @@ class _VaultRemindersViewState extends State<VaultRemindersView> {
             children: [
               TextField(
                 controller: titleCtrl,
-                decoration: InputDecoration(labelText: 'Title', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+                decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder()),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextField(
                 controller: descCtrl,
                 maxLines: 2,
-                decoration: InputDecoration(labelText: 'Description', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+                decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                      icon: const Icon(Icons.calendar_today),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16), 
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)), // Match standard OutlineInputBorder radius
+                        side: BorderSide(color: Theme.of(context).disabledColor.withValues(alpha: 0.2)) // Match standard border color
+                      ),
+                      icon: const Icon(Icons.calendar_today, size: 18),
                       label: Text('${selectedDate.day}/${selectedDate.month}/${selectedDate.year}'),
                       onPressed: () async {
                         final d = await showDatePicker(context: context, initialDate: selectedDate, firstDate: DateTime(2000), lastDate: DateTime(2100));
@@ -83,8 +87,12 @@ class _VaultRemindersViewState extends State<VaultRemindersView> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                      icon: const Icon(Icons.access_time),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16), 
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                        side: BorderSide(color: Theme.of(context).disabledColor.withValues(alpha: 0.2))
+                      ),
+                      icon: const Icon(Icons.access_time, size: 18),
                       label: Text(selectedTime.format(context)),
                       onPressed: () async {
                         final t = await showTimePicker(context: context, initialTime: selectedTime);
@@ -97,18 +105,28 @@ class _VaultRemindersViewState extends State<VaultRemindersView> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 initialValue: category,
-                decoration: InputDecoration(labelText: 'Category', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-                items: _categories.where((c) => c != 'All').map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Category', 
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16)
+                ),
+                items: _categories.where((c) => c != 'All').map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis))).toList(),
                 onChanged: (v) => setModalState(() => category = v!),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       initialValue: priority,
-                      decoration: InputDecoration(labelText: 'Priority', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-                      items: ['Low', 'Medium', 'High'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Priority', 
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16)
+                      ),
+                      items: ['Low', 'Medium', 'High'].map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis))).toList(),
                       onChanged: (v) => setModalState(() => priority = v!),
                     ),
                   ),
@@ -116,8 +134,13 @@ class _VaultRemindersViewState extends State<VaultRemindersView> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       initialValue: repeat,
-                      decoration: InputDecoration(labelText: 'Repeat', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-                      items: ['None', 'Daily', 'Weekly', 'Monthly', 'Yearly'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Repeat', 
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16)
+                      ),
+                      items: ['None', 'Daily', 'Weekly', 'Monthly', 'Yearly'].map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis))).toList(),
                       onChanged: (v) => setModalState(() => repeat = v!),
                     ),
                   ),
@@ -156,29 +179,36 @@ class _VaultRemindersViewState extends State<VaultRemindersView> {
       ),
       body: Column(
         children: [
-          SizedBox(
-            height: 50,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                final cat = _categories[index];
-                final isSelected = _selectedCategory == cat;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(cat),
-                    selected: isSelected,
-                    onSelected: (val) => setState(() => _selectedCategory = cat),
-                    selectedColor: Theme.of(context).primaryColor,
-                    backgroundColor: Colors.black12,
-                    labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.grey),
-                  ),
-                );
-              },
+          if (provider.reminders.isNotEmpty)
+            SizedBox(
+              height: 50,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _categories.length,
+                itemBuilder: (context, index) {
+                  final cat = _categories[index];
+                  final isSelected = _selectedCategory == cat;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(cat),
+                      selected: isSelected,
+                      selectedColor: Theme.of(context).primaryColor,
+                      labelStyle: TextStyle(
+                        color: isSelected ? Colors.white : null,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? Colors.transparent : Colors.grey.shade300)),
+                      showCheckmark: false,
+                      onSelected: (val) {
+                        if (val) setState(() => _selectedCategory = cat);
+                      },
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
           Expanded(
             child: reminders.isEmpty
                 ? const Center(child: Text('No reminders found.', style: TextStyle(color: Colors.grey)))

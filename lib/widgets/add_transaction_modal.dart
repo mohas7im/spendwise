@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../providers/finance_provider.dart';
+import '../providers/budget_provider.dart';
 import '../models/transaction.dart';
 
 class AddTransactionModal extends StatefulWidget {
@@ -117,6 +118,34 @@ class _AddTransactionModalState extends State<AddTransactionModal> {
     }
 
     final provider = Provider.of<FinanceProvider>(context, listen: false);
+    final budgetProvider = Provider.of<BudgetProvider>(context, listen: false);
+
+    if (isExpense) {
+      final amountDifference = widget.editingTransaction != null 
+          ? amount - widget.editingTransaction!.amount 
+          : amount;
+
+      try {
+        final catLimit = budgetProvider.budget.categoryLimits.firstWhere((l) => l.category == selectedCategory);
+        if (catLimit.enforceLimit && amountDifference > catLimit.remainingAmount) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Budget limit reached for $selectedCategory! No remaining budget.'),
+            backgroundColor: Colors.redAccent,
+          ));
+          return;
+        }
+      } catch (_) {}
+
+      for (var gl in budgetProvider.budget.globalLimits) {
+        if (gl.enforceLimit && amountDifference > gl.remainingAmount) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Global budget limit reached! No remaining budget.'),
+            backgroundColor: Colors.redAccent,
+          ));
+          return;
+        }
+      }
+    }
     final tx = TransactionModel(
       id: widget.editingTransaction?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
       title: _noteController.text.trim(),

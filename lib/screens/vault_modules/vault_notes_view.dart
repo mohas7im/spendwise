@@ -30,84 +30,86 @@ class _VaultNotesViewState extends State<VaultNotesView> {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) => CustomBottomSheet(
           title: existingNote == null ? 'Add Note' : 'Edit Note',
-          backgroundColor: Color(selectedColor),
-          headerTextColor: Colors.white,
           headerActions: [
             if (existingNote != null)
               IconButton(
-                icon: const Icon(Icons.delete, color: Colors.white),
+                icon: const Icon(Icons.delete, color: Colors.redAccent),
                 onPressed: () {
                   context.read<VaultProvider>().deleteNote(existingNote.id);
                   Navigator.pop(ctx);
                 },
               ),
             IconButton(
-              icon: Icon(isPinned ? Icons.push_pin : Icons.push_pin_outlined, color: Colors.white),
+              icon: Icon(isPinned ? Icons.push_pin : Icons.push_pin_outlined),
               onPressed: () => setModalState(() => isPinned = !isPinned),
             ),
-            IconButton(
-              icon: const Icon(Icons.check, color: Colors.white),
-              onPressed: () {
-                if (titleCtrl.text.isEmpty && descCtrl.text.isEmpty) {
-                  Navigator.pop(ctx);
-                  return;
-                }
-                final note = VaultNote(
-                  id: existingNote?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-                  title: titleCtrl.text.isNotEmpty ? titleCtrl.text : 'Untitled Note',
-                  description: descCtrl.text,
-                  colorValue: selectedColor,
-                  isPinned: isPinned,
-                  createdDate: existingNote?.createdDate ?? DateTime.now(),
-                  updatedDate: DateTime.now(),
-                );
-                if (existingNote == null) {
-                  context.read<VaultProvider>().addNote(note);
-                } else {
-                  context.read<VaultProvider>().updateNote(note);
-                }
-                Navigator.pop(ctx);
-              }
-            )
           ],
+          saveText: 'Save Note',
+          onSave: () {
+            if (titleCtrl.text.isEmpty && descCtrl.text.isEmpty) {
+              Navigator.pop(ctx);
+              return;
+            }
+            final note = VaultNote(
+              id: existingNote?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+              title: titleCtrl.text.isNotEmpty ? titleCtrl.text : 'Untitled Note',
+              description: descCtrl.text,
+              colorValue: selectedColor,
+              isPinned: isPinned,
+              createdDate: existingNote?.createdDate ?? DateTime.now(),
+              updatedDate: DateTime.now(),
+            );
+            if (existingNote == null) {
+              context.read<VaultProvider>().addNote(note);
+            } else {
+              context.read<VaultProvider>().updateNote(note);
+            }
+            Navigator.pop(ctx);
+          },
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Color Picker
-              SizedBox(
-                height: 40,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    0xFF1E1E1E, 0xFF77172E, 0xFF177759, 0xFF173C77, 0xFF651777, 0xFF774C17
-                  ].map((colorVal) => GestureDetector(
-                        onTap: () => setModalState(() => selectedColor = colorVal),
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          width: 40,
-                          decoration: BoxDecoration(
-                            color: Color(colorVal),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: selectedColor == colorVal ? Colors.white : Colors.transparent, width: 2),
-                          ),
-                        ),
-                      )).toList(),
+              TextField(
+                controller: titleCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
-                controller: titleCtrl,
-                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                decoration: const InputDecoration(hintText: 'Title', hintStyle: TextStyle(color: Colors.white54), border: InputBorder.none),
-              ),
-              const Divider(color: Colors.white24),
-              Expanded(
-                child: TextField(
-                  controller: descCtrl,
-                  style: const TextStyle(color: Colors.white),
-                  maxLines: null,
-                  decoration: const InputDecoration(hintText: 'Type your note here...', hintStyle: TextStyle(color: Colors.white54), border: InputBorder.none),
+                controller: descCtrl,
+                maxLines: 6,
+                minLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Type your note here...',
+                  border: OutlineInputBorder(),
                 ),
               ),
+              const SizedBox(height: 24),
+              const Text(
+                'Color',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 12,
+                children: [0xFF1E1E1E, 0xFF77172E, 0xFF177759, 0xFF173C77, 0xFF651777, 0xFF774C17]
+                    .map(
+                      (c) => GestureDetector(
+                        onTap: () => setModalState(() => selectedColor = c),
+                        child: CircleAvatar(
+                          backgroundColor: Color(c),
+                          radius: 20,
+                          child: selectedColor == c
+                              ? const Icon(Icons.check, color: Colors.white)
+                              : null,
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -143,7 +145,7 @@ class _VaultNotesViewState extends State<VaultNotesView> {
         children: [
           if (provider.notes.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: Row(
                 children: [
                   Expanded(
@@ -162,15 +164,25 @@ class _VaultNotesViewState extends State<VaultNotesView> {
                               )
                             : null,
                         filled: true,
-                        fillColor: Colors.black12,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        fillColor: Colors.grey.withValues(alpha: 0.1),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                       onChanged: (val) => setState(() => _searchQuery = val),
                     ),
                   ),
+                  const SizedBox(width: 12),
                   IconButton(
                     icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
                     onPressed: () => setState(() => _isGridView = !_isGridView),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      padding: const EdgeInsets.all(14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
                   ),
                 ],
               ),

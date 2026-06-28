@@ -2,35 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/finance_module_models.dart';
 
 class FinanceHubProvider extends ChangeNotifier {
-  final List<DebtItem> _debts = [
-    DebtItem(
-      id: 'd1',
-      name: 'Sarah Connor',
-      type: 'They Owe Me',
-      totalAmount: 5000,
-      paidAmount: 2500,
-      dueDate: '15 Aug 2026',
-    ),
-    DebtItem(
-      id: 'd2',
-      name: 'HDFC Car Loan',
-      type: 'I Owe',
-      totalAmount: 500000,
-      paidAmount: 120000,
-      dueDate: '5th of Every Month',
-    ),
-  ];
-
-  final List<SavingsGoalItem> _savingsGoals = [
-    SavingsGoalItem(
-      id: 'g1',
-      name: 'New Car',
-      targetAmount: 800000,
-      currentSaved: 350000,
-      deadline: 'Dec 2026',
-      colorValue: Colors.blue.toARGB32(),
-    ),
-  ];
+  final List<DebtItem> _debts = [];
+  final List<SavingsGoalItem> _savingsGoals = [];
 
 
 

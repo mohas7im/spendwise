@@ -42,6 +42,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -95,9 +96,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.1),
+                            color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                            border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,9 +119,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.redAccent.withValues(alpha: 0.1),
+                            color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+                            border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,9 +142,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.blueAccent.withValues(alpha: 0.1),
+                            color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
+                            border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

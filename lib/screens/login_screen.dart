@@ -145,9 +145,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             label: 'Google',
                             iconWidget: Image.network(
                               'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
-                              width: 24,
-                              height: 24,
-                              fit: BoxFit.cover,
+                              width: 28,
+                              height: 28,
+                              fit: BoxFit.contain,
                               errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, color: Colors.white, size: 28),
                             ),
                           ),

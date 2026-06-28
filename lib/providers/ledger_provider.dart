@@ -74,7 +74,7 @@ class LedgerProvider extends ChangeNotifier {
         title: t.title,
         category: t.category,
         amount: t.amount,
-        type: t.amount > 0 ? GlobalTransactionType.income : GlobalTransactionType.expense,
+        type: t.type.name == 'income' ? GlobalTransactionType.income : GlobalTransactionType.expense,
         date: t.date,
         paymentMethod: t.paymentMethod,
         attachments: t.attachments,

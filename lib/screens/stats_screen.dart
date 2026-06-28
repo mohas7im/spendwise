@@ -7,9 +7,11 @@ import '../providers/finance_provider.dart';
 import '../providers/ledger_provider.dart';
 import '../providers/budget_provider.dart';
 import '../models/global_transaction.dart';
+import '../widgets/common/custom_bottom_sheet.dart';
 import '../models/budget.dart';
 import 'category_analytics_screen.dart';
 import 'spending_analytics_screen.dart'; // for TimeFilter
+
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -68,22 +70,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     }).toList();
   }
 
-  List<GlobalTransaction> _getPreviousPeriodTransactions(List<GlobalTransaction> allTransactions) {
-    final now = DateTime.now();
-    return allTransactions.where((t) {
-      if (t.type != GlobalTransactionType.expense) return false;
-      if (_tabController.index == 0) {
-        final start = now.subtract(const Duration(days: 14));
-        final end = now.subtract(const Duration(days: 7));
-        return t.date.isAfter(start) && t.date.isBefore(end);
-      } else if (_tabController.index == 1) {
-        final prevMonth = DateTime(now.year, now.month - 1);
-        return t.date.year == prevMonth.year && t.date.month == prevMonth.month;
-      } else {
-        return t.date.year == now.year - 1;
-      }
-    }).toList();
-  }
+
 
   Map<String, dynamic> _getChartData(List<GlobalTransaction> txs) {
     final now = DateTime.now();
@@ -177,7 +164,10 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     return sorted.map((e) {
       final catLimit = budgetProvider.budget.categoryLimits.cast<CategoryLimit?>().firstWhere(
         (l) => l?.category == e.key && l?.period == period,
-        orElse: () => null,
+        orElse: () => budgetProvider.budget.categoryLimits.cast<CategoryLimit?>().firstWhere(
+          (l) => l?.category == e.key,
+          orElse: () => null,
+        ),
       );
       final limitAmount = catLimit?.limitAmount ?? 0.0;
       final progressPercentage = limitAmount > 0 ? (e.value / limitAmount).clamp(0.0, 2.0) : 0.0;
@@ -196,48 +186,6 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     }).toList();
   }
 
-  List<Map<String, dynamic>> _getSmartInsights(
-    List<GlobalTransaction> currentTxs,
-    List<GlobalTransaction> prevTxs,
-    List<Map<String, dynamic>> categories,
-  ) {
-    final List<Map<String, dynamic>> insights = [];
-
-    final currentTotal = currentTxs.fold(0.0, (s, t) => s + t.amount);
-    final prevTotal = prevTxs.fold(0.0, (s, t) => s + t.amount);
-
-    if (prevTotal > 0) {
-      final change = ((currentTotal - prevTotal) / prevTotal * 100).round();
-      final increased = change > 0;
-      insights.add({
-        'text': 'Total spending ${increased ? "up" : "down"} ${change.abs()}% vs previous period',
-        'icon': increased ? Icons.trending_up : Icons.trending_down,
-        'color': increased ? Colors.redAccent : Colors.green,
-      });
-    }
-
-    if (categories.isNotEmpty) {
-      final topCat = categories.first;
-      insights.add({
-        'text': '${topCat['emoji']} ${topCat['name']} is your #1 expense (${(topCat['percentOfTotal'] * 100).round()}%)',
-        'icon': Icons.star_outline_rounded,
-        'color': Colors.orange,
-      });
-
-      final overBudget = categories.where((c) => c['limit'] > 0 && c['amount'] > c['limit']).toList();
-      if (overBudget.isNotEmpty) {
-        final cat = overBudget.first;
-        insights.add({
-          'text': '${cat['emoji']} ${cat['name']} exceeded budget by ?${(cat['amount'] - cat['limit']).toStringAsFixed(0)}',
-          'icon': Icons.warning_amber_rounded,
-          'color': Colors.redAccent,
-        });
-      }
-    }
-
-    return insights;
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -245,12 +193,9 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
 
     final allTxs = ledgerProvider.transactions;
     final filteredTxs = _getFilteredTransactions(allTxs);
-    final prevTxs = _getPreviousPeriodTransactions(allTxs);
     final totalSpent = filteredTxs.fold(0.0, (sum, t) => sum + t.amount);
-    final prevTotal = prevTxs.fold(0.0, (sum, t) => sum + t.amount);
     final chartData = _getChartData(filteredTxs);
     final allCategories = _getAllCategories(filteredTxs, context);
-    final insights = _getSmartInsights(filteredTxs, prevTxs, allCategories);
     final trendSpots = _getTrendSpots(filteredTxs);
 
     return Scaffold(
@@ -260,7 +205,13 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-              child: Text('Analytics', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Analytics', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+
+                ],
+              ),
             ),
             CustomTabBar(
               controller: _tabController,
@@ -279,11 +230,10 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                     const Text('Total Spent', style: TextStyle(color: Colors.grey, fontSize: 14)),
                     const SizedBox(height: 4),
                     Text(
-                      '?${totalSpent.toStringAsFixed(0)}',
+                      '₹${totalSpent.toStringAsFixed(0)}',
                       style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: -1),
                     ),
-                    const SizedBox(height: 8),
-                    if (prevTotal > 0) _buildComparisonBadge(totalSpent, prevTotal),
+
                     const SizedBox(height: 28),
                     SizedBox(
                       height: 230,
@@ -293,22 +243,8 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                       ),
                     ),
                     const SizedBox(height: 32),
-                    if (filteredTxs.isNotEmpty) ...[
-                      _buildTrendLineChart(isDark, trendSpots, chartData['labels'] as List<String>),
-                      const SizedBox(height: 32),
-                    ],
-                    if (insights.isNotEmpty) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text('Smart Insights', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildSmartInsights(isDark, insights),
-                      const SizedBox(height: 32),
-                    ],
+
+
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Row(
@@ -318,8 +254,14 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                             'Spending by Category',
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18),
                           ),
-                          if (allCategories.isNotEmpty)
-                            Text('${allCategories.length} categories', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                          if (filteredTxs.isNotEmpty)
+                            IconButton(
+                              icon: Icon(Icons.trending_up, color: Theme.of(context).primaryColor, size: 22),
+                              onPressed: () => _showTrendSheet(isDark, trendSpots, chartData['labels'] as List<String>),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: 'View Trend',
+                            ),
                         ],
                       ),
                     ),
@@ -330,18 +272,46 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                         child: Center(child: Text('No spending data for this period.', style: TextStyle(color: Colors.grey))),
                       )
                     else
-                      ...allCategories.map((c) => _buildCategoryRow(
-                            c['name'] as String,
-                            c['emoji'] as String,
-                            c['amount'] as double,
-                            c['limit'] as double,
-                            c['percentage'] as double,
-                            c['percentOfTotal'] as double,
-                            c['count'] as int,
-                            c['transactions'] as List<GlobalTransaction>,
-                            context,
-                            isDark,
-                          )),
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Column(
+                            children: [
+                              for (int i = 0; i < allCategories.length; i++) ...[
+                                _buildCategoryRow(
+                                  allCategories[i]['name'] as String,
+                                  allCategories[i]['emoji'] as String,
+                                  allCategories[i]['amount'] as double,
+                                  allCategories[i]['limit'] as double,
+                                  allCategories[i]['percentage'] as double,
+                                  allCategories[i]['percentOfTotal'] as double,
+                                  allCategories[i]['count'] as int,
+                                  allCategories[i]['transactions'] as List<GlobalTransaction>,
+                                  context,
+                                  isDark,
+                                ),
+                                if (i < allCategories.length - 1)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 80, right: 24),
+                                    child: Divider(height: 1, color: isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+                                  ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -352,32 +322,20 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildComparisonBadge(double current, double prev) {
-    final diff = current - prev;
-    final pct = (diff / prev * 100).abs().round();
-    final isUp = diff > 0;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            color: (isUp ? Colors.redAccent : Colors.green).withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(isUp ? Icons.arrow_upward : Icons.arrow_downward, size: 14, color: isUp ? Colors.redAccent : Colors.green),
-              const SizedBox(width: 4),
-              Text(
-                '$pct% vs previous period',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isUp ? Colors.redAccent : Colors.green),
-              ),
-            ],
-          ),
+
+
+  void _showTrendSheet(bool isDark, List<FlSpot> spots, List<String> labels) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CustomBottomSheet(
+        title: 'Spending Trend',
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: _buildTrendLineChart(isDark, spots, labels),
         ),
-      ],
+      ),
     );
   }
 
@@ -386,7 +344,6 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     final cardColor = isDark ? const Color(0xFF1C1C1E) : Colors.white;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
       decoration: BoxDecoration(
         color: cardColor,
@@ -402,11 +359,6 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Spending Trend',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : Colors.black87),
-          ),
-          const SizedBox(height: 20),
           SizedBox(
             height: 150,
             child: LineChart(
@@ -445,7 +397,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                     getTooltipColor: (_) => isDark ? Colors.white : Colors.black87,
                     getTooltipItems: (touchedSpots) => touchedSpots
                         .map((s) => LineTooltipItem(
-                              '?${s.y.round()}',
+                              '₹${s.y.round()}',
                               TextStyle(
                                   color: isDark ? Colors.black : Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -491,44 +443,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildSmartInsights(bool isDark, List<Map<String, dynamic>> insights) {
-    return SizedBox(
-      height: 68,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        itemCount: insights.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final insight = insights[index];
-          final color = insight['color'] as Color;
-          return Container(
-            constraints: const BoxConstraints(maxWidth: 260),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: color.withValues(alpha: 0.25)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(insight['icon'] as IconData, color: color, size: 18),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    insight['text'] as String,
-                    style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600),
-                    maxLines: 2,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
+
 
   Widget _buildBarChart(bool isDark, Map<String, dynamic> chartData) {
     final values = chartData['values'] as List<double>;
@@ -563,7 +478,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
               if (rod.toY == 0) return null;
               final isActive = groupIndex == maxIndex;
               return BarTooltipItem(
-                '?${rod.toY.round()}',
+                '₹${rod.toY.round()}',
                 TextStyle(
                   color: isActive ? (Theme.of(context).primaryColor) : Colors.grey,
                   fontWeight: FontWeight.bold,
@@ -611,7 +526,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
       barRods: [
         BarChartRodData(
           toY: y,
-          color: isActive ? Colors.red.shade900 : (isDark ? const Color(0xFF2A2D34) : Colors.grey.shade300),
+          color: isActive ? Theme.of(context).primaryColor : (isDark ? const Color(0xFF2A2D34) : Colors.grey.shade300),
           width: width,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(6),
@@ -626,18 +541,15 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 24, left: 24, right: 24, top: 24),
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => CustomBottomSheet(
+        title: title,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text('Total: ?${totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, color: Colors.grey)),
-            const SizedBox(height: 24),
+            Text('Total: ₹${totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, color: Colors.grey)),
+            const SizedBox(height: 16),
             if (txs.isEmpty)
               const Padding(padding: EdgeInsets.all(16), child: Center(child: Text('No transactions', style: TextStyle(color: Colors.grey))))
             else
@@ -650,7 +562,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                     title: Text(t.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text(DateFormat('MMM dd, yyyy').format(t.date),
                         style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                    trailing: Text('?${t.amount.toStringAsFixed(0)}',
+                    trailing: Text('₹${t.amount.toStringAsFixed(0)}',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   )),
           ],
@@ -694,12 +606,12 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
       },
       borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 11),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
           children: [
             Container(
-              width: 46,
-              height: 46,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: isDark ? Colors.black : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(14),
@@ -733,7 +645,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                               child: const Text('Over',
                                   style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                             ),
-                          Text('${(percentOfTotal * 100).toStringAsFixed(0)}%',
+                          Text('${((limit > 0 ? percentage : percentOfTotal) * 100).toStringAsFixed(0)}%',
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
                         ],
                       ),
@@ -742,20 +654,20 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
                   const SizedBox(height: 2),
                   Text('$count transaction${count == 1 ? '' : 's'}',
                       style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Stack(
                     children: [
                       Container(
                         height: 5,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.black : Colors.grey.shade200,
+                          color: isDark ? const Color(0xFF2A2D34) : Colors.grey.shade200,
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
                       Container(
                         height: 5,
-                        width: MediaQuery.of(context).size.width * 0.48 * percentOfTotal.clamp(0.0, 1.0),
+                        width: MediaQuery.of(context).size.width * 0.48 * (limit > 0 ? percentage : percentOfTotal).clamp(0.0, 1.0),
                         decoration: BoxDecoration(
                           color: barColor,
                           borderRadius: BorderRadius.circular(3),
@@ -770,9 +682,8 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('?${amount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                if (limit > 0)
-                  Text('/ ?${limit.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                Text('₹${amount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                Text('/ ₹${limit.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey, fontSize: 11)),
               ],
             ),
           ],

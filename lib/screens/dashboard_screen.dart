@@ -49,13 +49,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final ledger = Provider.of<LedgerProvider>(context);
 
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 16.0, bottom: 120.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 16.0, bottom: 8.0),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
@@ -99,9 +97,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 )
               ],
             ),
-            const SizedBox(height: 24),
-            
-            // Financial Summary Section
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 120.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  
+                  // Financial Summary Section
             PremiumGradientCard(
               builder: (context, textColor, subTextColor) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,9 +211,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 );
               },
             ),
-            const SizedBox(height: 32),
-          ],
-        ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

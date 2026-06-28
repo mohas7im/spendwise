@@ -511,94 +511,54 @@ class _SavingsGoalsModalState extends State<SavingsGoalsModal> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) {
-          final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-          return AnimatedPadding(
-            padding: EdgeInsets.only(bottom: bottomInset),
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.fastOutSlowIn,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.fastOutSlowIn,
-              height: (MediaQuery.of(context).size.height * 0.92 - bottomInset).clamp(300.0, double.infinity),
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 12),
-                    width: 40, height: 4,
-                    decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
-                        Text(existingGoal == null ? 'Add Goal' : 'Edit Goal',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-                        TextButton(
-                          onPressed: () {
-                            if (nameCtrl.text.isNotEmpty && targetCtrl.text.isNotEmpty) {
-                              final provider = Provider.of<FinanceHubProvider>(context, listen: false);
-                              final item = SavingsGoalItem(
-                                id: existingGoal?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-                                name: nameCtrl.text,
-                                targetAmount: double.tryParse(targetCtrl.text) ?? 0,
-                                currentSaved: double.tryParse(savedCtrl.text) ?? 0,
-                                deadline: deadCtrl.text,
-                                colorValue: selectedColor,
-                              );
-                              if (existingGoal == null) {
-                                provider.addSavingsGoal(item);
-                              } else {
-                                provider.updateSavingsGoal(item);
-                              }
-                              Navigator.pop(ctx);
-                            }
-                          },
-                          child: Text(existingGoal == null ? 'Save' : 'Update', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
-                        ),
-                      ],
+          return CustomBottomSheet(
+            title: existingGoal == null ? 'Add Goal' : 'Edit Goal',
+            saveText: existingGoal == null ? 'Save' : 'Update',
+            onSave: () {
+              if (nameCtrl.text.isNotEmpty && targetCtrl.text.isNotEmpty) {
+                final provider = Provider.of<FinanceHubProvider>(context, listen: false);
+                final item = SavingsGoalItem(
+                  id: existingGoal?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                  name: nameCtrl.text,
+                  targetAmount: double.tryParse(targetCtrl.text) ?? 0,
+                  currentSaved: double.tryParse(savedCtrl.text) ?? 0,
+                  deadline: deadCtrl.text,
+                  colorValue: selectedColor,
+                );
+                if (existingGoal == null) {
+                  provider.addSavingsGoal(item);
+                } else {
+                  provider.updateSavingsGoal(item);
+                }
+                Navigator.pop(ctx);
+              }
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Goal Name (e.g. Vacation)', border: OutlineInputBorder())),
+                const SizedBox(height: 16),
+                TextField(controller: targetCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Target Amount', border: OutlineInputBorder())),
+                const SizedBox(height: 16),
+                TextField(controller: savedCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Currently Saved', border: OutlineInputBorder())),
+                const SizedBox(height: 16),
+                TextField(controller: deadCtrl, decoration: const InputDecoration(labelText: 'Deadline (e.g. Dec 2026)', border: OutlineInputBorder())),
+                const SizedBox(height: 16),
+                const Text('Color', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 12,
+                  children: [Colors.blue, Colors.green, Colors.purple, Colors.orange, Colors.teal, Colors.red].map((c) => GestureDetector(
+                    onTap: () => setModalState(() => selectedColor = c.toARGB32()),
+                    child: CircleAvatar(
+                      backgroundColor: c,
+                      radius: 20,
+                      child: selectedColor == c.toARGB32() ? const Icon(Icons.check, color: Colors.white) : null,
                     ),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 16),
-                          TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Goal Name (e.g. Vacation)', border: OutlineInputBorder())),
-                          const SizedBox(height: 16),
-                          TextField(controller: targetCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Target Amount', border: OutlineInputBorder())),
-                          const SizedBox(height: 16),
-                          TextField(controller: savedCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Currently Saved', border: OutlineInputBorder())),
-                          const SizedBox(height: 16),
-                          TextField(controller: deadCtrl, decoration: const InputDecoration(labelText: 'Deadline (e.g. Dec 2026)', border: OutlineInputBorder())),
-                          const SizedBox(height: 16),
-                          const Text('Color', style: TextStyle(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 12,
-                            children: [Colors.blue, Colors.green, Colors.purple, Colors.orange, Colors.teal, Colors.red].map((c) => GestureDetector(
-                              onTap: () => setModalState(() => selectedColor = c.toARGB32()),
-                              child: CircleAvatar(
-                                backgroundColor: c,
-                                radius: 20,
-                                child: selectedColor == c.toARGB32() ? const Icon(Icons.check, color: Colors.white) : null,
-                              ),
-                            )).toList(),
-                          ),
-                          const SizedBox(height: 32),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                  )).toList(),
+                ),
+                const SizedBox(height: 32),
+              ],
             ),
           );
         },

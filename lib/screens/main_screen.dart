@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'budget_screen.dart';
 import 'stats_screen.dart';
-import 'subscriptions_screen.dart';
 import 'personal_vault_screen.dart';
 import 'finance_hub_screen.dart';
+import 'smart_spending_planner_screen.dart';
 import '../widgets/add_transaction_modal.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
@@ -118,7 +118,7 @@ class _MainScreenState extends State<MainScreen> {
       case 5:
         return const StatsScreen();
       case 6:
-        return const SubscriptionsScreen();
+        return const SmartSpendingPlannerScreen();
       default:
         return const DashboardScreen();
     }
@@ -182,7 +182,7 @@ class _MainScreenState extends State<MainScreen> {
                   _buildAddButton(),
                   _buildNavItem(4, Icons.account_balance_outlined, Icons.account_balance, ''),
                   _buildNavItem(5, Icons.bar_chart_outlined, Icons.bar_chart, ''),
-                  _buildNavItem(6, Icons.calendar_today_outlined, Icons.calendar_month, ''),
+                  _buildNavItem(6, Icons.lightbulb_outline, Icons.lightbulb, ''),
                 ],
               ),
             ),

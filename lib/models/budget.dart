@@ -81,6 +81,7 @@ class GlobalBudgetLimit {
   double spentAmount;
   final bool allowRollover;
   double rolloverAmount;
+  final bool enforceLimit;
 
   GlobalBudgetLimit({
     required this.id,
@@ -91,6 +92,7 @@ class GlobalBudgetLimit {
     this.spentAmount = 0.0,
     this.allowRollover = false,
     this.rolloverAmount = 0.0,
+    this.enforceLimit = false,
   });
 
   double get effectiveLimit => limitAmount + rolloverAmount;
@@ -98,6 +100,58 @@ class GlobalBudgetLimit {
   double get percentUsed => effectiveLimit > 0 ? (spentAmount / effectiveLimit) : 0.0;
   bool get isOverBudget => spentAmount > effectiveLimit;
   double get overspentAmount => isOverBudget ? spentAmount - effectiveLimit : 0.0;
+
+  int remainingDays(DateTime referenceDate, {DateTime? nextSalaryDate}) {
+    if (period == LimitPeriod.custom && customEndDate != null) {
+      final diff = customEndDate!.difference(referenceDate).inDays;
+      return diff >= 0 ? diff + 1 : 0;
+    }
+    
+    DateTime end;
+    switch (period) {
+      case LimitPeriod.daily:
+        return 1;
+      case LimitPeriod.weekly:
+        final daysToSunday = 7 - referenceDate.weekday;
+        end = referenceDate.add(Duration(days: daysToSunday));
+        break;
+      case LimitPeriod.monthly:
+        end = DateTime(referenceDate.year, referenceDate.month + 1, 0);
+        break;
+      case LimitPeriod.quarterly:
+        final currentQuarter = (referenceDate.month - 1) ~/ 3;
+        final lastMonthOfQuarter = (currentQuarter * 3) + 3;
+        end = DateTime(referenceDate.year, lastMonthOfQuarter + 1, 0);
+        break;
+      case LimitPeriod.yearly:
+        end = DateTime(referenceDate.year, 12, 31);
+        break;
+      case LimitPeriod.custom:
+        if (nextSalaryDate != null) {
+          final diff = nextSalaryDate.difference(referenceDate).inDays;
+          return diff >= 0 ? diff + 1 : 0;
+        } else {
+          end = DateTime(referenceDate.year, referenceDate.month + 1, 0);
+        }
+        break;
+    }
+    
+    final diff = DateTime(end.year, end.month, end.day).difference(DateTime(referenceDate.year, referenceDate.month, referenceDate.day)).inDays;
+    return diff >= 0 ? diff + 1 : 0;
+  }
+
+  double recommendedDailySpend(DateTime referenceDate, {DateTime? nextSalaryDate}) {
+    if (remainingAmount <= 0) return 0.0;
+    final days = remainingDays(referenceDate, nextSalaryDate: nextSalaryDate);
+    if (days <= 0) return remainingAmount;
+    return remainingAmount / days;
+  }
+
+  String get status {
+    if (percentUsed >= 1.0) return "🔴 Budget Exceeded";
+    if (percentUsed >= 0.8) return "🟡 Near Budget Limit";
+    return "✅ On Track";
+  }
 }
 
 class CategoryLimit {
@@ -111,6 +165,7 @@ class CategoryLimit {
   double spentAmount;
   final bool allowRollover;
   double rolloverAmount;
+  final bool enforceLimit;
 
   CategoryLimit({
     required this.id,
@@ -123,6 +178,7 @@ class CategoryLimit {
     this.spentAmount = 0.0,
     this.allowRollover = false,
     this.rolloverAmount = 0.0,
+    this.enforceLimit = false,
   });
 
   double get effectiveLimit => limitAmount + rolloverAmount;
@@ -130,4 +186,56 @@ class CategoryLimit {
   double get percentUsed => effectiveLimit > 0 ? (spentAmount / effectiveLimit) : 0.0;
   bool get isOverBudget => spentAmount > effectiveLimit;
   double get overspentAmount => isOverBudget ? spentAmount - effectiveLimit : 0.0;
+
+  int remainingDays(DateTime referenceDate, {DateTime? nextSalaryDate}) {
+    if (period == LimitPeriod.custom && customEndDate != null) {
+      final diff = customEndDate!.difference(referenceDate).inDays;
+      return diff >= 0 ? diff + 1 : 0;
+    }
+    
+    DateTime end;
+    switch (period) {
+      case LimitPeriod.daily:
+        return 1;
+      case LimitPeriod.weekly:
+        final daysToSunday = 7 - referenceDate.weekday;
+        end = referenceDate.add(Duration(days: daysToSunday));
+        break;
+      case LimitPeriod.monthly:
+        end = DateTime(referenceDate.year, referenceDate.month + 1, 0);
+        break;
+      case LimitPeriod.quarterly:
+        final currentQuarter = (referenceDate.month - 1) ~/ 3;
+        final lastMonthOfQuarter = (currentQuarter * 3) + 3;
+        end = DateTime(referenceDate.year, lastMonthOfQuarter + 1, 0);
+        break;
+      case LimitPeriod.yearly:
+        end = DateTime(referenceDate.year, 12, 31);
+        break;
+      case LimitPeriod.custom:
+        if (nextSalaryDate != null) {
+          final diff = nextSalaryDate.difference(referenceDate).inDays;
+          return diff >= 0 ? diff + 1 : 0;
+        } else {
+          end = DateTime(referenceDate.year, referenceDate.month + 1, 0);
+        }
+        break;
+    }
+    
+    final diff = DateTime(end.year, end.month, end.day).difference(DateTime(referenceDate.year, referenceDate.month, referenceDate.day)).inDays;
+    return diff >= 0 ? diff + 1 : 0;
+  }
+
+  double recommendedDailySpend(DateTime referenceDate, {DateTime? nextSalaryDate}) {
+    if (remainingAmount <= 0) return 0.0;
+    final days = remainingDays(referenceDate, nextSalaryDate: nextSalaryDate);
+    if (days <= 0) return remainingAmount;
+    return remainingAmount / days;
+  }
+
+  String get status {
+    if (percentUsed >= 1.0) return "🔴 Budget Exceeded";
+    if (percentUsed >= 0.8) return "🟡 Near Budget Limit";
+    return "✅ On Track";
+  }
 }

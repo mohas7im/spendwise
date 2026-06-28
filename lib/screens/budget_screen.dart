@@ -186,7 +186,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                       child: PremiumGradientCard(
                           builder: (ctx, textColor, subTextColor) {
                             final pct = (globalLimit.percentUsed).clamp(0.0, 1.0);
-                            final color = globalLimit.isOverBudget ? Colors.red.shade900 : pct > 0.85 ? Colors.orangeAccent : Colors.greenAccent;
+                            final color = globalLimit.isOverBudget ? Colors.redAccent : pct > 0.85 ? Colors.orangeAccent : Colors.greenAccent;
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -230,18 +230,18 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade900.withValues(alpha: 0.1),
+                          color: Colors.redAccent.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.red.shade900.withValues(alpha: 0.3)),
+                          border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.warning_amber_rounded, color: Colors.red.shade900, size: 20),
+                            Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 20),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 '$overBudgetCount categor${overBudgetCount == 1 ? 'y' : 'ies'} over budget this period',
-                                style: TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.w600, fontSize: 13),
+                                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600, fontSize: 13),
                               ),
                             ),
                           ],
@@ -249,14 +249,23 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                       ),
                     ),
                   
-                  if (periodLimits.isNotEmpty) ...[
+                  if (periodLimits.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                      child: Text('Budget vs Actual', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Budget vs Actual', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
+                          IconButton(
+                            icon: Icon(Icons.bar_chart, color: Theme.of(context).primaryColor, size: 22),
+                            onPressed: () => _showBudgetActualChartSheet(periodLimits, Theme.of(context).brightness == Brightness.dark),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            tooltip: 'View Chart',
+                          ),
+                        ],
+                      ),
                     ),
-                    _buildBudgetActualChart(periodLimits, Theme.of(context).brightness == Brightness.dark),
-                    const SizedBox(height: 16),
-                  ],
 
                   _buildCategoryLimitsList(_selectedPeriod, budgetProvider),
                 ],
@@ -310,7 +319,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
   Widget _buildDetailedCategoryLimitCard(CategoryLimit limit, BudgetProvider provider) {
     final pct = (limit.percentUsed).clamp(0.0, 1.0);
     final isOver = limit.isOverBudget;
-    final barColor = isOver ? Colors.red.shade900 : pct > 0.85 ? Colors.orangeAccent : Colors.greenAccent;
+    final barColor = isOver ? Colors.redAccent : pct > 0.85 ? Colors.orangeAccent : Colors.greenAccent;
 
     return GestureDetector(
       onTap: () => _showAddLimitSheet(context, provider, existingLimit: limit),
@@ -332,8 +341,8 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                   if (isOver)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(color: Colors.red.shade900.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
-                      child: Text('OVER', style: TextStyle(color: Colors.red.shade900, fontSize: 10, fontWeight: FontWeight.bold)),
+                      decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                      child: Text('OVER', style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                     )
                   else
                     Text('${(pct * 100).toStringAsFixed(0)}%', style: TextStyle(color: barColor, fontWeight: FontWeight.bold, fontSize: 13)),
@@ -596,6 +605,20 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
       ),
     );
   }
+  void _showBudgetActualChartSheet(List<CategoryLimit> limits, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => CustomBottomSheet(
+        title: 'Budget vs Actual',
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: _buildBudgetActualChart(limits, isDark),
+        ),
+      ),
+    );
+  }
 
   Widget _buildBudgetActualChart(List<CategoryLimit> limits, bool isDark) {
     if (limits.isEmpty) return const SizedBox();
@@ -674,7 +697,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
             barGroups: List.generate(sortedLimits.length, (index) {
               final limit = sortedLimits[index];
               final pct = (limit.percentUsed).clamp(0.0, 1.0);
-              final actualColor = limit.isOverBudget ? Colors.red.shade900 : pct > 0.85 ? Colors.orangeAccent : Colors.greenAccent;
+              final actualColor = limit.isOverBudget ? Colors.redAccent : pct > 0.85 ? Colors.orangeAccent : Colors.greenAccent;
               
               return BarChartGroupData(
                 x: index,

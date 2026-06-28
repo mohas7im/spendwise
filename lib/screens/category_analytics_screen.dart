@@ -69,26 +69,10 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sortedTxs = widget.transactions.toList()..sort((a, b) => b.date.compareTo(a.date));
     final totalSpent = sortedTxs.fold(0.0, (s, t) => s + t.amount);
-    final avgTx = sortedTxs.isEmpty ? 0.0 : totalSpent / sortedTxs.length;
     final highestTx = sortedTxs.isEmpty ? 0.0 : sortedTxs.map((t) => t.amount).reduce((a, b) => a > b ? a : b);
-    final lowestTx = sortedTxs.isEmpty ? 0.0 : sortedTxs.map((t) => t.amount).reduce((a, b) => a < b ? a : b);
-
-    // Analytics
-    final Map<String, double> dayMap = {};
-    for (var t in sortedTxs) {
-      final key = DateFormat('EEE, MMM d').format(t.date);
-      dayMap[key] = (dayMap[key] ?? 0) + t.amount;
-    }
-    String? highestDay;
-    String? lowestDay;
-    if (dayMap.isNotEmpty) {
-      highestDay = dayMap.entries.reduce((a, b) => a.value > b.value ? a : b).key;
-      lowestDay = dayMap.entries.reduce((a, b) => a.value < b.value ? a : b).key;
-    }
-    final dailyAvg = dayMap.isEmpty ? 0.0 : totalSpent / dayMap.length;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: isDark ? Colors.black : Colors.grey.shade50,
       appBar: AppBar(
         title: Row(
           children: [
@@ -104,9 +88,9 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
           ? const Center(child: Text('No transactions in this period.', style: TextStyle(color: Colors.grey)))
           : CustomScrollView(
               slivers: [
-                // Summary 4-card grid
+                // Summary 3-card row
                 SliverToBoxAdapter(
-                  child: _buildSummaryGrid(context, isDark, totalSpent, avgTx, highestTx, sortedTxs.length),
+                  child: _buildSummaryGrid(context, isDark, totalSpent, highestTx, sortedTxs.length),
                 ),
 
                 // Chart PageView with dots
@@ -114,10 +98,7 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
                   child: _buildChartSection(context, isDark, sortedTxs, totalSpent),
                 ),
 
-                // Category Insights
-                SliverToBoxAdapter(
-                  child: _buildCategoryInsights(context, isDark, sortedTxs, highestDay, lowestDay, dailyAvg, highestTx, lowestTx),
-                ),
+
 
                 // Budget card
                 if (widget.budgetLimit != null)
@@ -192,26 +173,16 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
     );
   }
 
-  Widget _buildSummaryGrid(BuildContext context, bool isDark, double total, double avg, double highest, int count) {
+  Widget _buildSummaryGrid(BuildContext context, bool isDark, double total, double highest, int count) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(child: _metricCard(context, isDark, 'Total Spent', '?${total.toStringAsFixed(0)}', widget.categoryColor)),
-              const SizedBox(width: 12),
-              Expanded(child: _metricCard(context, isDark, 'Average', '?${avg.toStringAsFixed(0)}', Colors.blueAccent)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(child: _metricCard(context, isDark, 'Highest', '?${highest.toStringAsFixed(0)}', Colors.orange)),
-              const SizedBox(width: 12),
-              Expanded(child: _metricCard(context, isDark, 'Transactions', '$count', Colors.purple)),
-            ],
-          ),
+          Expanded(child: _metricCard(context, isDark, 'Total Spent', '₹${total.toStringAsFixed(0)}', Theme.of(context).primaryColor)),
+          const SizedBox(width: 8),
+          Expanded(child: _metricCard(context, isDark, 'Highest', '₹${highest.toStringAsFixed(0)}', Colors.orange)),
+          const SizedBox(width: 8),
+          Expanded(child: _metricCard(context, isDark, 'Transactions', '$count', Colors.purple)),
         ],
       ),
     );
@@ -219,18 +190,18 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
 
   Widget _metricCard(BuildContext context, bool isDark, String label, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.05), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-          const SizedBox(height: 4),
-          Text(value, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 6),
+          Text(value, style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
         ],
       ),
     );
@@ -264,15 +235,15 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
                     margin: const EdgeInsets.only(right: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(
-                      color: active ? widget.categoryColor.withValues(alpha: 0.15) : Colors.transparent,
+                      color: active ? Theme.of(context).primaryColor.withValues(alpha: 0.15) : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: active ? widget.categoryColor : Colors.grey.withValues(alpha: 0.3)),
+                      border: Border.all(color: active ? Theme.of(context).primaryColor : Colors.grey.withValues(alpha: 0.3)),
                     ),
                     child: Text(chartTitles[i],
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: active ? widget.categoryColor : Colors.grey)),
+                            color: active ? Theme.of(context).primaryColor : Colors.grey)),
                   ),
                 );
               }),
@@ -335,7 +306,7 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
         touchTooltipData: LineTouchTooltipData(
           getTooltipColor: (_) => isDark ? Colors.white : Colors.black87,
           getTooltipItems: (s) => s.map((spot) => LineTooltipItem(
-            '?${spot.y.round()}',
+            '₹${spot.y.round()}',
             TextStyle(color: isDark ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
           )).toList(),
         ),
@@ -344,16 +315,16 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
         LineChartBarData(
           spots: spots,
           isCurved: true,
-          color: widget.categoryColor,
+          color: Theme.of(context).primaryColor,
           barWidth: 2.5,
           dotData: FlDotData(
             show: true,
-            getDotPainter: (_, _, _, _) => FlDotCirclePainter(radius: 3, color: widget.categoryColor, strokeWidth: 0),
+            getDotPainter: (_, _, _, _) => FlDotCirclePainter(radius: 3, color: Theme.of(context).primaryColor, strokeWidth: 0),
           ),
           belowBarData: BarAreaData(
             show: true,
             gradient: LinearGradient(
-              colors: [widget.categoryColor.withValues(alpha: 0.2), widget.categoryColor.withValues(alpha: 0.0)],
+              colors: [Theme.of(context).primaryColor.withValues(alpha: 0.2), Theme.of(context).primaryColor.withValues(alpha: 0.0)],
               begin: Alignment.topCenter, end: Alignment.bottomCenter,
             ),
           ),
@@ -399,7 +370,7 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
         touchTooltipData: BarTouchTooltipData(
           getTooltipColor: (_) => isDark ? Colors.white : Colors.black87,
           getTooltipItem: (group, groupIndex, rod, rodIndex) => BarTooltipItem(
-            '?${rod.toY.round()}',
+            '₹${rod.toY.round()}',
             TextStyle(color: isDark ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
           ),
         ),
@@ -409,7 +380,7 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
         barRods: [
           BarChartRodData(
             toY: vals[i],
-            color: widget.categoryColor,
+            color: Theme.of(context).primaryColor,
             width: keys.length > 10 ? 8 : 14,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
           ),
@@ -470,51 +441,7 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
     );
   }
 
-  Widget _buildCategoryInsights(
-    BuildContext context, bool isDark, List<GlobalTransaction> txs,
-    String? highestDay, String? lowestDay, double dailyAvg, double highest, double lowest,
-  ) {
-    final cardColor = isDark ? const Color(0xFF1C1C1E) : Colors.white;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.05), blurRadius: 10, offset: const Offset(0, 3))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Category Insights', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : Colors.black87)),
-          const SizedBox(height: 12),
-          _insightRow(Icons.arrow_upward, 'Highest Spending Day', highestDay ?? 'N/A', Colors.redAccent, isDark),
-          _insightRow(Icons.arrow_downward, 'Lowest Spending Day', lowestDay ?? 'N/A', Colors.green, isDark),
-          _insightRow(Icons.today_outlined, 'Daily Average', '?${dailyAvg.toStringAsFixed(0)}', Colors.orange, isDark),
-          _insightRow(Icons.receipt_long, 'Highest Transaction', '?${highest.toStringAsFixed(0)}', Colors.blueAccent, isDark),
-          _insightRow(Icons.receipt, 'Lowest Transaction', '?${lowest.toStringAsFixed(0)}', Colors.purple, isDark),
-        ],
-      ),
-    );
-  }
 
-  Widget _insightRow(IconData icon, String label, String value, Color color, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
-      child: Row(
-        children: [
-          Container(
-            width: 32, height: 32,
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, size: 16, color: color),
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13))),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
-        ],
-      ),
-    );
-  }
 
   Widget _buildBudgetCard(BuildContext context, bool isDark, double totalSpent) {
     final limit = widget.budgetLimit!;
@@ -561,15 +488,15 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Spent: ?${totalSpent.toStringAsFixed(0)}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
-              Text('Budget: ?${limit.toStringAsFixed(0)}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+              Text('Spent: ₹${totalSpent.toStringAsFixed(0)}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+              Text('Budget: ₹${limit.toStringAsFixed(0)}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
             ],
           ),
           if (over)
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
-                'Over by ?${(totalSpent - limit).toStringAsFixed(0)}',
+                'Over by ₹${(totalSpent - limit).toStringAsFixed(0)}',
                 style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 13),
               ),
             )
@@ -577,7 +504,7 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
-                '?${(limit - totalSpent).toStringAsFixed(0)} remaining',
+                '₹${(limit - totalSpent).toStringAsFixed(0)} remaining',
                 style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13),
               ),
             ),
@@ -615,8 +542,8 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
       leading: CircleAvatar(
-        backgroundColor: widget.categoryColor.withValues(alpha: 0.12),
-        child: Icon(Icons.receipt_long, color: widget.categoryColor, size: 18),
+        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.12),
+        child: Icon(Icons.receipt_long, color: Theme.of(context).primaryColor, size: 18),
       ),
       title: Text(t.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Column(
@@ -631,7 +558,7 @@ class _CategoryAnalyticsScreenState extends State<CategoryAnalyticsScreen> {
       ),
       isThreeLine: t.notes.isNotEmpty || t.paymentMethod.isNotEmpty,
       trailing: Text(
-        '?${t.amount.toStringAsFixed(0)}',
+        '₹${t.amount.toStringAsFixed(0)}',
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
       ),
     );

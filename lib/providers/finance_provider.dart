@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+
 import '../models/debt.dart';
-import '../services/dummy_data_service.dart';
+
 import '../models/income_source.dart';
 import '../models/transaction.dart';
 import '../models/subscription.dart';
@@ -11,23 +11,14 @@ import '../services/notification_service.dart';
 
 class FinanceProvider extends ChangeNotifier {
   double _totalBalance = 24500.00;
-  List<DebtModel> _debts = [];
-  List<IncomeSource> _incomeSources = [];
-  List<TransactionModel> _transactions = [];
+  final List<DebtModel> _debts = [];
+  final List<IncomeSource> _incomeSources = [];
+  final List<TransactionModel> _transactions = [];
   List<SubscriptionModel> _subscriptions = [];
   List<CategoryModel> _categories = [];
 
   FinanceProvider() {
-    if (!kReleaseMode) {
-      _debts = DummyDataService.getDummyDebts();
-      _incomeSources = [
-        IncomeSource(id: 'inc1', name: 'Primary Salary', amount: 45000, type: IncomeType.salary, frequency: IncomeFrequency.monthly, creditDate: 25),
-        IncomeSource(id: 'inc2', name: 'Freelance Design', amount: 15000, type: IncomeType.freelance, frequency: IncomeFrequency.monthly, creditDate: 28),
-      ];
-      _transactions = DummyDataService.getDummyTransactions();
-    } else {
-      _totalBalance = 0.0;
-    }
+    _totalBalance = 0.0;
     _initCategories();
     _initSubscriptions();
   }

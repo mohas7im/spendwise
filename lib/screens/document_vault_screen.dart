@@ -81,8 +81,13 @@ class _DocumentVaultScreenState extends State<DocumentVaultScreen> {
             children: [
                       DropdownButtonFormField<String>(
                         initialValue: cat,
-                        decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
-                        items: _categories.where((c) => c != 'All').map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Category',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        items: _categories.where((c) => c != 'All').map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis))).toList(),
                         onChanged: (val) => setModalState(() => cat = val!),
                       ),
                       const SizedBox(height: 16),

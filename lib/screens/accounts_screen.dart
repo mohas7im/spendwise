@@ -7,12 +7,7 @@ class AccountsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Dummy accounts data
-    final List<Map<String, dynamic>> accounts = [
-      {'name': 'HDFC Bank', 'number': '**** 4023', 'balance': 18500.0, 'color': Colors.indigo, 'icon': Icons.account_balance, 'type': 'Bank Account'},
-      {'name': 'ICICI Credit Card', 'number': '**** 9122', 'balance': -2450.0, 'color': Colors.orangeAccent, 'icon': Icons.credit_card, 'type': 'Credit Card'},
-      {'name': 'Cash Wallet', 'number': '', 'balance': 3550.0, 'color': Colors.green, 'icon': Icons.account_balance_wallet, 'type': 'Cash'},
-      {'name': 'Sodexo Meal Pass', 'number': '**** 1121', 'balance': 4900.0, 'color': Colors.blue, 'icon': Icons.restaurant, 'type': 'Benefits'},
-    ];
+    final List<Map<String, dynamic>> accounts = [];
 
     double totalBalance = accounts.fold(0, (sum, acc) => sum + acc['balance']);
 

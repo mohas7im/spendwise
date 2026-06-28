@@ -6,6 +6,7 @@ import 'modules/debts_manager_modal.dart';
 import 'modules/savings_goals_modal.dart';
 import 'transaction_history_screen.dart';
 import 'income_salary_screen.dart';
+import 'subscriptions_screen.dart';
 
 class FinanceHubScreen extends StatefulWidget {
   const FinanceHubScreen({super.key});
@@ -19,6 +20,31 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text('Finance Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 22)),
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Container(
+              decoration: const BoxDecoration(color: Colors.black12, shape: BoxShape.circle),
+              child: IconButton(
+                icon: const Icon(Icons.calculate, color: Colors.blueAccent),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (ctx) => const CalculatorsMenuModal(),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 120),
@@ -26,38 +52,7 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Finance Hub',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.black12,
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.calculate, color: Colors.blueAccent),
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (ctx) => const CalculatorsMenuModal(),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: _buildNetWorthTrend(context),
               ),
               const SizedBox(height: 24),
@@ -115,7 +110,15 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
             Navigator.push(context, MaterialPageRoute(builder: (ctx) => const SavingsGoalsModal()));
           },
         ),
-
+        _buildVaultTile(
+          context: context,
+          title: 'Subscriptions',
+          subtitle: 'Track your recurring subscriptions.',
+          icon: Icons.subscriptions_outlined,
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (ctx) => const SubscriptionsScreen()));
+          },
+        ),
       ],
     );
   }
@@ -185,15 +188,15 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.2), 
+                  color: Colors.grey.withValues(alpha: 0.2), 
                   borderRadius: BorderRadius.circular(12)
                 ),
-                child: const Text('+12.5%', style: TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                child: const Text('0.0%', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text('₹2,45,000', style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.bold)),
+          Text('₹0', style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           SizedBox(
             height: 100,
@@ -206,21 +209,21 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
                 lineBarsData: [
                   LineChartBarData(
                     spots: const [
-                      FlSpot(0, 1.5),
-                      FlSpot(1, 1.7),
-                      FlSpot(2, 1.6),
-                      FlSpot(3, 2.0),
-                      FlSpot(4, 2.2),
-                      FlSpot(5, 2.45),
+                      FlSpot(0, 0),
+                      FlSpot(1, 0),
+                      FlSpot(2, 0),
+                      FlSpot(3, 0),
+                      FlSpot(4, 0),
+                      FlSpot(5, 0),
                     ],
                     isCurved: true,
-                    color: Colors.white,
+                    color: textColor,
                     barWidth: 3,
                     isStrokeCapRound: true,
                     dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: textColor.withValues(alpha: 0.1),
                     ),
                   ),
                 ],
@@ -231,10 +234,10 @@ class _FinanceHubScreenState extends State<FinanceHubScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildSummaryStat(context, 'Income', '₹1.2L', Colors.greenAccent, textColor, subTextColor),
-              _buildSummaryStat(context, 'Savings', '₹45K', Colors.blueAccent, textColor, subTextColor),
-              _buildSummaryStat(context, 'Debt', '₹12K', Colors.redAccent, textColor, subTextColor),
-              _buildSummaryStat(context, 'Loans', '₹8K', Colors.orangeAccent, textColor, subTextColor),
+              _buildSummaryStat(context, 'Income', '₹0', Colors.greenAccent, textColor, subTextColor),
+              _buildSummaryStat(context, 'Savings', '₹0', Colors.blueAccent, textColor, subTextColor),
+              _buildSummaryStat(context, 'Debt', '₹0', Colors.redAccent, textColor, subTextColor),
+              _buildSummaryStat(context, 'Loans', '₹0', Colors.orangeAccent, textColor, subTextColor),
             ],
           ),
         ],

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/budget.dart';
 import '../models/transaction.dart';
-import '../services/dummy_data_service.dart';
+
 
 class BudgetProvider with ChangeNotifier {
   late BudgetModel _budget;
@@ -9,11 +9,7 @@ class BudgetProvider with ChangeNotifier {
   List<TransactionModel> _transactions = [];
 
   BudgetProvider() {
-    if (!kReleaseMode) {
-      _budget = DummyDataService.getDummyBudget();
-    } else {
-      _budget = BudgetModel(monthlySalary: 0.0);
-    }
+    _budget = BudgetModel(monthlySalary: 0.0);
   }
 
   BudgetModel get budget => _budget;
