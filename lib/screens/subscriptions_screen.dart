@@ -348,6 +348,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showSubscriptionModal(context, financeProvider),
+        backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 120),
@@ -360,11 +365,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 child: Row(
                   children: [
                     Text('Subscriptions', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () => _showSubscriptionModal(context, financeProvider),
-                      icon: Icon(Icons.add_circle, color: Theme.of(context).primaryColor, size: 28),
-                    ),
                   ],
                 ),
               ),

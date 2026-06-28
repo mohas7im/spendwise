@@ -131,7 +131,6 @@ class _VaultDatesExpiryViewState extends State<VaultDatesExpiryView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Important Dates', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                IconButton(icon: const Icon(Icons.add, color: Colors.blueAccent), onPressed: () => _showAddDateModal()),
               ],
             ),
             const SizedBox(height: 8),
@@ -160,13 +159,11 @@ class _VaultDatesExpiryViewState extends State<VaultDatesExpiryView> {
           ],
         ),
       ),
-      floatingActionButton: dates.isNotEmpty || expirations.isNotEmpty
-          ? FloatingActionButton(
-              onPressed: () => _showAddDateModal(),
-              backgroundColor: Theme.of(context).primaryColor,
-              child: const Icon(Icons.add),
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddDateModal(),
+        backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }

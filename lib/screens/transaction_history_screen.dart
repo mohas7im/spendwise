@@ -68,9 +68,34 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   ],
                 );
               }
-              return IconButton(
-                icon: const Icon(Icons.filter_list),
-                onPressed: () => _showFilterSheet(context, ledger),
+              return PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) {
+                  if (value == 'pdf') ledger.exportToPDF(context);
+                  if (value == 'csv') ledger.exportToCSV(context);
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'pdf',
+                    child: Row(
+                      children: [
+                        Icon(Icons.picture_as_pdf, color: Colors.red),
+                        SizedBox(width: 12),
+                        Text('Export as PDF'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'csv',
+                    child: Row(
+                      children: [
+                        Icon(Icons.table_chart, color: Colors.green),
+                        SizedBox(width: 12),
+                        Text('Export as CSV'),
+                      ],
+                    ),
+                  ),
+                ],
               );
             },
           ),
@@ -80,22 +105,38 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         builder: (context, ledger, child) {
           return Column(
             children: [
-              // Search Bar
+              // Search Bar & Filter
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: TextField(
-                  controller: _searchCtrl,
-                  decoration: InputDecoration(
-                    hintText: 'Search transactions...',
-                    prefixIcon: const Icon(Icons.search),
-                    filled: true,
-                    fillColor: Colors.grey.withValues(alpha: 0.1),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchCtrl,
+                        decoration: InputDecoration(
+                          hintText: 'Search transactions...',
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: Colors.grey.withValues(alpha: 0.1),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        onChanged: (val) => ledger.setSearchQuery(val),
+                      ),
                     ),
-                  ),
-                  onChanged: (val) => ledger.setSearchQuery(val),
+                    const SizedBox(width: 12),
+                    IconButton(
+                      icon: const Icon(Icons.tune),
+                      onPressed: () => _showFilterSheet(context, ledger),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Theme.of(context).cardColor,
+                        padding: const EdgeInsets.all(12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
@@ -103,26 +144,51 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               if (!ledger.isSelectionMode)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _SummaryCard(
-                          title: 'Income',
-                          amount: ledger.totalIncome,
-                          color: Colors.green,
-                          icon: Icons.arrow_downward,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _StatItem(label: 'Total Txns', value: '${ledger.transactions.length}', color: Colors.blueAccent),
+                            _StatItem(label: 'Net Balance', value: '₹${ledger.netBalance.toStringAsFixed(0)}', color: Colors.white),
+                            _StatItem(
+                              label: 'Today', 
+                              value: '${ledger.transactions.where((t) => t.date.day == DateTime.now().day && t.date.month == DateTime.now().month && t.date.year == DateTime.now().year).length}', 
+                              color: Colors.orangeAccent
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _SummaryCard(
-                          title: 'Expense',
-                          amount: ledger.totalExpense,
-                          color: Colors.red,
-                          icon: Icons.arrow_upward,
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(child: _SummaryCard(
+                              title: 'Income',
+                              amount: ledger.totalIncome,
+                              color: Colors.green,
+                              icon: Icons.arrow_downward,
+                              isSelected: ledger.typeFilter == GlobalTransactionType.income,
+                              onTap: () => ledger.setTypeFilter(ledger.typeFilter == GlobalTransactionType.income ? null : GlobalTransactionType.income),
+                            )),
+                            const SizedBox(width: 12),
+                            Expanded(child: _SummaryCard(
+                              title: 'Expense',
+                              amount: ledger.totalExpense,
+                              color: Colors.red,
+                              icon: Icons.arrow_upward,
+                              isSelected: ledger.typeFilter == GlobalTransactionType.expense,
+                              onTap: () => ledger.setTypeFilter(ledger.typeFilter == GlobalTransactionType.expense ? null : GlobalTransactionType.expense),
+                            )),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
 
@@ -175,7 +241,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         children: [
           Icon(Icons.receipt_long, size: 80, color: Colors.grey.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
-          const Text('No transactions found', style: TextStyle(fontSize: 18, color: Colors.grey)),
+          const Text('No transactions found', style: TextStyle(color: Colors.grey, fontSize: 18)),
         ],
       ),
     );
@@ -184,69 +250,152 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   void _showFilterSheet(BuildContext context, LedgerProvider ledger) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Filter by Type', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              children: [
-                ActionChip(
-                  label: const Text('All'),
-                  onPressed: () {
-                    ledger.setTypeFilter(null);
-                    Navigator.pop(ctx);
-                  },
-                ),
-                ActionChip(
-                  label: const Text('Income'),
-                  backgroundColor: Colors.green.withValues(alpha: 0.1),
-                  onPressed: () {
-                    ledger.setTypeFilter(GlobalTransactionType.income);
-                    Navigator.pop(ctx);
-                  },
-                ),
-                ActionChip(
-                  label: const Text('Expense'),
-                  backgroundColor: Colors.red.withValues(alpha: 0.1),
-                  onPressed: () {
-                    ledger.setTypeFilter(GlobalTransactionType.expense);
-                    Navigator.pop(ctx);
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.picture_as_pdf),
-                label: const Text('Export All to PDF'),
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  ledger.exportToPDF(context);
-                },
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _AdvancedFilterSheet(ledger: ledger),
+    );
+  }
+}
+
+class _AdvancedFilterSheet extends StatefulWidget {
+  final LedgerProvider ledger;
+  const _AdvancedFilterSheet({required this.ledger});
+
+  @override
+  State<_AdvancedFilterSheet> createState() => _AdvancedFilterSheetState();
+}
+
+class _AdvancedFilterSheetState extends State<_AdvancedFilterSheet> {
+  String _sortField = 'date';
+  bool _sortAscending = false;
+  GlobalTransactionType? _typeFilter;
+  String? _categoryFilter;
+
+  @override
+  void initState() {
+    super.initState();
+    _sortField = widget.ledger.sortField;
+    _sortAscending = widget.ledger.sortAscending;
+    _typeFilter = widget.ledger.typeFilter;
+    if (widget.ledger.categoryFilter.isNotEmpty) {
+      _categoryFilter = widget.ledger.categoryFilter.first;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Filters & Sort', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text('Sort By', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              ChoiceChip(
+                label: const Text('Date'),
+                selected: _sortField == 'date',
+                onSelected: (val) => setState(() => _sortField = 'date'),
               ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.table_chart),
-                label: const Text('Export All to CSV'),
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  ledger.exportToCSV(context);
-                },
+              ChoiceChip(
+                label: const Text('Amount'),
+                selected: _sortField == 'amount',
+                onSelected: (val) => setState(() => _sortField = 'amount'),
               ),
-            )
-          ],
-        ),
+              ChoiceChip(
+                label: const Text('Category'),
+                selected: _sortField == 'category',
+                onSelected: (val) => setState(() => _sortField = 'category'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SwitchListTile(
+            title: const Text('Ascending Order'),
+            value: _sortAscending,
+            onChanged: (val) => setState(() => _sortAscending = val),
+            contentPadding: EdgeInsets.zero,
+          ),
+          const SizedBox(height: 16),
+          const Text('Transaction Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              ChoiceChip(
+                label: const Text('All'),
+                selected: _typeFilter == null,
+                onSelected: (val) => setState(() => _typeFilter = null),
+              ),
+              ChoiceChip(
+                label: const Text('Income'),
+                selected: _typeFilter == GlobalTransactionType.income,
+                onSelected: (val) => setState(() => _typeFilter = GlobalTransactionType.income),
+              ),
+              ChoiceChip(
+                label: const Text('Expense'),
+                selected: _typeFilter == GlobalTransactionType.expense,
+                onSelected: (val) => setState(() => _typeFilter = GlobalTransactionType.expense),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text('Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _categoryFilter,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.black12,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            ),
+            hint: const Text('All Categories'),
+            items: [
+              const DropdownMenuItem<String>(value: null, child: Text('All')),
+              const DropdownMenuItem(value: 'Food', child: Text('Food')),
+              const DropdownMenuItem(value: 'Transport', child: Text('Transport')),
+              const DropdownMenuItem(value: 'Shopping', child: Text('Shopping')),
+              const DropdownMenuItem(value: 'Debt', child: Text('Debt')),
+              const DropdownMenuItem(value: 'Subscriptions', child: Text('Subscriptions')),
+              const DropdownMenuItem(value: 'Group Split', child: Text('Group Split')),
+            ],
+            onChanged: (val) => setState(() => _categoryFilter = val),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                widget.ledger.setTypeFilter(_typeFilter);
+                widget.ledger.setAdvancedFilters(
+                  categoryFilter: _categoryFilter != null ? [_categoryFilter!] : [],
+                );
+                widget.ledger.setSort(_sortField, _sortAscending);
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Apply Filters', style: TextStyle(fontSize: 16)),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -257,23 +406,31 @@ class _SummaryCard extends StatelessWidget {
   final double amount;
   final Color color;
   final IconData icon;
+  final bool isSelected;
+  final VoidCallback? onTap;
 
   const _SummaryCard({
     required this.title,
     required this.amount,
     required this.color,
     required this.icon,
+    this.isSelected = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.2) : color.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: isSelected ? Border.all(color: color.withValues(alpha: 0.5), width: 2) : Border.all(color: Colors.transparent, width: 2),
+        ),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -290,6 +447,27 @@ class _SummaryCard extends StatelessWidget {
           ),
         ],
       ),
+      ),
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  
+  const _StatItem({required this.label, required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        const SizedBox(height: 4),
+        Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16)),
+      ],
     );
   }
 }

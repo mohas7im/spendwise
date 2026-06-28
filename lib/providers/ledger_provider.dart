@@ -17,7 +17,18 @@ class LedgerProvider extends ChangeNotifier {
   // Filters
   String _searchQuery = '';
   GlobalTransactionType? _typeFilter;
-  
+  DateTime? _startDate;
+  DateTime? _endDate;
+  List<String> _categoryFilter = [];
+  String? _paymentMethodFilter;
+  double? _minAmount;
+  double? _maxAmount;
+  List<String> _tagsFilter = [];
+
+  // Sorting
+  String _sortField = 'date'; // 'date', 'amount', 'category', 'alphabetical'
+  bool _sortAscending = false;
+
   // Selection for bulk actions
   final Set<String> _selectedIds = {};
   bool _isSelectionMode = false;
@@ -27,6 +38,20 @@ class LedgerProvider extends ChangeNotifier {
   double _totalExpense = 0;
 
   List<GlobalTransaction> get transactions => _filteredTransactions;
+  
+  // Getters for filters/sort
+  String get searchQuery => _searchQuery;
+  GlobalTransactionType? get typeFilter => _typeFilter;
+  DateTime? get startDate => _startDate;
+  DateTime? get endDate => _endDate;
+  List<String> get categoryFilter => _categoryFilter;
+  String? get paymentMethodFilter => _paymentMethodFilter;
+  double? get minAmount => _minAmount;
+  double? get maxAmount => _maxAmount;
+  List<String> get tagsFilter => _tagsFilter;
+  String get sortField => _sortField;
+  bool get sortAscending => _sortAscending;
+  
   Set<String> get selectedIds => _selectedIds;
   bool get isSelectionMode => _isSelectionMode;
 
@@ -121,24 +146,95 @@ class LedgerProvider extends ChangeNotifier {
     _applyFilters();
   }
 
-  void setSearchQuery(String query) {
-    _searchQuery = query;
-    _applyFilters();
-  }
 
   void setTypeFilter(GlobalTransactionType? type) {
     _typeFilter = type;
     _applyFilters();
   }
 
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    _applyFilters();
+  }
+
+  void setAdvancedFilters({
+    DateTime? startDate,
+    DateTime? endDate,
+    List<String>? categoryFilter,
+    String? paymentMethodFilter,
+    double? minAmount,
+    double? maxAmount,
+    List<String>? tagsFilter,
+  }) {
+    _startDate = startDate;
+    _endDate = endDate;
+    if (categoryFilter != null) _categoryFilter = categoryFilter;
+    _paymentMethodFilter = paymentMethodFilter;
+    _minAmount = minAmount;
+    _maxAmount = maxAmount;
+    if (tagsFilter != null) _tagsFilter = tagsFilter;
+    _applyFilters();
+  }
+
+  void setSort(String field, bool ascending) {
+    _sortField = field;
+    _sortAscending = ascending;
+    _applyFilters();
+  }
+
   void _applyFilters() {
     _filteredTransactions = _allTransactions.where((t) {
-      final matchesSearch = t.title.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-                            t.category.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-                            (t.person?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
-      final matchesType = _typeFilter == null || t.type == _typeFilter;
-      return matchesSearch && matchesType;
+      if (_typeFilter != null && t.type != _typeFilter) return false;
+      
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery.toLowerCase();
+        if (!t.title.toLowerCase().contains(query) && 
+            !(t.person?.toLowerCase().contains(query) ?? false)) {
+          return false;
+        }
+      }
+
+      if (_startDate != null && t.date.isBefore(_startDate!)) return false;
+      if (_endDate != null && t.date.isAfter(_endDate!.add(const Duration(days: 1)))) return false;
+      if (_categoryFilter.isNotEmpty && !_categoryFilter.contains(t.category)) return false;
+      if (_paymentMethodFilter != null && t.paymentMethod != _paymentMethodFilter) return false;
+      if (_minAmount != null && t.amount < _minAmount!) return false;
+      if (_maxAmount != null && t.amount > _maxAmount!) return false;
+      
+      if (_tagsFilter.isNotEmpty) {
+        bool hasMatch = false;
+        for (var tag in _tagsFilter) {
+          if (t.tags.contains(tag)) {
+            hasMatch = true;
+            break;
+          }
+        }
+        if (!hasMatch) return false;
+      }
+
+      return true;
     }).toList();
+
+    // Sorting
+    _filteredTransactions.sort((a, b) {
+      int cmp = 0;
+      switch (_sortField) {
+        case 'amount':
+          cmp = a.amount.compareTo(b.amount);
+          break;
+        case 'category':
+          cmp = a.category.compareTo(b.category);
+          break;
+        case 'alphabetical':
+          cmp = a.title.compareTo(b.title);
+          break;
+        case 'date':
+        default:
+          cmp = a.date.compareTo(b.date);
+          break;
+      }
+      return _sortAscending ? cmp : -cmp;
+    });
 
     _calculateAnalytics();
     notifyListeners();

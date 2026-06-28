@@ -15,13 +15,11 @@ class SavingsGoalsModal extends StatelessWidget {
         centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle, color: Colors.green, size: 28),
-            onPressed: () => _showAddEditGoalModal(context, null),
-          ),
-          const SizedBox(width: 8),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddEditGoalModal(context, null),
+        backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: SafeArea(
         child: Column(

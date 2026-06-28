@@ -20,7 +20,22 @@ class TransactionDetailScreen extends StatelessWidget {
         elevation: 0,
         actions: [
           IconButton(icon: const Icon(Icons.share), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () {}),
+          PopupMenuButton<String>(
+            onSelected: (val) {
+              if (val == 'edit') {
+                // handle edit
+              } else if (val == 'delete') {
+                // handle delete
+              } else if (val == 'duplicate') {
+                // handle duplicate
+              }
+            },
+            itemBuilder: (ctx) => [
+              const PopupMenuItem(value: 'edit', child: Text('Edit')),
+              const PopupMenuItem(value: 'duplicate', child: Text('Duplicate')),
+              const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+            ],
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -90,6 +105,43 @@ class TransactionDetailScreen extends StatelessWidget {
                   if (t.notes.isNotEmpty) ...[
                     const Divider(height: 30),
                     _DetailRow(icon: Icons.note, label: 'Notes', value: t.notes),
+                  ],
+                  if (t.tags.isNotEmpty) ...[
+                    const Divider(height: 30),
+                    _DetailRow(icon: Icons.local_offer, label: 'Tags', value: t.tags.join(', ')),
+                  ],
+                  if (t.hasAttachment) ...[
+                    const Divider(height: 30),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.attachment, color: Theme.of(context).primaryColor, size: 24),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Attachments', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                children: [
+                                  Container(
+                                    width: 60, height: 60,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black26,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.white12),
+                                    ),
+                                    child: const Icon(Icons.image, color: Colors.white54),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ],
               ),

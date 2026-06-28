@@ -109,7 +109,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text('Total Net Balance', style: TextStyle(color: subTextColor, fontSize: 13)),
                 const SizedBox(height: 6),
                 Text(
-                  '₹${ledger.netBalance.toStringAsFixed(0)}',
+                  '₹${NumberFormat('#,##0').format(ledger.netBalance)}',
                   style: TextStyle(color: textColor, fontSize: 36, fontWeight: FontWeight.bold, letterSpacing: -1),
                 ),
                 const SizedBox(height: 24),
@@ -120,21 +120,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Total Income', style: TextStyle(color: subTextColor, fontSize: 11)),
-                        Text('₹${ledger.totalIncome.toStringAsFixed(0)}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15)),
+                        Text('₹${NumberFormat('#,##0').format(ledger.totalIncome)}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15)),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text('Total Expenses', style: TextStyle(color: subTextColor, fontSize: 11)),
-                        Text('₹${ledger.totalExpense.toStringAsFixed(0)}', style: TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.bold, fontSize: 15)),
+                        Text('₹${NumberFormat('#,##0').format(ledger.totalExpense)}', style: TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.bold, fontSize: 15)),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text('Net Savings', style: TextStyle(color: subTextColor, fontSize: 11)),
-                        Text('₹${ledger.netBalance.toStringAsFixed(0)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
+                        Text('₹${NumberFormat('#,##0').format(ledger.netBalance)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
                       ],
                     ),
                   ],

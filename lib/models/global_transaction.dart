@@ -15,6 +15,7 @@ class GlobalTransaction {
   final TransactionStatus status;
   final String notes;
   final bool hasAttachment;
+  final List<String> tags;
   final String sourceModule;
 
   GlobalTransaction({
@@ -29,6 +30,7 @@ class GlobalTransaction {
     this.status = TransactionStatus.completed,
     this.notes = '',
     this.hasAttachment = false,
+    this.tags = const [],
     required this.sourceModule,
   });
 
@@ -67,6 +69,7 @@ class GlobalTransaction {
     TransactionStatus? status,
     String? notes,
     bool? hasAttachment,
+    List<String>? tags,
     String? sourceModule,
   }) {
     return GlobalTransaction(
@@ -81,6 +84,7 @@ class GlobalTransaction {
       status: status ?? this.status,
       notes: notes ?? this.notes,
       hasAttachment: hasAttachment ?? this.hasAttachment,
+      tags: tags ?? this.tags,
       sourceModule: sourceModule ?? this.sourceModule,
     );
   }

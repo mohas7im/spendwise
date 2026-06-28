@@ -15,13 +15,11 @@ class SavingsGrowthModal extends StatelessWidget {
         centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle, color: Colors.teal, size: 28),
-            onPressed: () => _showAddEditGrowthModal(context, null),
-          ),
-          const SizedBox(width: 8),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddEditGrowthModal(context, null),
+        backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: SafeArea(
         child: Column(

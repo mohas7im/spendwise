@@ -36,13 +36,11 @@ class _DebtsManagerModalState extends State<DebtsManagerModal> with SingleTicker
         centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle, color: Colors.blue, size: 28),
-            onPressed: () => _showAddEditDebtModal(context, null),
-          ),
-          const SizedBox(width: 8),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddEditDebtModal(context, null),
+        backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: SafeArea(
         child: Column(

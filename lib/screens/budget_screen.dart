@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../models/budget.dart';
 import '../models/transaction.dart';
 import '../providers/budget_provider.dart';
@@ -84,12 +85,10 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
 
   String _getPeriodLabel(DateTime date) {
     switch (_selectedPeriod) {
-      case LimitPeriod.daily: return '${date.day}/${date.month}/${date.year}';
-      case LimitPeriod.weekly: return 'Week of ${date.day}/${date.month}';
-      case LimitPeriod.monthly: 
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return '${months[date.month - 1]} ${date.year}';
-      case LimitPeriod.yearly: return '${date.year}';
+      case LimitPeriod.daily: return DateFormat('MMM d, yyyy').format(date);
+      case LimitPeriod.weekly: return 'Week of ${DateFormat('MMM d').format(date)}';
+      case LimitPeriod.monthly: return DateFormat('MMMM yyyy').format(date);
+      case LimitPeriod.yearly: return DateFormat('yyyy').format(date);
       default: return '';
     }
   }
@@ -106,8 +105,16 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
 
           // Compute Dashboard Metrics
           final periodLimits = budget.categoryLimits.where((l) => l.period == _selectedPeriod).toList();
-          final globalLimits = budget.globalLimits.where((l) => l.period == _selectedPeriod).toList();
-          final globalLimit = globalLimits.isNotEmpty ? globalLimits.first : null;
+          
+          final double totalLimitAmount = periodLimits.fold(0.0, (sum, l) => sum + l.limitAmount);
+          final double totalSpentAmount = periodLimits.fold(0.0, (sum, l) => sum + l.spentAmount);
+          
+          final globalLimit = periodLimits.isNotEmpty ? GlobalBudgetLimit(
+            id: 'computed_${_selectedPeriod.name}',
+            period: _selectedPeriod,
+            limitAmount: totalLimitAmount,
+            spentAmount: totalSpentAmount,
+          ) : null;
 
           int overBudgetCount = periodLimits.where((l) => l.isOverBudget).length;
 
@@ -126,39 +133,9 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                         Text('Budgets', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                         Row(
                           children: [
-                            PopupMenuButton<String>(
+                            IconButton(
                               icon: Icon(Icons.add_circle, color: Theme.of(context).primaryColor, size: 28),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              onSelected: (value) {
-                                if (value == 'global') {
-                                  _showAddGlobalLimitSheet(context, budgetProvider);
-                                } else if (value == 'category') {
-                                  _showAddLimitSheet(context, budgetProvider);
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  value: 'global',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.public, color: Theme.of(context).primaryColor, size: 20),
-                                      const SizedBox(width: 12),
-                                      const Text('Master Budget'),
-                                    ],
-                                  ),
-                                ),
-                                PopupMenuItem(
-                                  value: 'category',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.category, color: Theme.of(context).primaryColor, size: 20),
-                                      const SizedBox(width: 12),
-                                      const Text('Category Budget'),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                              onPressed: () => _showAddLimitSheet(context, budgetProvider),
                             ),
                           ],
                         ),
@@ -169,7 +146,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                   // Tab Bar for Limits
                   CustomTabBar(
                     controller: _tabController,
-                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
                     tabs: const [
                       Tab(text: 'Daily'),
                       Tab(text: 'Weekly'),
@@ -180,7 +157,7 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
 
                   // Historical Navigation Bar
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -201,12 +178,10 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                   ),
 
                   // Master Global Budget Tracker
-                  if (globalLimit != null)
+                  if (_selectedPeriod != LimitPeriod.daily && globalLimit != null)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                      child: GestureDetector(
-                        onTap: () => _showAddGlobalLimitSheet(context, budgetProvider, existingLimit: globalLimit),
-                        child: PremiumGradientCard(
+                      child: PremiumGradientCard(
                           builder: (ctx, textColor, subTextColor) {
                             final pct = (globalLimit.percentUsed).clamp(0.0, 1.0);
                             final color = globalLimit.isOverBudget ? Colors.red.shade900 : pct > 0.85 ? Colors.orangeAccent : Colors.greenAccent;
@@ -237,22 +212,11 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
                             );
                           },
                         ),
-                      ),
-                    )
-                  else
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                      child: TextButton.icon(
-                        onPressed: () => _showAddGlobalLimitSheet(context, budgetProvider),
-                        icon: const Icon(Icons.account_balance_wallet),
-                        label: const Text('Set Global Master Budget'),
-                        style: TextButton.styleFrom(
-                          backgroundColor: Theme.of(context).cardColor,
-                          foregroundColor: Theme.of(context).primaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                      ),
+                      )
+                  else if (_selectedPeriod != LimitPeriod.daily)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                      child: Text('Add a category budget to see your master tracker.'),
                     ),
 
                   const SizedBox(height: 16),
@@ -385,103 +349,6 @@ class _BudgetScreenState extends State<BudgetScreen> with SingleTickerProviderSt
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _showAddGlobalLimitSheet(BuildContext context, BudgetProvider provider, {GlobalBudgetLimit? existingLimit}) {
-    final amountCtrl = TextEditingController(text: existingLimit?.limitAmount.toStringAsFixed(0) ?? '');
-    bool allowRollover = existingLimit?.allowRollover ?? false;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) {
-          final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-          return AnimatedPadding(
-            padding: EdgeInsets.only(bottom: bottomInset),
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.fastOutSlowIn,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(existingLimit == null ? 'Set Master Budget' : 'Edit Master Budget', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                      if (existingLimit != null)
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            provider.deleteGlobalLimit(existingLimit.id);
-                            Navigator.pop(ctx);
-                          },
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: amountCtrl,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Total Limit Amount',
-                      prefixText: '₹ ',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: const Text('Allow Rollover'),
-                    subtitle: const Text('Unspent budget rolls into next period'),
-                    value: allowRollover,
-                    onChanged: (val) => setModalState(() => allowRollover = val),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        final val = double.tryParse(amountCtrl.text) ?? 0.0;
-                        if (val > 0) {
-                          if (existingLimit == null) {
-                            provider.addGlobalLimit(GlobalBudgetLimit(
-                              id: DateTime.now().millisecondsSinceEpoch.toString(),
-                              limitAmount: val,
-                              period: _selectedPeriod,
-                              allowRollover: allowRollover,
-                            ));
-                          } else {
-                            provider.updateGlobalLimit(GlobalBudgetLimit(
-                              id: existingLimit.id,
-                              limitAmount: val,
-                              period: _selectedPeriod,
-                              allowRollover: allowRollover,
-                            ));
-                          }
-                          Navigator.pop(ctx);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: const Text('Save'),
-                    ),
-                  )
-                ],
-              ),
-            ),
-          );
-        },
       ),
     );
   }
