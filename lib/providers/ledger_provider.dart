@@ -11,7 +11,7 @@ import '../providers/vault_provider.dart';
 import '../models/debt.dart';
 
 class LedgerProvider extends ChangeNotifier {
-  List<GlobalTransaction> _allTransactions = [];
+  final List<GlobalTransaction> _allTransactions = [];
   List<GlobalTransaction> _filteredTransactions = [];
   
   // Filters
@@ -19,7 +19,7 @@ class LedgerProvider extends ChangeNotifier {
   GlobalTransactionType? _typeFilter;
   
   // Selection for bulk actions
-  Set<String> _selectedIds = {};
+  final Set<String> _selectedIds = {};
   bool _isSelectionMode = false;
 
   // Analytics
@@ -199,6 +199,7 @@ class LedgerProvider extends ChangeNotifier {
     final file = File('${dir.path}/transactions_export_${DateTime.now().millisecondsSinceEpoch}.csv');
     await file.writeAsString(csv);
 
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Exported to ${file.path}')));
     clearSelection();
   }
@@ -238,6 +239,7 @@ class LedgerProvider extends ChangeNotifier {
     final file = File('${dir.path}/transactions_export_${DateTime.now().millisecondsSinceEpoch}.pdf');
     await file.writeAsBytes(await pdf.save());
 
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Exported PDF to ${file.path}')));
     clearSelection();
   }

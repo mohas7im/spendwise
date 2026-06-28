@@ -91,8 +91,9 @@ class CalculatorsMenuModal extends StatelessWidget {
               ),
             ),
           ],
-        );
-      },
+        ),
+      );
+    },
     );
   }
 
