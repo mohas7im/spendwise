@@ -99,6 +99,17 @@ class SubscriptionModel {
   }
 
   Color get color => Color(colorValue);
-  // ignore: non_const_argument_for_const_parameter
-  IconData get icon => IconData(iconCodePoint, fontFamily: iconFontFamily);
+
+  IconData get icon {
+    if (iconCodePoint == Icons.subscriptions.codePoint) return Icons.subscriptions;
+    if (iconCodePoint == Icons.movie.codePoint) return Icons.movie;
+    if (iconCodePoint == Icons.music_note.codePoint) return Icons.music_note;
+    if (iconCodePoint == Icons.fitness_center.codePoint) return Icons.fitness_center;
+    if (iconCodePoint == Icons.shopping_cart.codePoint) return Icons.shopping_cart;
+    if (iconCodePoint == Icons.videogame_asset.codePoint) return Icons.videogame_asset;
+    if (iconCodePoint == Icons.wifi.codePoint) return Icons.wifi;
+    if (iconCodePoint == Icons.phone_android.codePoint) return Icons.phone_android;
+    
+    return Icons.subscriptions;
+  }
 }
