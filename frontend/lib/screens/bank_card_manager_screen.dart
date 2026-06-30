@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flip_card/flip_card.dart';
 import 'package:flutter/services.dart';
 import '../providers/vault_provider.dart';
 import '../models/vault_models.dart';
@@ -714,12 +713,7 @@ class _StackedCardsViewState extends State<_StackedCardsView> {
                     child: AnimatedScale(
                       duration: const Duration(milliseconds: 400),
                       scale: isOtherExpanded ? 0.9 : 1.0,
-                      child: FlipCard(
-                        flipOnTouch: false,
-                        direction: FlipDirection.HORIZONTAL,
-                        front: widget.buildFront(card),
-                        back: widget.buildBack(card),
-                      ),
+                      child: widget.buildFront(card),
                     ),
                   ),
                 );
