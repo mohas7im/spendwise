@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flip_card/flip_card.dart';
 import 'package:flutter/services.dart';
 import '../providers/vault_provider.dart';
 import '../models/vault_models.dart';
@@ -702,18 +703,22 @@ class _StackedCardsViewState extends State<_StackedCardsView> {
                   right: 16,
                   child: GestureDetector(
                     onTap: () {
-                      if (isExpanded) {
-                        widget.onCardLongPress(card);
-                      } else {
+                      if (!isExpanded) {
                         setState(() {
                           expandedIndex = i;
                         });
                       }
                     },
+                    onLongPress: () => widget.onCardLongPress(card),
                     child: AnimatedScale(
                       duration: const Duration(milliseconds: 400),
                       scale: isOtherExpanded ? 0.9 : 1.0,
-                      child: widget.buildFront(card),
+                      child: FlipCard(
+                        flipOnTouch: isExpanded, // Only flips when expanded
+                        direction: FlipDirection.HORIZONTAL,
+                        front: widget.buildFront(card),
+                        back: widget.buildBack(card),
+                      ),
                     ),
                   ),
                 );
