@@ -9,7 +9,6 @@ import '../providers/split_provider.dart';
 import '../providers/fuel_provider.dart';
 import '../providers/vault_provider.dart';
 import '../main.dart'; // for ThemeProvider
-import '../widgets/common/premium_gradient_card.dart';
 import '../widgets/ledger/global_transaction_card.dart';
 import '../widgets/spending_breakdown_sheet.dart';
 import '../widgets/add_transaction_modal.dart';
@@ -236,45 +235,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 16),
                   
                   // Financial Summary Section
-            PremiumGradientCard(
-              builder: (context, textColor, subTextColor) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Total Net Balance', style: TextStyle(color: subTextColor, fontSize: 13)),
-                const SizedBox(height: 6),
-                Text(
-                  '₹${NumberFormat.decimalPattern('en_IN').format(ledger.netBalance)}',
-                  style: TextStyle(color: textColor, fontSize: 36, fontWeight: FontWeight.bold, letterSpacing: -1),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(28),
+                border: isDark ? Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1) : null,
+                boxShadow: [
+                  if (!isDark) BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Total balance', style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 15, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 8),
+                  Text(
+                    '₹${NumberFormat.decimalPattern('en_IN').format(ledger.netBalance)}',
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: -1),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF2C2C2E) : Colors.black,
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Total Income', style: TextStyle(color: subTextColor, fontSize: 11)),
-                        Text('₹${NumberFormat.decimalPattern('en_IN').format(ledger.totalIncome)}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15)),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                              child: const Icon(Icons.arrow_upward, color: Colors.black, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Income', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                                Text('₹${NumberFormat.compact().format(ledger.totalIncome)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                              child: const Icon(Icons.arrow_downward, color: Colors.black, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Spending', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                                Text('₹${NumberFormat.compact().format(ledger.totalExpense)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                              ],
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text('Total Expenses', style: TextStyle(color: subTextColor, fontSize: 11)),
-                        Text('₹${NumberFormat.decimalPattern('en_IN').format(ledger.totalExpense)}', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 15)),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('Net Savings', style: TextStyle(color: subTextColor, fontSize: 11)),
-                        Text('₹${NumberFormat.decimalPattern('en_IN').format(ledger.netBalance)}', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15)),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            )),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
 
             // ── Spending Summary ──

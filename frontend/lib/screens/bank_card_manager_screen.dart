@@ -234,20 +234,25 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(child: Text(acc.bankName, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold))),
-                PopupMenuButton<String>(
-                  onSelected: (val) {
-                    if (val == 'edit') {
-                      Navigator.pop(ctx);
-                      _showAddBankModal(context, provider, existingAcc: acc);
-                    }
-                    if (val == 'delete') {
-                      provider.deleteBankAccount(acc.id);
-                      Navigator.pop(ctx);
-                    }
-                  },
-                  itemBuilder: (c) => [
-                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                    const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+                      tooltip: 'Edit',
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _showAddBankModal(context, provider, existingAcc: acc);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      tooltip: 'Delete',
+                      onPressed: () {
+                        provider.deleteBankAccount(acc.id);
+                        Navigator.pop(ctx);
+                      },
+                    ),
                   ],
                 ),
               ],
@@ -288,20 +293,25 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(child: Text(card.cardName, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold))),
-                PopupMenuButton<String>(
-                  onSelected: (val) {
-                    if (val == 'edit') {
-                      Navigator.pop(ctx);
-                      _showAddCardModal(context, provider, existingCard: card);
-                    }
-                    if (val == 'delete') {
-                      provider.deletePaymentCard(card.id);
-                      Navigator.pop(ctx);
-                    }
-                  },
-                  itemBuilder: (c) => [
-                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                    const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+                      tooltip: 'Edit',
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _showAddCardModal(context, provider, existingCard: card);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      tooltip: 'Delete',
+                      onPressed: () {
+                        provider.deletePaymentCard(card.id);
+                        Navigator.pop(ctx);
+                      },
+                    ),
                   ],
                 ),
               ],
@@ -457,19 +467,43 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                         itemCount: banks.length,
                         itemBuilder: (ctx, i) {
                           final acc = banks[i];
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                )
-                              ],
+                          return Dismissible(
+                            key: Key(acc.id),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(16)),
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.symmetric(horizontal: 24),
+                              child: const Icon(Icons.delete, color: Colors.white),
                             ),
+                            confirmDismiss: (direction) async {
+                              return await showDialog(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text('Delete Account'),
+                                  content: const Text('Are you sure you want to delete this bank account?'),
+                                  actions: [
+                                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                                    TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
+                                  ],
+                                ),
+                              );
+                            },
+                            onDismissed: (_) => vaultProvider.deleteBankAccount(acc.id),
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).cardColor,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  )
+                                ],
+                              ),
                             child: Material(
                               color: Colors.transparent,
                               child: ListTile(
@@ -490,6 +524,7 @@ class _BankCardManagerScreenState extends State<BankCardManagerScreen> with Sing
                               ),
                               ),
                             ),
+                           ),
                           );
                         },
                       ),
@@ -668,15 +703,19 @@ class _StackedCardsViewState extends State<_StackedCardsView> {
                   right: 16,
                   child: GestureDetector(
                     onTap: () {
-                      setState(() {
-                        expandedIndex = isExpanded ? null : i;
-                      });
+                      if (isExpanded) {
+                        widget.onCardLongPress(card);
+                      } else {
+                        setState(() {
+                          expandedIndex = i;
+                        });
+                      }
                     },
-                    onLongPress: () => widget.onCardLongPress(card),
                     child: AnimatedScale(
                       duration: const Duration(milliseconds: 400),
                       scale: isOtherExpanded ? 0.9 : 1.0,
                       child: FlipCard(
+                        flipOnTouch: false,
                         direction: FlipDirection.HORIZONTAL,
                         front: widget.buildFront(card),
                         back: widget.buildBack(card),
